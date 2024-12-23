@@ -1,0 +1,1 @@
+remote_destation=ltsai@ntugrid8.phys.ntu.edu.tw:/wk_cms3/ltsai/wk_cms/ltsai/CMSSW_11_3_4/src/xPhoton/macros/step2bak.fit

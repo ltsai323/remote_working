@@ -1,1 +1,1 @@
-ltsai@lxplus.cern.ch:~/ReceivedFile/mycode_2/CMSSW_13_0_13/src/GmJetsAnalysis/Gm_1jet_category/bin
+remote_destation=ltsai@lxplus.cern.ch:~/ReceivedFile/mycode_2/CMSSW_13_0_13/src/GmJetsAnalysis/Gm_1jet_category/bin
