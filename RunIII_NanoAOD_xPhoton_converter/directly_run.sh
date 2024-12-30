@@ -11,5 +11,5 @@ isMC=$3
 
 root -b $inFILE <<EOF
 .ls
-if (_file0 ) .x mmm.C(_file0, "$outFILE", $isMC, "2022")
+if (_file0 ) .x ForTrigSF_MC.C(_file0, "$outFILE", $isMC, "2022EE")
 EOF

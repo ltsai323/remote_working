@@ -1,0 +1,6 @@
+<use name="boost_program_options"/>
+<use name="boost_filesystem"/>
+<flags CXXFLAGS="`root-config --libs --glibs --cflags` -lcorrectionlib -lTMVA"/>
+<bin file="hlt_egamma_mc_runner.cpp" name="hlt_egamma_mc_runner"></bin>
+<bin file="demo.cpp" name="demo_runner"></bin>
+<bin file="EstimateSR.C" name="EstimateSR"></bin>

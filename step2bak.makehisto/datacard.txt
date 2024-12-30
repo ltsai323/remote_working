@@ -1,0 +1,21 @@
+
+imax *
+jmax *
+kmax *
+---------------
+
+shapes data_obs cat_BDT /wk_cms3/ltsai/wk_cms/ltsai/ReceivedFile/GJet/latestsample/UL2016PostVFP/makehistos/DeepFlavour_gjetMadgraph_cutIdx0_mergeBin_9/makehisto.root bin_0_0_0/BDT_data_signalRegion
+shapes signalMC cat_BDT /wk_cms3/ltsai/wk_cms/ltsai/ReceivedFile/GJet/latestsample/UL2016PostVFP/makehistos/DeepFlavour_gjetMadgraph_cutIdx0_mergeBin_9/makehisto.root bin_0_0_0/BDT_gjet_signalRegion_norm bin_0_0_0/BDT_gjet_signalRegion_$SYSTEMATIC_norm
+shapes bkgShape cat_BDT /wk_cms3/ltsai/wk_cms/ltsai/ReceivedFile/GJet/latestsample/UL2016PostVFP/makehistos/DeepFlavour_gjetMadgraph_cutIdx0_mergeBin_9/makehisto.root bin_0_0_0/BDT_data_dataSideband_norm
+
+
+---------------
+bin          cat_BDT
+observation  -1
+------------------------------
+bin          cat_BDT    cat_BDT
+process      signalMC   bkgShape
+process       0          1
+rate         -1         -1
+------------------------------
+shapeUnc shape 1  -

@@ -171,8 +171,8 @@ void ForTrigSF_MC(const std::vector<std::string>& inFILEs, string outFile, bool 
       //"Jet_electronIdx2",
       //"Jet_muonIdx1",
       //"Jet_muonIdx2",
-      //"Jet_svIdx1", // index to SV not related to SV_* // skip this index because they are not related to SV_* variables
-      //"Jet_svIdx2", // index to SV not related to SV_* // skip this index because they are not related to SV_* variables
+      "Jet_svIdx1", // index to SV not related to SV_* // skip this index because they are not related to SV_* variables
+      "Jet_svIdx2", // index to SV not related to SV_* // skip this index because they are not related to SV_* variables
       "Jet_hfadjacentEtaStripsSize",
       "Jet_hfcentralEtaStripSize",
       "Jet_PNetRegPtRawCorr",
@@ -366,7 +366,7 @@ void splitString_testfunc(const char* argv[])
 void ForTrigSF_MC(const char* inFILEs, string outFile, bool isMC, const char* dataERA)
 { ForTrigSF_MC( splitString(inFILEs,','), outFile, isMC, dataERA ); }
 
-bool isMC(const char* input) {
+bool ___IsMC___(const char* input) {
     if (
             strcmp(input, "data") == 0 ||
             strcmp(input, "DATA") == 0 ||
@@ -380,6 +380,28 @@ bool isMC(const char* input) {
         return true;
     throw std::invalid_argument(Form("\n\n[isMC] Unknown input '%s' received\n\n", input));
 }
+bool IsMC_fromFile(const char* inFILE)
+{
+  auto iFILE = TFile::Open(inFILE);
+  if (!iFILE || iFILE->IsZombie() )
+  {
+    std::cerr << "[FileNotOpened] Not able to open file : " << inFILE << std::endl;
+    return false;
+  }
+  
+  auto iTREE = (TTree*) iFILE->Get("Events");
+  if (!iTREE )
+  {
+    std::cerr << "[InvalidTreeInFile] Tree 'Events' does not exists in file\n";
+    return false;
+  }
+
+  // if genWeight in branch, it is MC.
+  if ( tree->GetBranch("genWeight") )
+    return true;
+  file->Close();
+  return false;
+}
 
 int main(int argc, const char* argv[])
 {
@@ -387,10 +409,10 @@ int main(int argc, const char* argv[])
   //   ./exec in1.root,in2.root out.root isMC 2022
   //   arg 1: input root files, separated by comma
   //   arg 2: output root file name
-  //   arg 3: a flag : is MC or not (1 / 0)
-  //   arg 4: data era
-  if ( argc < 3+1 ) { std::cerr << "Input arguments : 1.in root, 2. outroot 3. isMC(1/0) \n\n"; return 1; }
-  bool is_mc = isMC(argv[3]);
+  //   arg 3: data era
+  if ( argc < 3+1 ) { std::cerr << "Input arguments : 1.in root, 2. outroot 3. data era \n\n"; return 1; }
+  bool is_mc = IsMC_fromFile(argv[1]);
+  //bool is_mc = ___IsMC___(argv[3]);
   ForTrigSF_MC(argv[1],argv[2], is_mc, "2022EE");
   //splitString_testfunc(argv);
 

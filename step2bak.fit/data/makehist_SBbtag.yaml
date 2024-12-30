@@ -1,0 +1,19 @@
+channel: SBbtag
+inputFILE: out_makehisto.root
+datacardTEMPLATE: data/datacard_SBbtag_template.txt
+outputDATACARD:   datacard_SBbtag.txt
+outputROOT:       datacard_SBbtag.root
+outputYAML:       datacard_SBbtag.defaultValue.yaml
+load_data:
+    - name: data_obs
+      histSOURCE: jettag0_data_dataSideband
+      normalize: -1
+    - name: ljet
+      histSOURCE: jettag0_gjetL_signalRegion
+      normalize:  1
+    - name: cjet
+      histSOURCE: jettag0_gjetC_signalRegion
+      normalize: 1
+    - name: bjet
+      histSOURCE: jettag0_gjetB_signalRegion
+      normalize: 1

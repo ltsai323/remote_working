@@ -1,1 +1,2 @@
-remote_destation=ltsai@ntugrid8.phys.ntu.edu.tw:/home/ltsai/Work/github/xPhoton/macros/step2bak.makehistos
+#remote_destation=ltsai@ntugrid8.phys.ntu.edu.tw:/home/ltsai/Work/github/xPhoton/macros/step2bak.makehistos
+remote_destation=ltsai@chip01.phy.ncu.edu.tw:/data4/ltsai/Work/2022EE/step3.1.makehisto
