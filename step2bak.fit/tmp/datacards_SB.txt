@@ -8,7 +8,7 @@ shapes *       SBcvsb  datacard_SBcvsb.root SBcvsb/$PROCESS
 shapes *       SBcvsl  datacard_SBcvsl.root SBcvsl/$PROCESS
 ----------------------------------------------------------------------------------------------------------------------------------
 bin          SBbtag  SBcvsl  SBcvsb
-observation  16674   16674   16674 
+observation  41605   41606   41606 
 ----------------------------------------------------------------------------------------------------------------------------------
 bin          SBbtag  SBbtag  SBbtag  SBcvsl  SBcvsl  SBcvsl  SBcvsb  SBcvsb  SBcvsb
 process      cjet    bjet    ljet    cjet    bjet    ljet    cjet    bjet    ljet  

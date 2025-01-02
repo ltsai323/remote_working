@@ -5,7 +5,7 @@ kmax    *
 shapes * SBbtag datacard_SBbtag.root $CHANNEL/$PROCESS
 --------------------------------------------------------------------------------
 bin          SBbtag
-observation  16674.0
+observation  41605.0
 --------------------------------------------------------------------------------
 bin                                  SBbtag   SBbtag   SBbtag 
 process                                cjet     bjet     ljet 

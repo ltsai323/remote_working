@@ -4,3 +4,5 @@
 [24-12-04 16:16] .
 [24-12-26 15:57] upload to chip01
 [24-12-26 17:15] add event weight
+[24-12-30 10:46] modify bin width
+[24-12-30 10:46] modify binning

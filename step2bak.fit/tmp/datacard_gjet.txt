@@ -5,7 +5,7 @@ kmax    *
 shapes *   gjet datacard_gjet.root $CHANNEL/$PROCESS
 --------------------------------------------------------------------------------
 bin            gjet   
-observation  84655.0
+observation  117809.0
 --------------------------------------------------------------------------------
 bin                                  gjet   gjet   gjet   gjet
 process                              cjet   bjet   ljet     SB

@@ -52,6 +52,11 @@ function the_exit() { echo $1; exit; }
    $OUT_FITINFO
 ### Use sideband fit to extract the initial value of the C/B/L fractions ended
 
+ PostFitShapesFromWorkspace -d $_TMP_DATACARD \
+     -w $_TMP_HIGGSCOMBINETEST \
+     -m 120 -f $_TMP_MULTIDIMFITTEST:fit_mdf \
+     --postfit --print --output postfit_fitGJet_inclusive.root || the_exit "PostFitShapeFromWorkspace failed to activate the command"
+
 ####### Timer #######
 #real	1m44.901s
 #user	0m18.271s

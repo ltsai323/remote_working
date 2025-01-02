@@ -8,6 +8,10 @@ from pprint import pprint
 
 def info(mesg):
     print(f'i@ {mesg}')
+DEBUG_MODE = False
+def BUG(mesg):
+    if DEBUG_MODE:
+        print(f'b@ {mesg}')
 
 
 def get_entries(tFILE:ROOT.TFile, histNAME='jettag0_data_dataSideband'):
@@ -36,9 +40,11 @@ nFAKE:
         info(f'[get_yaml_configurables] No input yaml found, use default yaml configurations.')
 
 
-    if 'nFAKE' not in yaml_configurables.keys():
+    if 'nFAKE' not in yaml_configurables.keys() or 'composition' not in yaml_configurables['nFAKE'].keys():
         yaml_configurables['nFAKE'] = { 'composition': 0.1 }
         info('[get_yaml_configurables] No "nFAKE" in yaml configurations, use 10%')
+
+    BUG(f'[Check Yaml Content] {yaml_configurables}')
     return yaml_configurables
 def IOargs(argv) -> inARGs:
     def print_help():
@@ -59,7 +65,7 @@ def IOargs(argv) -> inARGs:
         yaml_content = get_yaml_configurables( argv[4] if len(argv)>4 else None )
     except IndexError as e:
         print_help()
-    
+
 
     return inARGs(
             inFILE, hNAME, outFILE,
@@ -69,13 +75,13 @@ def IOargs(argv) -> inARGs:
             yaml_content['nFAKE']['composition']
     )
 
-    
+
 if __name__ == "__main__":
     arg = IOargs(sys.argv)
 
     tFILE = ROOT.TFile.Open(arg.inFILE)
     entries = get_entries(tFILE, arg.histNAME)
-    
+
 
     entries_without_fake = entries * (1. - float(arg.fracFAKE) )
     out_template = {

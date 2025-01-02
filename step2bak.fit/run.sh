@@ -8,6 +8,7 @@ PYTHONPATH=$PWD:$PYTHONPATH
 ### Create output directory
 touch $outDIR && /bin/rm -r $outDIR && mkdir -p $outDIR && cd $outDIR
 function the_exit() { echo $1; exit; }
+
 link_file_if_absent.sh $BASE_DIR/data
 link_file_if_absent.sh $BASE_DIR/out_makehisto.root
 
@@ -22,7 +23,7 @@ sh $BASE_DIR/run.step2.fitDataSideband.sh \
 
 
 
-fitinfo=fitinfo_merged.sh
+fitinfo=fitinfo_merged.yaml
 touch $fitinfo ; /bin/rm $fitinfo
 cat fitinfo_sideband.yaml >> $fitinfo
 cat fitinfo_gjet_inclusive.yaml >> $fitinfo

@@ -6,7 +6,7 @@ outputROOT:       datacard_btag.root
 outputYAML:       datacard_btag.defaultValue.yaml
 load_data:
     - name: data_obs
-      histSOURCE: jettag0_data_dataSideband
+      histSOURCE: jettag0_data_signalRegion
       normalize: -1
     - name: ljet
       histSOURCE: jettag0_gjetL_signalRegion

@@ -27,6 +27,7 @@ histSOURCE_cvsl=`realpath $histSOURCE_cvsl`
    > datacards.txt
  
 
+ echo $PWD
  ### [pre process] grab init values from sideband fitting.
  extract_data_entries.py \
    datacard_gjet.root 'gjet/data_obs' \
@@ -50,10 +51,10 @@ histSOURCE_cvsl=`realpath $histSOURCE_cvsl`
  ### [post process] collect result to yaml file
  extract_fit_value.py Allinfo \
    higgsCombineTest.MultiDimFit.mH120.root \
-   fitinfo_signalregion.yaml
+   fitinfo.signal_region.yaml
 
  ### ToDo: need to prepare the corrected datacard templates and run this file.
  PostFitShapesFromWorkspace -d datacards.txt \
-     -w higgsCombineTest.MultiDimFit.mH120.root  \ 
+     -w higgsCombineTest.MultiDimFit.mH120.root \
      -m 120 -f multidimfitTest.root:fit_mdf \
      --postfit --print --output postfit.root || the_exit "PostFitShapeFromWorkspace failed to activate the command"

@@ -6,7 +6,7 @@ outputROOT:       datacard_cvsl.root
 outputYAML:       datacard_cvsl.defaultValue.yaml
 load_data:
     - name: data_obs
-      histSOURCE: jettag1_data_dataSideband
+      histSOURCE: jettag1_data_signalRegion
       normalize: -1
     - name: ljet
       histSOURCE: jettag1_gjetL_signalRegion

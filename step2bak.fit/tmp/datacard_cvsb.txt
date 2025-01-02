@@ -5,7 +5,7 @@ kmax    *
 shapes *   cvsb datacard_cvsb.root $CHANNEL/$PROCESS
 --------------------------------------------------------------------------------
 bin            cvsb
-observation  16674.0
+observation  117809.0
 --------------------------------------------------------------------------------
 bin                                    cvsb     cvsb     cvsb   cvsb
 process                                cjet     bjet     ljet     SB

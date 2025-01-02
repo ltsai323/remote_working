@@ -5,7 +5,7 @@ kmax    *
 shapes * SBcvsl datacard_SBcvsl.root $CHANNEL/$PROCESS
 --------------------------------------------------------------------------------
 bin          SBcvsl
-observation  16674.0
+observation  41606.0
 --------------------------------------------------------------------------------
 bin                                  SBcvsl   SBcvsl   SBcvsl 
 process                                cjet     bjet     ljet 
