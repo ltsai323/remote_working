@@ -1,0 +1,18 @@
+Combination of gjet=datacard_gjet.txt  btag=datacard_btag.txt  cvsl=datacard_cvsl.txt  cvsb=datacard_cvsb.txt
+imax 4 number of bins
+jmax 3 number of processes minus 1
+kmax 0 number of nuisance parameters
+----------------------------------------------------------------------------------------------------------------------------------
+shapes *     btag  datacard_btag.root btag/$PROCESS
+shapes *     cvsb  datacard_cvsb.root cvsb/$PROCESS
+shapes *     cvsl  datacard_cvsl.root cvsl/$PROCESS
+shapes *     gjet  datacard_gjet.root gjet/$PROCESS
+----------------------------------------------------------------------------------------------------------------------------------
+bin          gjet   btag   cvsl   cvsb 
+observation  34136  34136  34136  34136
+----------------------------------------------------------------------------------------------------------------------------------
+bin          gjet   gjet   gjet   gjet   btag   btag   btag   btag   cvsl   cvsl   cvsl   cvsl   cvsb   cvsb   cvsb   cvsb 
+process      cjet   bjet   ljet   SB     cjet   bjet   ljet   SB     cjet   bjet   ljet   SB     cjet   bjet   ljet   SB   
+process      -1     0      1      2      -1     0      1      2      -1     0      1      2      -1     0      1      2    
+rate         1      1      1      1      1      1      1      1      1      1      1      1      1      1      1      1    
+----------------------------------------------------------------------------------------------------------------------------------

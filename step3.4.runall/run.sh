@@ -1,9 +1,10 @@
 #!/usr/bin/env sh
 outFOLDER=${1:-hiiii}
 
-pPtRange=( 210 230 250 300 400 500 600 800 1000 -1 )
+pPtBinning1=( 210 230 250 300 400 500 600 800 1000 -1 )
+pPtBinning2=( 210 230 250 300 400 500 600 -1 )
 
-echo ${#pPtRange[@]}
+pPtRange=("${pPtBinning2[@]}")
 
 for pEtaBin in 0 1; do
     for jEtaBin in 0 1; do

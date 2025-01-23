@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
 import yaml
+''' Append collected information to a file.
+So this code should be executed for every binning.
+Every execution adds a new entry to csv file.
+'''
 
 FILE_IDENTIFIER = 'collect_fitinfo.py'
 DEBUG_MODE = True

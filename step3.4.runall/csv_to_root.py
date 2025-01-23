@@ -3,7 +3,9 @@ import csv
 import ROOT
 from array import array
 from collections import namedtuple
-CollectedData = namedtuple('CollectedData', 'all_pts fit_yieldL fit_yieldC fit_yieldB fit_yieldF fit_XSL fit_XSC fit_XSB fit_XSF')
+from uncertainties import ufloat
+CollectedData = namedtuple('CollectedData', 'all_pts fit_yieldL fit_yieldC fit_yieldB fit_yieldF fit_XSL fit_XSC fit_XSB fit_XSF fracL fracC fracB')
+load_csv_labels_value_and_error = namedtuple('load_csv_labels_value_and_error', 'value error')
 FILE_IDENTIFIER = 'csv_to_root.py'
 def info(mesg):
     print(f'i-{FILE_IDENTIFIER}@ {mesg}')
@@ -25,29 +27,76 @@ class Binning:
         return f'Binning(pEta={self.pEtaBin},jEta={self.jEtaBin}, pPt={self.pPtL})'
 
 class CSVEntry:
-    def __init__(self, csvENTRY, valNAME, errNAME):
-        self.val = float(csvENTRY.get(valNAME, -1))
-        self.err = float(csvENTRY.get(errNAME, -1))
+    def __init__(self, csvENTRY, valueANDerror:load_csv_labels_value_and_error):
+        self.val = float(csvENTRY.get(valueANDerror.value, -1))
+        self.err = float(csvENTRY.get(valueANDerror.error, -1))
+    def is_valid(self): return self.val != -1 and self.err != -1
+    def __repr__(self):
+        return f'({self.val:.2e}+-{self.err:.2e})'
+
+class CSVEntryFrac:
+    def __init__(self, csvENTRY,
+            _v1:load_csv_labels_value_and_error,
+            _v2:load_csv_labels_value_and_error,
+            _v3:load_csv_labels_value_and_error):
+        v = float(csvENTRY.get(_v1.value, -1))
+        v2= float(csvENTRY.get(_v2.value, -1))
+        v3= float(csvENTRY.get(_v3.value, -1))
+
+        e = float(csvENTRY.get(_v1.error, -1))
+        e2= float(csvENTRY.get(_v2.error, -1))
+        e3= float(csvENTRY.get(_v3.error, -1))
+
+
+        if v == -1 and v2 == -1 and v3 == -1:
+            self.val = -1
+            self.err = -1
+        else:
+            val1 = ufloat(v,e)
+            val2 = ufloat(v2,e2)
+            val3 = ufloat(v3,e3)
+            tot = val1 + val2 + val3
+            frac = val1 / tot
+
+            self.val = frac.nominal_value
+            self.err = frac.std_dev
+            #self.val = v / (v+v2+v3)
+            #self.err = 0.
     def is_valid(self): return self.val != -1 and self.err != -1
     def __repr__(self):
         return f'({self.val:.2e}+-{self.err:.2e})'
 
 def FitYieldB(csvENTRY) -> CSVEntry:
-    return CSVEntry(csvENTRY, 'b_value', 'b_error')
+    return CSVEntry(csvENTRY, load_csv_labels_value_and_error('b_value', 'b_error'))
 def FitYieldC(csvENTRY) -> CSVEntry:
-    return CSVEntry(csvENTRY, 'c_value', 'c_error')
+    return CSVEntry(csvENTRY, load_csv_labels_value_and_error('c_value', 'c_error'))
 def FitYieldL(csvENTRY) -> CSVEntry:
-    return CSVEntry(csvENTRY, 'l_value', 'l_error')
+    return CSVEntry(csvENTRY, load_csv_labels_value_and_error('l_value', 'l_error'))
 def FitYieldFake(csvENTRY) -> CSVEntry:
-    return CSVEntry(csvENTRY, 'fake_value', 'fake_error')
+    return CSVEntry(csvENTRY, load_csv_labels_value_and_error('fake_value', 'fake_error'))
 def FitXSB(csvENTRY) -> CSVEntry:
-    return CSVEntry(csvENTRY, 'b_xs', 'b_xs_err')
+    return CSVEntry(csvENTRY, load_csv_labels_value_and_error('b_xs', 'b_xs_err'))
 def FitXSC(csvENTRY) -> CSVEntry:
-    return CSVEntry(csvENTRY, 'c_xs', 'c_xs_err')
+    return CSVEntry(csvENTRY, load_csv_labels_value_and_error('c_xs', 'c_xs_err'))
 def FitXSL(csvENTRY) -> CSVEntry:
-    return CSVEntry(csvENTRY, 'l_xs', 'l_xs_err')
+    return CSVEntry(csvENTRY, load_csv_labels_value_and_error('l_xs', 'l_xs_err'))
 def FitXSFake(csvENTRY) -> CSVEntry:
-    return CSVEntry(csvENTRY, 'fake_xs', 'fake_xs_err')
+    return CSVEntry(csvENTRY, load_csv_labels_value_and_error('fake_xs', 'fake_xs_err'))
+def FracB(csvENTRY) -> CSVEntryFrac:
+    return CSVEntryFrac(csvENTRY,
+            load_csv_labels_value_and_error('b_value','b_error'),
+            load_csv_labels_value_and_error('l_value','l_error'),
+            load_csv_labels_value_and_error('c_value','c_error'))
+def FracC(csvENTRY) -> CSVEntryFrac:
+    return CSVEntryFrac(csvENTRY,
+            load_csv_labels_value_and_error('c_value','c_error'),
+            load_csv_labels_value_and_error('l_value','l_error'),
+            load_csv_labels_value_and_error('b_value','b_error'))
+def FracL(csvENTRY) -> CSVEntryFrac:
+    return CSVEntryFrac(csvENTRY,
+            load_csv_labels_value_and_error('l_value','l_error'),
+            load_csv_labels_value_and_error('c_value','c_error'),
+            load_csv_labels_value_and_error('b_value','b_error'))
 
 class BinningCollection:
     def __init__(self):
@@ -89,6 +138,10 @@ def read_csv_entry(inFILE) -> CollectedData:
     fit_XSL = BinningCollection()
     fit_XSF = BinningCollection()
 
+    fracL = BinningCollection()
+    fracC = BinningCollection()
+    fracB = BinningCollection()
+
     with open(inFILE, 'r') as f_in:
         reader = csv.DictReader(f_in)
         for entry in reader:
@@ -103,6 +156,10 @@ def read_csv_entry(inFILE) -> CollectedData:
             fit_XSL.add_entry(binning,FitXSL(entry))
             fit_XSF.add_entry(binning,FitXSFake(entry))
 
+            fracL.add_entry(binning,FracL(entry))
+            fracC.add_entry(binning,FracC(entry))
+            fracB.add_entry(binning,FracB(entry))
+
     ptrange1 = fit_yieldL.pt_range()
     ptrange2 = fit_yieldF.pt_range()
     all_pts = ptrange1 if len(ptrange1)>len(ptrange2) else ptrange2
@@ -110,6 +167,7 @@ def read_csv_entry(inFILE) -> CollectedData:
             all_pts,
             fit_yieldL, fit_yieldC, fit_yieldB, fit_yieldF,
             fit_XSL, fit_XSC, fit_XSB, fit_XSF,
+            fracL, fracC, fracB
             )
 
 def create_root(collectedDATA:CollectedData, outFILE:str):
@@ -168,6 +226,13 @@ def create_root(collectedDATA:CollectedData, outFILE:str):
     hists = record_to_hist(collectedDATA, 'fit_XSB')
     for h in hists: h.Write()
     hists = record_to_hist(collectedDATA, 'fit_XSF')
+    for h in hists: h.Write()
+
+    hists = record_to_hist(collectedDATA, 'fracL')
+    for h in hists: h.Write()
+    hists = record_to_hist(collectedDATA, 'fracC')
+    for h in hists: h.Write()
+    hists = record_to_hist(collectedDATA, 'fracB')
     for h in hists: h.Write()
 
     out_file.Close()
