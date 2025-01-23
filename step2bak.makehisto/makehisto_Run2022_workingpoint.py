@@ -22,16 +22,6 @@ def cut_WP(algo:str, wpTYPE:str):
     if algo == 'ParT': return WP_PART[wpTYPE]
     raise IOError(f'[InvalidInput] algorithm "{ algo }" does not support in the working point')
 
-BRANCH_NAME = {
-        'PNet': { 'CvsB': 'PNetCvsB', 'bScore': 'PNetB', 'CvsL': 'PNetCvsL' },
-        'ParT': { 'CvsB': 'ParTCvsB', 'bScore': 'ParTB', 'CvsL': 'ParTCvsL' },
-            }
-def branchname(algo, var):
-    return BRANCH_NAME[algo][var]
-def load_var(var):
-    algo = 'ParT'
-    return BRANCH_NAME[algo][var]
-
 
 def Binning(df, pETAbin, jETAbin, pPTlow, pPThigh=-1):
     ### if pPThigh < 0, disable the upper bond of photon pt
@@ -55,24 +45,29 @@ def h_BDT(hNAME, hDESC):
     return (hNAME, hDESC, NUM_HIST_BIN, -1.,1.)
 def h_CTagVar(hNAME, hDESC):
     return (hNAME, hDESC, NUM_HIST_BIN,  0.,1.)
+NUM_SVMASS_BIN = 40
+def h_SecVMass(hNAME, hDESC):
+    return (hNAME, hDESC, NUM_SVMASS_BIN, 0., 5.)
 
 def DataHistsSR(df):
     dfSR = df
 
     hists = []
     hists.append( dfSR.Histo1D(h_BDT('BDT_data_signalRegion', 'bdt_score'), 'photon_mva') )
-    hists.append( dfSR.Histo1D(h_CTagVar('jettag0_data_signalRegion', 'bScore'), load_var('bScore')) )
-    hists.append( dfSR.Histo1D(h_CTagVar('jettag1_data_signalRegion', 'CvsL'  ), load_var('CvsL')  ) )
-    hists.append( dfSR.Histo1D(h_CTagVar('jettag2_data_signalRegion', 'CvsB'  ), load_var('CvsB')  ) )
+    hists.append( dfSR.Histo1D(h_CTagVar('jettag0_data_signalRegion', 'bScore'), 'PNetB') )
+    hists.append( dfSR.Histo1D(h_CTagVar('jettag1_data_signalRegion', 'CvsL'  ), 'PNetCvsL'  ) )
+    hists.append( dfSR.Histo1D(h_CTagVar('jettag2_data_signalRegion', 'CvsB'  ), 'PNetCvsB'  ) )
+    hists.append( dfSR.Histo1D(h_SecVMass('jettag3_data_signalRegion', 'SecVtxMass'  ), 'jet_SVmass'  ) )
     return hists
 
 def DataHistsSB(df):
     dfSB = df
     hists = []
     hists.append( dfSB.Histo1D(h_BDT('BDT_data_dataSideband', 'bdt_score'), 'photon_mva') )
-    hists.append( dfSB.Histo1D(h_CTagVar('jettag0_data_dataSideband', 'bScore'), load_var('bScore')) )
-    hists.append( dfSB.Histo1D(h_CTagVar('jettag1_data_dataSideband', 'CvsL'  ), load_var('CvsL')  ) )
-    hists.append( dfSB.Histo1D(h_CTagVar('jettag2_data_dataSideband', 'CvsB'  ), load_var('CvsB')  ) )
+    hists.append( dfSB.Histo1D(h_CTagVar('jettag0_data_dataSideband', 'bScore'), 'PNetB') )
+    hists.append( dfSB.Histo1D(h_CTagVar('jettag1_data_dataSideband', 'CvsL'  ), 'PNetCvsL'  ) )
+    hists.append( dfSB.Histo1D(h_CTagVar('jettag2_data_dataSideband', 'CvsB'  ), 'PNetCvsB'  ) )
+    hists.append( dfSB.Histo1D(h_SecVMass('jettag3_data_dataSideband', 'SecVtxMass'  ), 'jet_SVmass'  ) )
 
     return hists
 def GJetHists(df):
@@ -100,9 +95,10 @@ def GJetHists(df):
         hists.append( df_SR.Histo1D(h_BDT(f'BDT_gjet{tag}_signalRegion_shapeUncUp', 'bdt_score ShapeUp'), 'photon_mva_orig', 'wgt') )
         hists.append( GetShapeDown(f'BDT_gjet{tag}_signalRegion_shapeUncDown', hists[-2], hists[-1]) )
 
-        hists.append( df_SR.Histo1D(h_CTagVar(f'jettag0_gjet{tag}_signalRegion', 'bScore'), load_var('bScore'), 'wgt') )
-        hists.append( df_SR.Histo1D(h_CTagVar(f'jettag1_gjet{tag}_signalRegion', 'CvsL'  ), load_var('CvsL')  , 'wgt'  ) )
-        hists.append( df_SR.Histo1D(h_CTagVar(f'jettag2_gjet{tag}_signalRegion', 'CvsB'  ), load_var('CvsB')  , 'wgt'  ) )
+        hists.append( df_SR.Histo1D(h_CTagVar(f'jettag0_gjet{tag}_signalRegion', 'bScore'), 'PNetB', 'wgt') )
+        hists.append( df_SR.Histo1D(h_CTagVar(f'jettag1_gjet{tag}_signalRegion', 'CvsL'  ), 'PNetCvsL', 'wgt'  ) )
+        hists.append( df_SR.Histo1D(h_CTagVar(f'jettag2_gjet{tag}_signalRegion', 'CvsB'  ), 'PNetCvsB', 'wgt'  ) )
+        hists.append( df_SR.Histo1D(h_SecVMass(f'jettag3_gjet{tag}_signalRegion', 'SecVtxMass'  ), 'jet_SVmass', 'wgt'  ) )
 
     hists = []
     hists.append( dfSR.Histo1D(h_BDT(f'BDT_gjets_signalRegion', 'bdt_score'), 'photon_mva', 'wgt') )
@@ -131,6 +127,11 @@ def main_func(
     rdf_sign = ROOT.RDataFrame('tree', inFILEs.sign)
     #rdf_fake = ROOT.RDataFrame('tree', inFILEs.fake)
     info(f'[LoadRDataframe] Loading dataframe from input files... Finished')
+
+    rdf_dataSR = rdf_dataSR.Filter( cut_WP('PNet', 'loose') )
+    rdf_dataSB = rdf_dataSB.Filter( cut_WP('PNet', 'loose') )
+    rdf_sign   = rdf_sign  .Filter( cut_WP('PNet', 'loose') )
+    #rdf_fake = ROOT.RDataFrame('tree', inFILEs.fake)
 
 
     binned_dataSR = Binning(rdf_dataSR,  pETAbin,jETAbin,pPTlow,pPThigh)
