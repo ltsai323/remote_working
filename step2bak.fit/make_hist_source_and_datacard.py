@@ -148,7 +148,7 @@ def export_composition_LCBjets(oFILEname:str):
     composition_l = 0.
     composition_c = 0.
     composition_b = 0.
-    
+
     ndata = RECORDED_INTEGRATION_INFO['data_obs']
     nfake = ndata * composition_fake
     nsign = ndata * composition_sign

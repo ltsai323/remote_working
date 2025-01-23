@@ -18,5 +18,5 @@ load_data:
       histSOURCE: jettag2_gjetB_signalRegion
       normalize: 1
     - name: SB
-      histSOURCE: BDT_data_dataSideband
+      histSOURCE: jettag2_data_dataSideband
       normalize: 1

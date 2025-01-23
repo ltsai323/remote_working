@@ -1,3 +1,4 @@
+### use BDT_gjets_signalRegion replacing all quarks shape
 channel: gjet
 inputFILE: out_makehisto.root
 datacardTEMPLATE: data/datacard_gjet_template.txt
@@ -9,32 +10,32 @@ load_data:
       histSOURCE: BDT_data_signalRegion
       normalize: -1
     - name: ljet
-      histSOURCE: BDT_gjetL_signalRegion
+      histSOURCE: BDT_gjets_signalRegion
       normalize:  1
     - name: ljet_shapeUp
-      histSOURCE: BDT_gjetL_signalRegion_shapeUncUp
-      normalize: BDT_gjetL_signalRegion
+      histSOURCE: BDT_gjets_signalRegion_shapeUncUp
+      normalize: BDT_gjets_signalRegion
     - name: ljet_shapeDown
-      histSOURCE: BDT_gjetL_signalRegion_shapeUncDown
-      normalize: BDT_gjetL_signalRegion
+      histSOURCE: BDT_gjets_signalRegion_shapeUncDown
+      normalize: BDT_gjets_signalRegion
     - name: cjet
-      histSOURCE: BDT_gjetC_signalRegion
+      histSOURCE: BDT_gjets_signalRegion
       normalize: 1
     - name: cjet_shapeUp
-      histSOURCE: BDT_gjetC_signalRegion_shapeUncUp
-      normalize: BDT_gjetC_signalRegion
+      histSOURCE: BDT_gjets_signalRegion_shapeUncUp
+      normalize: BDT_gjets_signalRegion
     - name: cjet_shapeDown
-      histSOURCE: BDT_gjetC_signalRegion_shapeUncDown
-      normalize: BDT_gjetC_signalRegion
+      histSOURCE: BDT_gjets_signalRegion_shapeUncDown
+      normalize: BDT_gjets_signalRegion
     - name: bjet
-      histSOURCE: BDT_gjetB_signalRegion
+      histSOURCE: BDT_gjets_signalRegion
       normalize: 1
     - name: bjet_shapeUp
-      histSOURCE: BDT_gjetB_signalRegion_shapeUncUp
-      normalize: BDT_gjetB_signalRegion
+      histSOURCE: BDT_gjets_signalRegion_shapeUncUp
+      normalize: BDT_gjets_signalRegion
     - name: bjet_shapeDown
-      histSOURCE: BDT_gjetB_signalRegion_shapeUncDown
-      normalize: BDT_gjetB_signalRegion
+      histSOURCE: BDT_gjets_signalRegion_shapeUncDown
+      normalize: BDT_gjets_signalRegion
     - name: SB
       histSOURCE: BDT_data_dataSideband
       normalize: 1

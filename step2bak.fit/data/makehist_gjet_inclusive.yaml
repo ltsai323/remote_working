@@ -9,7 +9,7 @@ load_data:
       histSOURCE: BDT_data_signalRegion
       normalize: -1
     - name: gjet
-      histSOURCE: BDT_gjetL_signalRegion
+      histSOURCE: BDT_gjets_signalRegion
       normalize:  1
     - name: SB
       histSOURCE: BDT_data_dataSideband
