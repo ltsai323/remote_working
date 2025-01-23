@@ -397,9 +397,9 @@ bool IsMC_fromFile(const char* inFILE)
   }
 
   // if genWeight in branch, it is MC.
-  if ( tree->GetBranch("genWeight") )
+  if ( iTREE->GetBranch("genWeight") )
     return true;
-  file->Close();
+  iFILE->Close();
   return false;
 }
 
