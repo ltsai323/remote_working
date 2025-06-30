@@ -1,0 +1,118 @@
+# Compiler and flags
+CXX = $(shell root-config --ld)
+ROOT_FLAGS = $(shell root-config --cflags --libs)
+LD_FLAGS = $(shell root-config --ldflags)
+EXTRA_LIBS = -lXMLIO -lTMVA
+MYLIB        = -I./extlib/ -L./extlib/ -lcorrectionlib
+NEW_LD_LIBRARY_PATH = $(LD_LIBRARY_PATH):./extlib
+
+# Targets and source files
+TARGET_1 = stage1_ForTrigSF_GJet.exe
+SOURCE_1 = ForTrigSF_MC.C
+
+TARGET_2 = stage2_EstimateSR_GJet.exe
+SOURCE_2 = EstimateSR.C
+
+# Build and run targets
+.PHONY: all run clean
+
+all: $(TARGET_1) $(TARGET_2)
+
+$(TARGET_1): $(SOURCE_1)
+	$(CXX) $(LD_FLAGS) $(ROOT_FLAGS) $(EXTRA_LIBS) $(SOURCE_1) $(MYLIB) -o $(TARGET_1)
+
+$(TARGET_2): $(SOURCE_2)
+	@echo "[Compiling] $(SOURCE_2)"
+	$(CXX) $(LD_FLAGS) $(ROOT_FLAGS) $(EXTRA_LIBS) $(SOURCE_2) $(MYLIB) -o $(TARGET_2)
+
+
+
+check_defined = \
+    $(strip $(foreach 1,$1, \
+    $(call __check_defined,$1,$(strip $(value 2)))))
+__check_defined = \
+    $(if $(value $1),, \
+    $(error Undefined $1$(if $2, ($2))))
+
+check_shell_var_defined = \
+  	$(if $(shell [ -z "$${$1}" ] && echo undefined), \
+	$(error Shell variable $1 is undefined), \
+	$(info Shell variable $1 is set))
+
+massiverun: $(TARGET_1) ## hiii
+	@if [ -z "$(filelist)" ]; then \
+		echo "Error: Set 'filelist' variable to provide the input file list."; \
+		exit 1; \
+	fi
+
+	@idx=0; \
+	for infilename in `cat $(filelist)`; do \
+	  oFILE=out_$${idx}.root; \
+	  echo "./$(TARGET_1) $$infilename $$oFILE 2022EE"; \
+	  ./$(TARGET_1) $$infilename $$oFILE 2022EE > log_$${idx} 2>&1; \
+	  sh bkgjob_submitN.sh 5; \
+	  idx=$$((idx+1)); \
+	done; \
+	echo "[AllJobSubmitted]"; \
+	wait; \
+	echo "[AllJobFinished]"
+
+run1: $(TARGET_1) ## run stage1 file. [iFILE=hi.root] [oFILE=outfile_1.root]
+	$(call check_defined, iFILE)
+	$(call check_defined, oFILE)
+	./$(TARGET_1) $(iFILE) $(oFILE) 2022EE
+WORKDIR = ./
+run1dwn: $(TARGET_1) ## run stage1 file. [iFILE=hi.root] [oFILE=outfile_1.root] [WORKDIR=./]
+	$(call check_defined, iFILE)
+	$(call check_defined, oFILE)
+	$(call check_shell_var_defined,X509_USER_PROXY)
+	touch $(WORKDIR)/inROOT.root ; /bin/rm $(WORKDIR)/inROOT.root
+	@{ \
+	  xrdcp $(iFILE) $(WORKDIR)/inROOT.root || \
+	  xrdcp $(iFILE) $(WORKDIR)/inROOT.root || \
+	  xrdcp $(iFILE) $(WORKDIR)/inROOT.root || \
+	  xrdcp $(iFILE) $(WORKDIR)/inROOT.root || \
+	  xrdcp $(iFILE) $(WORKDIR)/inROOT.root || { \
+	    echo "ERROR: iFILE downloading failure: $(iFILE)"; exit 1; }; \
+	}
+	make run1 iFILE=$(WORKDIR)/inROOT.root oFILE=$(WORKDIR)/oROOT.root
+	mv $(WORKDIR)/oROOT.root $(oFILE)
+	/bin/rm $(WORKDIR)/inROOT.root
+rerun1: $(TARGET_1) ## put a file to reprocess again. The file comes from "make collectErrorFiles" \n[failedjob=failedjob_Run2022F.txt] \n[oFILEtemplate=/eos/home-l/ltsai/eos_storage/condor_storage/Run2022F/outfile_Run2022F_10344805.0.root] # note .0.root is important
+	$(call check_defined, failedjob)
+	$(call check_defined, oFILEtemplate)
+	$(call check_shell_var_defined,X509_USER_PROXY)
+	@{ \
+		oFILEtemp=$(oFILEtemplate); \
+		o_file_temp=$${oFILEtemp%.0.root}; \
+		while read -r num inFILE; do echo make run1dwn  iFILE=$$inFILE oFILE=$${o_file_temp}.$${num}.root; make run1dwn  iFILE=$$inFILE oFILE=$${o_file_temp}.$${num}.root; done < $(failedjob); \
+	}
+test1data:
+	make run1 iFILE=root://lyoeos.in2p3.fr:1094//store/data/Run2022E/EGamma/NANOAOD/16Dec2023-v1/2540000/182de420-bda3-440d-95c2-5a521fb769d6.root oFILE=out1_datatest.root
+test1mc:
+	make run1 iFILE=root://cmsxrootd.fnal.gov///store/mc/Run3Summer22EENanoAODv12/G-4Jets_HT-100to200_TuneCP5_13p6TeV_madgraphMLM-pythia8/NANOAODSIM/130X_mcRun3_2022_realistic_postEE_v6-v2/2520000/0e2f021e-c9b5-4d73-a9d7-289f57f29506.root oFILE=out1_mctest.root
+
+
+run2: $(TARGET_2) # run EstimateSR.C executable. [tag=QCD2000]
+	$(call check_defined, tag)
+	echo this feature moved to another functio. Please not to use this executable.
+	exit
+	./$(TARGET_2) $(tag)
+
+
+test: $(TARGET_2) # test
+	echo this feature moved to another functio. Please not to use this executable.
+	exit
+	./$(TARGET_2) /Users/noises/Downloads/outFile_ZJetMC_DYto2L2Jets_MLL50_PTLL200to400_1J_2.root
+
+clean:
+	rm -f $(TARGET_1) $(TARGET_2) out_*.root log_* err_*
+
+
+IN_ARGS = [opts]
+
+
+help:  ## Display this help
+	@awk 'BEGIN {FS = ":.*##"; printf "Usage: make \033[32m<command>\033[0m $(IN_ARGS)\n\nCommands:\n\033[36m\033[0m\n"} \
+	/^[0-9a-zA-Z_-]+:.*?##/ { gsub(/\\n/, "\n                   "); printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2 } \
+	/^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } ' $(MAKEFILE_LIST)

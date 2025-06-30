@@ -1,0 +1,22 @@
+channel: cvsb
+inputFILE: out_makehisto.root
+datacardTEMPLATE: data/datacard_cvsb_template.txt
+outputDATACARD:   datacard_cvsb.txt
+outputROOT:       datacard_cvsb.root
+outputYAML:       datacard_cvsb.defaultValue.yaml
+load_data:
+    - name: data_obs
+      histSOURCE: jettag2_data_signalRegion
+      normalize: -1
+    - name: ljet
+      histSOURCE: jettag2_gjetL_signalRegion
+      normalize:  1
+    - name: cjet
+      histSOURCE: jettag2_gjetC_signalRegion
+      normalize: 1
+    - name: bjet
+      histSOURCE: jettag2_gjetB_signalRegion
+      normalize: 1
+    - name: SB
+      histSOURCE: jettag2_data_dataSideband
+      normalize: 1

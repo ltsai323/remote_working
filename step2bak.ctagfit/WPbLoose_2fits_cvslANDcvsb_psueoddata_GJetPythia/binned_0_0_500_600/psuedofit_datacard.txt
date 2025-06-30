@@ -1,0 +1,16 @@
+Combination of cvsl=psuedofit_datacard_cvsl.txt  cvsb=psuedofit_datacard_cvsb.txt
+imax 2 number of bins
+jmax 2 number of processes minus 1
+kmax 0 number of nuisance parameters
+----------------------------------------------------------------------------------------------------------------------------------
+shapes *     cvsb  psuedofit_datacard_cvsb.root gjet_cvsb/$PROCESS
+shapes *     cvsl  psuedofit_datacard_cvsl.root gjet_cvsl/$PROCESS
+----------------------------------------------------------------------------------------------------------------------------------
+bin          cvsl             cvsb           
+observation  1207.6655324406  1207.6655324406
+----------------------------------------------------------------------------------------------------------------------------------
+bin          cvsl             cvsl             cvsl             cvsb             cvsb             cvsb           
+process      Cjet             Bjet             Ljet             Cjet             Bjet             Ljet           
+process      -1               0                1                -1               0                1              
+rate         1                1                1                1                1                1              
+----------------------------------------------------------------------------------------------------------------------------------

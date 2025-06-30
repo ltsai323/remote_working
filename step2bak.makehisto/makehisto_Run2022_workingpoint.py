@@ -6,21 +6,6 @@ import ExternalFileMgr
 def info(mesg):
     print(f'i@ {mesg}')
 
-WP_PNET = {
-        'loose' : 'PNetCvsL > 0.054 && PNetCvsB > 0.182',
-        'medium': 'PNetCvsL > 0.160 && PNetCvsB > 0.304',
-        'tight' : 'PNetCvsL > 0.491 && PNetCvsB > 0.258',
-        }
-
-WP_PART = {
-        'loose' : 'ParTCvsL > 0.039 && ParTCvsB > 0.067',
-        'medium': 'ParTCvsL > 0.117 && ParTCvsB > 0.128',
-        'tight' : 'ParTCvsL > 0.358 && ParTCvsB > 0.095',
-        }
-def cut_WP(algo:str, wpTYPE:str):
-    if algo == 'PNet': return WP_PNET[wpTYPE]
-    if algo == 'ParT': return WP_PART[wpTYPE]
-    raise IOError(f'[InvalidInput] algorithm "{ algo }" does not support in the working point')
 
 
 def Binning(df, pETAbin, jETAbin, pPTlow, pPThigh=-1):
@@ -53,21 +38,55 @@ def DataHistsSR(df):
     dfSR = df
 
     hists = []
-    hists.append( dfSR.Histo1D(h_BDT('BDT_data_signalRegion', 'bdt_score'), 'photon_mva') )
-    hists.append( dfSR.Histo1D(h_CTagVar('jettag0_data_signalRegion', 'bScore'), 'PNetB') )
-    hists.append( dfSR.Histo1D(h_CTagVar('jettag1_data_signalRegion', 'CvsL'  ), 'PNetCvsL'  ) )
-    hists.append( dfSR.Histo1D(h_CTagVar('jettag2_data_signalRegion', 'CvsB'  ), 'PNetCvsB'  ) )
-    hists.append( dfSR.Histo1D(h_SecVMass('jettag3_data_signalRegion', 'SecVtxMass'  ), 'jet_SVmass'  ) )
+
+    df0 = df
+    dfCl= df.Filter('WPc_loose')
+    dfCm= df.Filter('WPc_medium')
+    dfCt= df.Filter('WPc_tight')
+
+    dfBl= df.Filter('WPb_loose')
+    dfBm= df.Filter('WPb_medium')
+    dfBt= df.Filter('WPb_tight')
+
+    def fill_hist(hists, dF, hNAME):
+        hists.append( dF.Histo1D(h_BDT(hNAME, 'bdt_score'), 'photon_mva') )
+
+    fill_hist(hists, df0  , 'BDT_data_signalRegion')
+
+    fill_hist(hists, dfCl , 'BDTWPcL_data_signalRegion')
+    fill_hist(hists, dfCm , 'BDTWPcM_data_signalRegion')
+    fill_hist(hists, dfCt , 'BDTWPcT_data_signalRegion')
+
+    fill_hist(hists, dfBl , 'BDTWPbL_data_signalRegion')
+    fill_hist(hists, dfBm , 'BDTWPbM_data_signalRegion')
+    fill_hist(hists, dfBt , 'BDTWPbT_data_signalRegion')
+
     return hists
 
 def DataHistsSB(df):
-    dfSB = df
     hists = []
-    hists.append( dfSB.Histo1D(h_BDT('BDT_data_dataSideband', 'bdt_score'), 'photon_mva') )
-    hists.append( dfSB.Histo1D(h_CTagVar('jettag0_data_dataSideband', 'bScore'), 'PNetB') )
-    hists.append( dfSB.Histo1D(h_CTagVar('jettag1_data_dataSideband', 'CvsL'  ), 'PNetCvsL'  ) )
-    hists.append( dfSB.Histo1D(h_CTagVar('jettag2_data_dataSideband', 'CvsB'  ), 'PNetCvsB'  ) )
-    hists.append( dfSB.Histo1D(h_SecVMass('jettag3_data_dataSideband', 'SecVtxMass'  ), 'jet_SVmass'  ) )
+
+    df0 = df
+    dfCl= df.Filter('WPc_loose')
+    dfCm= df.Filter('WPc_medium')
+    dfCt= df.Filter('WPc_tight')
+
+    dfBl= df.Filter('WPb_loose')
+    dfBm= df.Filter('WPb_medium')
+    dfBt= df.Filter('WPb_tight')
+
+    def fill_hist(hists, dF, hNAME):
+        hists.append( dF.Histo1D(h_BDT(hNAME, 'bdt_score'), 'photon_mva') )
+
+    fill_hist(hists, df0  , 'BDT_data_dataSideband')
+
+    fill_hist(hists, dfCl , 'BDTWPcL_data_dataSideband')
+    fill_hist(hists, dfCm , 'BDTWPcM_data_dataSideband')
+    fill_hist(hists, dfCt , 'BDTWPcT_data_dataSideband')
+
+    fill_hist(hists, dfBl , 'BDTWPbL_data_dataSideband')
+    fill_hist(hists, dfBm , 'BDTWPbM_data_dataSideband')
+    fill_hist(hists, dfBt , 'BDTWPbT_data_dataSideband')
 
     return hists
 def GJetHists(df):
@@ -86,31 +105,45 @@ def GJetHists(df):
     df__ = DefineJetTruth(df)
     dfSR = df__
 
-    dfSR_B = dfSR.Filter('isBJet')
-    dfSR_C = dfSR.Filter('isCJet')
-    dfSR_L = dfSR.Filter('isLJet')
+    df0 = dfSR
+    dfCl= dfSR.Filter('WPc_loose')
+    dfCm= dfSR.Filter('WPc_medium')
+    dfCt= dfSR.Filter('WPc_tight')
 
-    def fill_quark_hist(hists, df_SR, tag):
-        hists.append( df_SR.Histo1D(h_BDT(f'BDT_gjet{tag}_signalRegion', 'bdt_score'), 'photon_mva', 'wgt') )
-        hists.append( df_SR.Histo1D(h_BDT(f'BDT_gjet{tag}_signalRegion_shapeUncUp', 'bdt_score ShapeUp'), 'photon_mva_orig', 'wgt') )
-        hists.append( GetShapeDown(f'BDT_gjet{tag}_signalRegion_shapeUncDown', hists[-2], hists[-1]) )
+    dfBl= dfSR.Filter('WPb_loose')
+    dfBm= dfSR.Filter('WPb_medium')
+    dfBt= dfSR.Filter('WPb_tight')
 
-        hists.append( df_SR.Histo1D(h_CTagVar(f'jettag0_gjet{tag}_signalRegion', 'bScore'), 'PNetB', 'wgt') )
-        hists.append( df_SR.Histo1D(h_CTagVar(f'jettag1_gjet{tag}_signalRegion', 'CvsL'  ), 'PNetCvsL', 'wgt'  ) )
-        hists.append( df_SR.Histo1D(h_CTagVar(f'jettag2_gjet{tag}_signalRegion', 'CvsB'  ), 'PNetCvsB', 'wgt'  ) )
-        hists.append( df_SR.Histo1D(h_SecVMass(f'jettag3_gjet{tag}_signalRegion', 'SecVtxMass'  ), 'jet_SVmass', 'wgt'  ) )
+
+    def fill_hist(hists, df, hNAME):
+        hists.append( df.Histo1D(h_BDT(hNAME, 'bdt_score'), 'photon_mva', 'wgt') )
+        hists.append( df.Histo1D(h_BDT(f'{hNAME}_shapeUncUp', 'bdt_score ShapeUp'), 'photon_mva_orig', 'wgt') )
+        hists.append( GetShapeDown(       f'{hNAME}_shapeUncDown', hists[-2], hists[-1]) )
+
 
     hists = []
-    hists.append( dfSR.Histo1D(h_BDT(f'BDT_gjets_signalRegion', 'bdt_score'), 'photon_mva', 'wgt') )
-    hists.append( dfSR.Histo1D(h_BDT(f'BDT_gjets_signalRegion_shapeUncUp', 'bdt_score ShapeUp'), 'photon_mva_orig', 'wgt') )
-    hists.append( GetShapeDown(f'BDT_gjets_signalRegion_shapeUncDown', hists[-2], hists[-1]) )
+    fill_hist(hists, df0,  'BDT_gjet_signalRegion')
+    fill_hist(hists, dfCl, 'BDTWPcL_gjet_signalRegion')
+    fill_hist(hists, dfCm, 'BDTWPcM_gjet_signalRegion')
+    fill_hist(hists, dfCt, 'BDTWPcT_gjet_signalRegion')
 
-    fill_quark_hist(hists, dfSR_B, 'B')
-    fill_quark_hist(hists, dfSR_C, 'C')
-    fill_quark_hist(hists, dfSR_L, 'L')
+    fill_hist(hists, dfBl, 'BDTWPbL_gjet_signalRegion')
+    fill_hist(hists, dfBm, 'BDTWPbM_gjet_signalRegion')
+    fill_hist(hists, dfBt, 'BDTWPbT_gjet_signalRegion')
 
 
     return hists
+
+
+def define_working_points(df):
+    return df \
+            .Define('WPc_loose' , 'ParTCvsL > 0.039 && ParTCvsB > 0.067' ) \
+            .Define('WPc_medium', 'ParTCvsL > 0.117 && ParTCvsB > 0.128' ) \
+            .Define('WPc_tight' , 'ParTCvsL > 0.358 && ParTCvsB > 0.095' ) \
+            .Define('WPb_loose' , 'ParTB > 0.0897') \
+            .Define('WPb_medium', 'ParTB > 0.4510') \
+            .Define('WPb_tight' , 'ParTB > 0.8604')
+
 
 
 def main_func(
@@ -118,7 +151,7 @@ def main_func(
         pETAbin, jETAbin,
         pPTlow, pPThigh
         ):
-    inFILEs = ExternalFileMgr.GetEstimateSRFile(dataERA)
+    inFILEs = ExternalFileMgr.GetEstimateSRFile_GJet(dataERA)
     info(f'[GotExternalFile] data era = "{ dataERA }, xPhotonFiles {inFILEs}')
 
     info(f'[LoadRDataframe] Loading dataframe from input files...')
@@ -128,9 +161,9 @@ def main_func(
     #rdf_fake = ROOT.RDataFrame('tree', inFILEs.fake)
     info(f'[LoadRDataframe] Loading dataframe from input files... Finished')
 
-    rdf_dataSR = rdf_dataSR.Filter( cut_WP('PNet', 'loose') )
-    rdf_dataSB = rdf_dataSB.Filter( cut_WP('PNet', 'loose') )
-    rdf_sign   = rdf_sign  .Filter( cut_WP('PNet', 'loose') )
+    rdf_dataSR = define_working_points(rdf_dataSR)
+    rdf_dataSB = define_working_points(rdf_dataSB)
+    rdf_sign   = define_working_points(rdf_sign  )
     #rdf_fake = ROOT.RDataFrame('tree', inFILEs.fake)
 
 

@@ -29,7 +29,7 @@ namespace DYjet_ZmmSelections
 
 // detail inside the same file
 #define __MyDYjet_ZmmSelections_C__
-#ifdef __MyDYjet_ZmmSelections_C__
+#ifdef  __MyDYjet_ZmmSelections_C__
 #include <numeric>
 
 TString DYjet_ZmmSelections::EventPassedHLT()

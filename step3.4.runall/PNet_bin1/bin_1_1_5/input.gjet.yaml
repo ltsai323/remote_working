@@ -1,0 +1,47 @@
+figNAME: 'outputs/gjet.pdf'
+upperpad:
+  xLABEL: ''
+  yLABEL: 'Entries'
+  yRANGE:
+    - 1e-0
+    - 1e10
+  ySCALE: log
+  plotables:
+    - type: TH1F
+      objname: gjet_postfit/data
+      file: secondary_plotable.root
+      label: data
+      plotstyle: data0
+      legorder: -1
+    # the foramt is controlled in each DrawObj.py
+    - type: TH1F
+      objname: gjet_postfit/fit
+      file: secondary_plotable.root
+      label: gjet+di-jet
+      plotstyle: line1
+      legorder: 0
+    - type: TH1F
+      objname: gjet_postfit/bjet
+      file: secondary_plotable.root
+      label: B jet
+      plotstyle: hist3
+      legorder: 3
+    - type: TH1F
+      objname: gjet_postfit/sign
+      file: secondary_plotable.root
+      label: B+C jet
+      plotstyle: hist2
+      legorder: 2
+lowerpad:
+  xLABEL: 'BDTG score ($\gamma$)'
+  yLABEL: 'data / MC'
+  yRANGE:
+    -   0.2
+    -   1.8
+  # the foramt is controlled in each DrawObj.py
+  plotables:
+    - type: TGraphAsymmError
+      objname: gjet_postfit/fit_ratio
+      file: secondary_plotable.root
+      label: 'data / MC'
+      plotstyle: data0

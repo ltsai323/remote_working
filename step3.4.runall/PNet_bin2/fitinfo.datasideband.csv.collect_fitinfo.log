@@ -1,0 +1,6 @@
+i-collect_fitinfo.py@ [LoadFitInfo] Loading "bin_1_1_7/fitinfo_sideband.yaml"
+i-collect_fitinfo.py@ [skipped] key "nFAKE" is ignored from yaml file.
+i-collect_fitinfo.py@ [skipped] key "nSIGN" is ignored from yaml file.
+i-collect_fitinfo.py@ [MaxPtBin] Use photon pt 1500 GeV as the upper bond
+b-collect_fitinfo.py@ [Ignoring] ignoring invalid entry
+i-collect_fitinfo.py@ [Export] put info into csv file "fitinfo.datasideband.csv"

@@ -10,9 +10,13 @@ using namespace std;
 #include "MyPhoSelections.h"
 #include "MyJetSelections.h"
 #include "MyIdxSelections.h"
+#include "MyGeneralFuncs.h"
 #include "PhotonIDMVA.h"
 #include "ShowerShapeCorrector.h"
+//#include "extlib/correction.h"
 typedef ROOT::VecOps::RVec<float> RVecFloat;
+typedef ROOT::VecOps::RVec<Short_t> RVecShort;
+typedef ROOT::VecOps::RVec<Bool_t> RVecBool;
 
 void ForTrigSF_MC(const std::vector<std::string>& inFILEs, string outFile, bool isMC = false, const char* dataERA = "2022")
 {
@@ -23,6 +27,9 @@ void ForTrigSF_MC(const std::vector<std::string>& inFILEs, string outFile, bool 
   std::map<std::string,const char*> usedfiles = ImportedFileMgr::Factory("relative");
   ShowerShapeCorrector::ShowerShapeCalibGraphManager SScorrMgr( usedfiles["SScorrBarrel"], usedfiles["SScorrEndcap"] );
   PhotonMVACalculator mvaMgr( usedfiles["tmvaBarrel"], usedfiles["tmvaEndcap"] );
+
+  //auto cset_jet_vetomap_file = CorrectionSet::from_file("data/jetvetomaps.json");
+  //auto cset_veto = cset_jet_vetomap_file->at("Summer22EE_23Sep2023_RunEFG_V1");
 
 
 
@@ -35,14 +42,33 @@ void ForTrigSF_MC(const std::vector<std::string>& inFILEs, string outFile, bool 
     //.Define("selectedPhoIdx", IdxSelections::IndexOfSelectedLeadingCandidate, {"goodPhoton", "Photon_pt"})
     .Define("selectedPhoIdx", "ArgMax(Photon_pt * goodPhoton)")
 
-    .Define( "PassJetHLT", JetSelections::EventPassedAllJetHLT().Data() )
+    //.Define( "PassJetHLT", JetSelections::EventPassedAllJetHLT().Data() ) // TBDeleted
     .Define( "PreselectedJet", JetSelections::JetPreselection().Data() )
-    .Define( "goodJet", "PassJetHLT && PreselectedJet" ) // pass HLT requirement at PactoToxPhoton
+    //.Define( "goodJet", "PassJetHLT && PreselectedJet" ) // pass HLT requirement at PactoToxPhoton
+    .Define( "goodJet", "PreselectedJet" ) // pass HLT requirement at PactoToxPhoton
+    //.Define( "goodJet", "PreselectedJet * LooseVetoMap" ) // pass HLT requirement at PactoToxPhoton and loose veto map
     .Define( "dPhiGJet", "DeltaPhi(Photon_phi[selectedPhoIdx], Jet_phi)")
     .Define( "dEtaGJet",          "Photon_eta[selectedPhoIdx] - Jet_eta")
     .Define( "dRGJet", "sqrt(dPhiGJet*dPhiGJet + dEtaGJet*dEtaGJet)")
     .Define( "dRGJetCut", "dRGJet > 0.4")
     .Define( "goodGJet", "goodJet && dRGJetCut")
+    .Define( "Jet_PFMuonOverlapped",
+        [](const RVecShort& jetMUidx1, const RVecShort& jetMUidx2, const RVecBool& muonISpfCAND)
+        { 
+          RVecBool jet_pfmuon_overlapped(jetMUidx1.size());
+          for ( int jetIdx = 0; jetIdx < jetMUidx1.size(); ++jetIdx )
+          {
+            Short_t mu1idx = jetMUidx1[jetIdx];
+            Short_t mu2idx = jetMUidx2[jetIdx];
+            Bool_t pfmuon_overlapped = false;
+            if ( mu1idx >= 0 )
+              if ( muonISpfCAND[mu1idx] ) pfmuon_overlapped = true;
+            if ( mu2idx >= 0 )
+              if ( muonISpfCAND[mu2idx] ) pfmuon_overlapped = true;
+            jet_pfmuon_overlapped.push_back(pfmuon_overlapped);
+          }
+          return jet_pfmuon_overlapped;
+        }, {"Jet_muonIdx1","Jet_muonIdx2", "Muon_isPFcand"})
     //.Define("selectedJetIdx", IdxSelections::IndexOfSelectedLeadingCandidate, {"goodGJet"   , "Jet_pt"})
     .Define("selectedGJetIdx", "ArgMax(goodGJet*Jet_pt)");
     //.Define("selectedGJetIdx", "ArgMax(Jet_pt)");
@@ -104,7 +130,7 @@ void ForTrigSF_MC(const std::vector<std::string>& inFILEs, string outFile, bool 
   }
 
   auto df_filtered  = df_def
-    //.Filter("Sum(goodGJet)>0")
+    .Filter("Sum(goodJet)>0")
     //.Filter("Sum(goodPhoton)>0");
     .Filter("Sum(goodPhoton)>0");
 
@@ -113,7 +139,7 @@ void ForTrigSF_MC(const std::vector<std::string>& inFILEs, string outFile, bool 
   std::vector<std::string> storedVariables({
       "selectedPhoIdx",
       "selectedGJetIdx",
-      "PassJetHLT",
+      //"PassJetHLT",
       "PassPhoHLT",
       "run",
       "luminosityBlock",
@@ -171,6 +197,7 @@ void ForTrigSF_MC(const std::vector<std::string>& inFILEs, string outFile, bool 
       //"Jet_electronIdx2",
       //"Jet_muonIdx1",
       //"Jet_muonIdx2",
+      "Jet_PFMuonOverlapped",
       "Jet_svIdx1", // index to SV not related to SV_* // skip this index because they are not related to SV_* variables
       "Jet_svIdx2", // index to SV not related to SV_* // skip this index because they are not related to SV_* variables
       "Jet_hfadjacentEtaStripsSize",
@@ -315,13 +342,13 @@ void ForTrigSF_MC(const std::vector<std::string>& inFILEs, string outFile, bool 
   df_filtered.Snapshot("Events", outputFILENAME, storedVariables);
 
 
-  TFile *f = new TFile(outputFILENAME,"UPDATE");
-  f->cd();
-
 
 
   if ( isMC )
   {
+
+      TFile *f = new TFile(outputFILENAME,"UPDATE");
+      f->cd();
       const double wgt = dfIn.Sum("genWeight").GetValue();
       const double sumEntries = dfIn.Count().GetValue();
       cout<< "Sum weight = "<<wgt<<endl;
@@ -341,9 +368,8 @@ void ForTrigSF_MC(const std::vector<std::string>& inFILEs, string outFile, bool 
       hSelections->Fill(1.+0.0001, wgt_phoPassed);
       hSelections->Fill(2.+0.0001, wgt_jetPassed);
       hSelections->Write();
+      f->Close();
   }
-
-  f->Close();
 }
 std::vector<std::string> splitString(const std::string &input, char delimiter) {
     std::vector<std::string> result;
@@ -390,23 +416,20 @@ bool IsMC_fromFile(const char* inFILE)
   }
   
   auto iTREE = (TTree*) iFILE->Get("Events");
-  if (!iTREE )
-  {
-    std::cerr << "[InvalidTreeInFile] Tree 'Events' does not exists in file\n";
-    return false;
-  }
+  bool isMC = false;
+  if ( iTREE )
+  { isMC = iTREE->GetBranch("genWeight") ? true : false; }
+  else
+  { std::cerr << "[InvalidTreeInFile] Tree 'Events' does not exists in file\n"; }
 
-  // if genWeight in branch, it is MC.
-  if ( iTREE->GetBranch("genWeight") )
-    return true;
   iFILE->Close();
-  return false;
+  return isMC;
 }
 
 int main(int argc, const char* argv[])
 {
   // usage:
-  //   ./exec in1.root,in2.root out.root isMC 2022
+  //   ./exec in1.root,in2.root out.root 2022
   //   arg 1: input root files, separated by comma
   //   arg 2: output root file name
   //   arg 3: data era

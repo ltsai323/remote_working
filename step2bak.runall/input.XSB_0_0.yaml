@@ -1,0 +1,17 @@
+figNAME: 'outputs/extracted_xsB_0_0.pdf'
+yLABEL: 'differential XS (b)'
+yRANGE:
+  - 1e-6
+  - 1e5
+ySCALE: log
+xLABEL: '$p^{\gamma}_{T}$ (GeV)'
+legNcolumn: 1
+legFONTsize: 'small'
+
+plotables:
+  # B efficiency
+  - type: TH1F
+    objname: bin_0_0_fit_XSB
+    file: calculated_xs.root
+    label: 'barrel pho barrel jet'
+    plotstyle: cross1

@@ -26,40 +26,18 @@ void ForTrigSF_DYZjet(const std::vector<std::string>& inFILEs, string outFile, b
   ROOT::RDataFrame dfIn("Events", inFILEs);
 
 
-
-  //auto df_def = dfIn
-  //  .Filter( "HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_Mass8==1" )
-  //  .Filter( "nMuon>1" )
-  //  .Filter( "nJet>0" )
-  //  .Define("sel_muon_pair", [](const RVecFloat& pt, const RVecBool& tkID) { return DYjet_ZmmSelections::selectMuonPair(pt,tkID); }, {"Muon_pt", "Muon_mediumPromptId"})
-  //  .Filter("sel_muon_pair.first")
-  //  .Define("sel_muon1_idx", "sel_muon_pair.second.first")
-  //  .Define("sel_muon2_idx", "sel_muon_pair.second.second")
-  //  .Define("sel_muon1", "ROOT::Math::PtEtaPhiMVector(Muon_pt[sel_muon1_idx],Muon_eta[sel_muon1_idx],Muon_phi[sel_muon1_idx],Muon_mass[sel_muon1_idx])")
-  //  .Define("sel_muon2", "ROOT::Math::PtEtaPhiMVector(Muon_pt[sel_muon2_idx],Muon_eta[sel_muon2_idx],Muon_phi[sel_muon2_idx],Muon_mass[sel_muon2_idx])")
-  //  .Define("recZ", "sel_muon1+sel_muon2")
-  //  .Filter("recZ.Pt()>15.")
-  //  ;
-
-  //auto df_out = df_def
-  //  .Define("recZ_pt", "recZ.Pt()")
-  //  .Define("recZ_eta", "recZ.Eta()")
-  //  .Define("recZ_phi", "recZ.Phi()")
-  //  .Define("recZ_mass", "recZ.M()")
-  //  .Define("selMuon1_idx", "sel_muon1_idx")
-  //  .Define("selMuon2_idx", "sel_muon2_idx");
   auto df_def = dfIn
-    .Filter( "HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_Mass8==1" )
     .Filter( "nMuon>1" )
     .Filter( "nJet>0" );
+  if (!isMC ) df_def = df_def.Filter("HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_Mass8==1");
 
   auto df_out = df_def;
 
 
 
-
   // set output variables
   std::vector<std::string> storedVariables({
+      "HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_Mass8",
       "Muon_highPtId",
       "Muon_highPurity",
       "Muon_inTimeMuon",
@@ -328,7 +306,7 @@ bool IsMC_fromFile(const char* inFILE)
 int main(int argc, const char* argv[])
 {
   // usage:
-  //   ./exec in1.root,in2.root out.root isMC 2022
+  //   ./exec in1.root,in2.root out.root 2022
   //   arg 1: input root files, separated by comma
   //   arg 2: output root file name
   //   arg 3: data era

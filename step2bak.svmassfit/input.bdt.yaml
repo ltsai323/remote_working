@@ -1,0 +1,33 @@
+figNAME: 'hi.pdf'
+yLABEL: 'Yields'
+yRANGE:
+  - 1e0
+  - 1e10
+ySCALE: log
+
+xLABEL: 'BDT Score'
+legNcolumn: 1
+legFONTsize: 'small'
+
+plotables:
+  # B efficiency
+  - type: TGraphAsymmError
+    objname: bin00B_WPbL_eff
+    file: WPeff.root
+    label: 'eff B @ bin00'
+    plotstyle: star2
+  - type: TGraphAsymmError
+    objname: bin01B_WPbL_eff
+    file: WPeff.root
+    label: 'eff B @ bin01'
+    plotstyle: cross2
+  - type: TGraphAsymmError
+    objname: bin10B_WPbL_eff
+    file: WPeff.root
+    label: 'eff B @ bin10'
+    plotstyle: square2
+  - type: TGraphAsymmError
+    objname: bin11B_WPbL_eff
+    file: WPeff.root
+    label: 'eff B @ bin11'
+    plotstyle: diamond2

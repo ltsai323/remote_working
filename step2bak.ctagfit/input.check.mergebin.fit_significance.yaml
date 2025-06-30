@@ -1,0 +1,30 @@
+figNAME: 'merging_binning_result.fit_significance.pdf'
+
+legNcolumn: 1
+legFONTsize: 'xx-small'
+xLABEL: 'abs(fit-truth) / $\sigma_{fit}$'
+yLABEL: 'fitted result'
+yRANGE:
+  - 0.05
+  - 25.0
+ySCALE: linear
+plotables:
+  - type: TH1F
+    objname: fitsigLall
+    file: merging_binning_result.root
+    label: l-jet
+    plotstyle: hist1
+    legorder:  0
+  - type: TH1F
+    objname: fitsigCall
+    file: merging_binning_result.root
+    label: c-jet
+    plotstyle: hist2
+    legorder:  1
+  - type: TH1F
+    objname: fitsigBall
+    file: merging_binning_result.root
+    label: b-jet
+    plotstyle: hist3
+    legorder:  2
+  # the foramt is controlled in each DrawObj.py

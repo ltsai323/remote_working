@@ -1,0 +1,31 @@
+channel: gjet_psuedofit
+inputFILE: /afs/cern.ch/work/l/ltsai/Work/CMSSW/CMSSW_13_0_21/src/macros/step2bak.makehisto/makehisto_psuedodata_rescaled.root
+datacardTEMPLATE: ../datacard_psuedofit.template.txt
+outputDATACARD:   psuedofit_datacard.txt
+outputROOT:       psuedofit_datacard.root
+outputYAML:       psuedofit_datacard.defaultValue.yaml
+load_data:
+    hDATA:
+        name: data_obs
+        #histSOURCE: data_WPbLoose_SVmAll
+        histSOURCE: data_WPbLoose_truthSUMSVmAll
+        normalize: -1
+    hLjet:
+        name: Ljet
+        histSOURCE: sigL_WPbLoose_SVmAll
+        normalize: -1
+    hCjet:
+        name: Cjet
+        histSOURCE: sigC_WPbLoose_SVmAll
+        normalize: -1
+    hBjet:
+        name: Bjet
+        histSOURCE: sigB_WPbLoose_SVmAll
+        normalize: -1
+
+truth_info:
+  Ljet: data_WPbLoose_truthL_SVmAll
+  Cjet: data_WPbLoose_truthB_SVmAll
+  Bjet: data_WPbLoose_truthB_SVmAll
+fit_info:
+  file: postfit.gjet_psuedofit_postfit.root # postfit.{channel}_postfit.root

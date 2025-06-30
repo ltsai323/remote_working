@@ -1,0 +1,6 @@
+nDATA=6939.0
+initL=5551.200000000001
+initC=971.46
+initB=208.17
+initSIGN=6939.0
+initFAKE=0.0

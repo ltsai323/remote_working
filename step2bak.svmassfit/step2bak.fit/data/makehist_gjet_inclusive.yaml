@@ -1,0 +1,16 @@
+channel: gjet_inclusive
+inputFILE: out_makehisto.root
+datacardTEMPLATE: data/datacard_gjet_inclusive_template.txt
+outputDATACARD:   datacard_gjet_inclusive.txt
+outputROOT:       datacard_gjet_inclusive.root
+outputYAML:       datacard_gjet_inclusive.defaultValue.yaml
+load_data:
+    - name: data_obs
+      histSOURCE: BDT_data_signalRegion
+      normalize: -1
+    - name: gjet
+      histSOURCE: BDT_gjets_signalRegion
+      normalize:  1
+    - name: SB
+      histSOURCE: BDT_data_dataSideband
+      normalize: 1

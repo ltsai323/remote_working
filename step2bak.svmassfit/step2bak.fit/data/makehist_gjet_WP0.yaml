@@ -1,0 +1,16 @@
+channel: gjet
+inputFILE: out_makehisto.root
+datacardTEMPLATE: data/datacard_gjet_WP_template.txt
+outputDATACARD:   datacard_gjet_WP0.txt
+outputROOT:       datacard_gjet_WP0.root
+outputYAML:       datacard_gjet_WP0.defaultValue.yaml
+load_data:
+    - name: data_obs
+      histSOURCE: BDT_data_signalRegion
+      normalize: -1
+    - name: gjet
+      histSOURCE: BDT_gjet_signalRegion
+      normalize:  1
+    - name: SB
+      histSOURCE: BDT_data_dataSideband
+      normalize: 1

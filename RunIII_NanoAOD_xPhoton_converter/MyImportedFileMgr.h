@@ -18,25 +18,31 @@ namespace ImportedFileMgr
 
 std::map<std::string, const char*> ImportedFileMgr::TestingFiles()
 {
-  return std::map<string, const char*> {
+  return std::map<std::string, const char*> {
     { "SScorrBarrel", "data/output_ShowerShapeCorrection_barrel_1000Bins.root" },
     { "SScorrEndcap", "data/output_ShowerShapeCorrection_endcap_1000Bins.root" },
     { "tmvaBarrel","data/TMVAClassification_BDTG.weights_Barrel.xml" },
     { "tmvaEndcap","data/TMVAClassification_BDTG.weights_Endcap.xml" },
+    { "PileUp", "data/PileupSF_DYJets_EraEFG.root" },
+    { "JEC", "data/jet_jerc.json" },
+    { "PhotonSmearAndScale", "data/Photon_scale_smearing.json" },
   };
 }
 std::map<std::string, const char*> ImportedFileMgr::RelativePathFiles()
 {
-  return std::map<string, const char*> {
+  return std::map<std::string, const char*> {
     { "SScorrBarrel", "data/output_ShowerShapeCorrection_barrel_1000Bins.root" },
     { "SScorrEndcap", "data/output_ShowerShapeCorrection_endcap_1000Bins.root" },
     { "tmvaBarrel","data/TMVAClassification_BDTG.weights_Barrel.xml" },
     { "tmvaEndcap","data/TMVAClassification_BDTG.weights_Endcap.xml" },
+    { "PileUp", "data/PileupSF_DYJets_EraEFG.root" },
+    { "JEC", "data/jet_jerc.json" },
+    { "PhotonSmearAndScale", "data/Photon_scale_smearing.json" },
   };
 }
 std::map<std::string, const char*> ImportedFileMgr::lxplusFiles()
 {
-  return std::map<string, const char*> {
+  return std::map<std::string, const char*> {
     { "SScorrBarrel", "/afs/cern.ch/work/l/ltsai/ReceivedFile/for_Lian-Sheng/data/output_ShowerShapeCorrection_barrel_1000Bins.root" },
     { "SScorrEndcap", "/afs/cern.ch/work/l/ltsai/ReceivedFile/for_Lian-Sheng/data/output_ShowerShapeCorrection_endcap_1000Bins.root" },
     { "tmvaBarrel", "/afs/cern.ch/work/l/ltsai/ReceivedFile/for_Lian-Sheng/data/TMVAClassification_BDTG.weights_Barrel.xml" },

@@ -1,0 +1,223 @@
+oDIR ?= output
+iYAML ?= test.btag_data.yaml
+iYAMLbtag ?= test.btag_data_btag.yaml
+iYAMLcvsb ?= test.btag_data_cvsb.yaml
+iYAMLcvsl ?= test.btag_data_cvsl.yaml
+iYAMLBDT  ?= test.btag_data_BDTAll.yaml
+self=makefile.3fits_btagcut_psuedodata
+
+
+timeSTAMP := $$(date "+%Y%m%d_%H%M")
+
+check_defined = \
+    $(strip $(foreach 1,$1, \
+    $(call __check_defined,$1,$(strip $(value 2)))))
+__check_defined = \
+    $(if $(value $1),, \
+    $(error Undefined $1$(if $2, ($2))))
+
+check_shell_var_defined = \
+  	$(if $(shell [ -z "$${$1}" ] && echo undefined), \
+	$(error Shell variable $1 is undefined), \
+	$(info Shell variable $1 is set))
+# Check if directory exists and print info or abort
+define check_dir_existed
+	@if [ ! -d "$(1)" ]; then \
+		echo "[ERROR] Directory '$(1)' does not exist. Please execute step1 again. Aborting..."; \
+		exit 1; \
+	else \
+		echo "[INFO] Shell program running in folder: $(1)"; \
+	fi
+endef
+# Check if directory exists and print info or abort
+define check_file_existed
+	@if [ ! -f "$(1)" ]; then \
+		echo "[ERROR] File '$(1)' does not exist. Please confirm this file exist. Aborting..."; \
+		exit 1; \
+	else \
+		echo "[INFO] Shell program running in folder: $(1)"; \
+	fi
+endef
+
+put_yamlfile: $(oDIR)
+	@echo copy yamlfile to dir
+	cp $(yaml) $(oDIR)
+
+step10_prepare_histograms:  clean-odir $(oDIR) ## Create histograms for [oDIR=output_dir_name][rootMAKEHISTO=makehisto_used_file.root][iYAML=test.btag_datafit.yaml]
+	$(call check_defined,rootMAKEHISTO)
+	make -f $(self) put_yamlfile yaml=$(iYAMLbtag) oDIR=$(oDIR)
+	make -f $(self) put_yamlfile yaml=$(iYAMLcvsl) oDIR=$(oDIR)
+	make -f $(self) put_yamlfile yaml=$(iYAMLcvsb) oDIR=$(oDIR)
+	make -f $(self) put_yamlfile yaml=$(iYAMLBDT)  oDIR=$(oDIR)
+	#make put_yamlfile yaml=$(iYAMLBDT)  oDIR=$(oDIR)
+	cd $(oDIR) && \
+		python3 ../make_hist_source_and_datacard.py $(iYAMLBDT)
+	cd $(oDIR) && \
+		python3 ../make_hist_source_and_datacard.py $(iYAMLbtag) && \
+		python3 ../make_hist_source_and_datacard.py $(iYAMLcvsb) && \
+		python3 ../make_hist_source_and_datacard.py $(iYAMLcvsl) && \
+		combineCards.py  btag=datafit_datacard_btag.txt cvsl=datafit_datacard_cvsl.txt cvsb=datafit_datacard_cvsb.txt > $(_TMP_DATACARD)
+
+
+check1_makehisto_content: ## Create secondary rootfile for checking makehisto.root is correct or not
+	cd $(oDIR) && python3 ../secondary_plot_creation.py ../$(iYAMLBDT) ; echo ERROR!!!! iYAML is not a valid configuration in makefile
+	#cd $(oDIR) && DrawRatioPlotablesWithCMSFormat.py ../input.check.yaml
+
+
+_TMP_INIT_BASH_BDT       := datafit_datacard.BDT.defaultValue.sh
+_TMP_DATACARD_BDT        := datafit_datacard_BDTAll.txt
+_TMP_INPUT_WORKSPACE_BDT := datafit_ws.BDT.root
+
+BDTfit1_text2workspace_BDT: ## create workspace for combine at BDT fit
+	$(call check_dir_existed,$(oDIR))
+	cd $(oDIR) && source ./$(_TMP_INIT_BASH) && \
+		text2workspace.py $(_TMP_DATACARD_BDT) -o $(_TMP_INPUT_WORKSPACE_BDT) \
+    	-P HiggsAnalysis.CombinedLimit.PhysicsModel:multiSignalModel \
+    	--PO "map=.*/gjet:numSIGN[$${nDATA},0.,$${nDATA}]" \
+    	--PO "map=.*/fake:numFAKE[$${nFAKE},0.,$${nDATA}]" \
+    	--PO verbose || (echo "failed to create workspace from datacard"; exit 1)
+
+_TMP_MULTIDIMFITTEST_BDT  := datafit_multidimfitTest.BDT.root
+_TMP_HIGGSCOMBINETEST_BDT := datafit_higgsCombineTest.MultiDimFit.mH120.BDT.root
+OUT_FITINFO_BDT           := datafit_fitinfo.BDT.yaml
+OUT_FITINFO_BASH_BDT      := datafit_fitinfo.BDT.sh
+POSTFIT_ROOT_BDT          := datafit_postfit.BDT.root
+
+BDTfit2_combine:
+	$(call check_dir_existed,$(oDIR))
+	cd $(oDIR) && combine --saveWorkspace -M MultiDimFit -d $(_TMP_INPUT_WORKSPACE_BDT) --saveFitResult --saveNLL --robustFit on || the_exit "failed to run combine @ data sideband"
+	cd $(oDIR) && mv multidimfitTest.root $(_TMP_MULTIDIMFITTEST_BDT) ; mv higgsCombineTest.MultiDimFit.mH120.root $(_TMP_HIGGSCOMBINETEST_BDT)
+BDTfit3_postfit:
+	$(call check_dir_existed,$(oDIR))
+### [post process] collect result to yaml file
+	cd $(oDIR) && python3 ../extract_fit_value.py \
+	   $(_TMP_HIGGSCOMBINETEST_BDT) \
+	   $(OUT_FITINFO_BDT) \
+	   numSIGN numFAKE # variables from fit
+	   #numL numC numB  numFAKE # variables from fit
+### Use sideband fit to extract the initial value of the C/B/L fractions ended
+	cd $(oDIR) && PostFitShapesFromWorkspace -d $(_TMP_DATACARD_BDT) \
+		-w $(_TMP_HIGGSCOMBINETEST_BDT) \
+		-m 120 -f $(_TMP_MULTIDIMFITTEST_BDT):fit_mdf \
+		--postfit --print --output $(POSTFIT_ROOT_BDT)
+BDTfit4_checkpostfit:
+	$(call check_dir_existed,$(oDIR))
+	cd $(oDIR) && python3 ../secondary_plot_creation_postfit.py  $(POSTFIT_ROOT_BDT)
+	cd $(oDIR) && \
+		DrawRatioPlotablesWithCMSFormat.py ../input.check.postfit.BDTfit.yaml
+BDTfit5_modifyfakeintegrtionfromfit:
+	$(call check_dir_existed,$(oDIR))
+	cd $(oDIR) && source ./$(OUT_FITINFO_BASH_BDT) && \
+		for datacardROOT in *_datacard_*.root; do tmpfile=_$$datacardROOT; mv $$datacardROOT $$tmpfile; python3 ../modify_fake_integration.py $$tmpfile $$datacardROOT $$numFAKE; done
+
+
+
+
+
+
+_TMP_DATACARD        := datafit_datacard.txt
+_TMP_INPUT_WORKSPACE := datafit_ws.root
+_TMP_INIT_BASH			 := datafit_datacard.defaultValue.sh
+
+step2_text2workspace: ## create workspace for combine
+	$(call check_dir_existed,$(oDIR))
+	cd $(oDIR) && source ./$(_TMP_INIT_BASH) && \
+		text2workspace.py $(_TMP_DATACARD) -o $(_TMP_INPUT_WORKSPACE) \
+    	-P HiggsAnalysis.CombinedLimit.PhysicsModel:multiSignalModel \
+    	--PO "map=.*/Ljet:numL[$${nL},0.,$${nDATA}]" \
+    	--PO "map=.*/Cjet:numC[$${nC},0.,$${nDATA}]" \
+    	--PO "map=.*/Bjet:numB[$${nB},0.,$${nDATA}]" \
+    	--PO verbose || (echo "failed to create workspace from datacard"; exit 1)
+
+    	#--PO "map=.*/fake:numFAKE[$${nFAKE},0.,$${nDATA}]" \
+
+step3_combine: ## combine fitting result
+	$(call check_dir_existed,$(oDIR))
+	cd $(oDIR) && combine --saveWorkspace -M MultiDimFit -d $(_TMP_INPUT_WORKSPACE) --saveFitResult --saveNLL --robustFit on || the_exit "failed to run combine @ data sideband"
+	cd $(oDIR) && mv multidimfitTest.root $(_TMP_MULTIDIMFITTEST) ; mv higgsCombineTest.MultiDimFit.mH120.root $(_TMP_HIGGSCOMBINETEST)
+
+_TMP_MULTIDIMFITTEST  := datafit_multidimfitTest.root
+_TMP_HIGGSCOMBINETEST := datafit_higgsCombineTest.MultiDimFit.mH120.root
+OUT_FITINFO           := datafit_fitinfo.yaml
+POSTFIT_ROOT          := datafit_postfit.root
+step4_postfit: ## postfit for visualization
+	$(call check_dir_existed,$(oDIR))
+### [post process] collect result to yaml file
+	cd $(oDIR) && python3 ../extract_fit_value.py \
+	   $(_TMP_HIGGSCOMBINETEST) \
+	   $(OUT_FITINFO) \
+	   numL numC numB  # variables from fit
+	   #numL numC numB  numFAKE # variables from fit
+### Use sideband fit to extract the initial value of the C/B/L fractions ended
+	cd $(oDIR) && PostFitShapesFromWorkspace -d $(_TMP_DATACARD) \
+		-w $(_TMP_HIGGSCOMBINETEST) \
+		-m 120 -f $(_TMP_MULTIDIMFITTEST):fit_mdf \
+		--postfit --print --output $(POSTFIT_ROOT)
+
+check4_postfit: ## check plot on postfit
+	$(call check_dir_existed,$(oDIR))
+	cd $(oDIR) && python3 ../secondary_plot_creation_postfit.py  $(POSTFIT_ROOT)
+	cd $(oDIR) && \
+		DrawRatioPlotablesWithCMSFormat.py ../input.check.postfit.psuedodata.btag.yaml && \
+		DrawRatioPlotablesWithCMSFormat.py ../input.check.postfit.psuedodata.cvsl.yaml && \
+		DrawRatioPlotablesWithCMSFormat.py ../input.check.postfit.psuedodata.cvsb.yaml
+	#cd $(oDIR) && DrawRatioPlotablesWithCMSFormat.py ../input.check.postfit.psuedodata.btag.yaml && \
+	
+
+
+
+collect_datafit_result: ## collect all datafit result. Please put illustrations into note.md [outputFOLDER=output_hiii]
+	$(call check_defined,outputFOLDER)
+	$(call check_file_existed,note.md)
+	touch $(outputFOLDER); /bin/rm -rf $(outputFOLDER); mkdir $(outputFOLDER); mv psuedodata_* $(outputFOLDER); mv note.md $(outputFOLDER); mv log_* $(outputFOLDER)
+collect_datafit_result_nonote: ## collect all datafit result. Please put illustrations into note.md [outputFOLDER=output_hiii]
+	$(call check_defined,outputFOLDER)
+	touch $(outputFOLDER); /bin/rm -rf $(outputFOLDER); mkdir $(outputFOLDER); mv psuedodata_* $(outputFOLDER); mv log_* $(outputFOLDER)
+
+
+# Create output directory
+$(oDIR):
+	$(call check_defined,rootMAKEHISTO)
+	@echo "[INFO] Creating directory: $(oDIR)"
+	mkdir $@
+	cp $(rootMAKEHISTO) $@/makehisto.root ## copy makehisto.root into working directory
+
+
+# Clean the output directory before running
+clean-odir:
+	@if [ -d "$(oDIR)" ]; then \
+		echo "[INFO] Cleaning directory: $(oDIR)"; \
+		rm -rf "$(oDIR)"; \
+	fi
+
+# Optional target: Manual cleanup
+clean:
+	@echo "[INFO] Removing directory: $(oDIR)"
+	@rm -rf "$(oDIR)"
+
+test: step10_prepare_histograms BDTfit1_text2workspace_BDT BDTfit2_combine BDTfit3_postfit BDTfit4_checkpostfit BDTfit5_modifyfakeintegrtionfromfit
+	echo ended test
+
+
+all: \
+	step10_prepare_histograms \
+  BDTfit1_text2workspace_BDT \
+	BDTfit2_combine \
+	BDTfit3_postfit \
+	BDTfit4_checkpostfit \
+	BDTfit5_modifyfakeintegrtionfromfit \
+	step2_text2workspace \
+	step3_combine \
+	step4_postfit \
+	check4_postfit
+
+
+	#check1_makehisto_content \
+
+IN_ARGS = [opts]
+
+help:  ## Display this help
+	@awk 'BEGIN {FS = ":.*##"; printf "Usage: make \033[32m<command>\033[0m $(IN_ARGS)\n\nCommands:\n\033[36m\033[0m\n"} /^[0-9a-zA-Z_-]+:.*?##/ { printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2 } /^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } ' $(MAKEFILE_LIST)
+
+.DEFAULT_GOAL := help
+

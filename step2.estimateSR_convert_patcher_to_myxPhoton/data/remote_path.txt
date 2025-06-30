@@ -1,2 +1,2 @@
-#remote_destation=ltsai@lxplus.cern.ch:~/ReceivedFile/mycode_2/CMSSW_13_0_13/src/GmJetsAnalysis/Gm_1jet_category/bin
-remote_destation=ltsai@chip01.phy.ncu.edu.tw:/home/ltsai/Work/2022EE/step2.estimateSR_convert_patcher_to_myxPhoton
+remote_destation=ltsai@lxplus.cern.ch:/afs/cern.ch/user/l/ltsai/ReceivedFile/mycode_2/CMSSW_13_0_13/src/GmJetsAnalysis/Gm_1jet_category/bin
+#remote_destation=ltsai@chip01.phy.ncu.edu.tw:/home/ltsai/Work/2022EE/step2.estimateSR_convert_patcher_to_myxPhoton

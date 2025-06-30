@@ -2,6 +2,10 @@
 #define __MyJetSelections_h__
 #include "TMath.h"
 
+typedef ROOT::VecOps::RVec<Float_t> RVecFloat;
+typedef ROOT::VecOps::RVec<Bool_t> RVecBool;
+typedef ROOT::VecOps::RVec<Short_t> RVecShort;
+
 namespace JetSelections
 {
   TString EventPassedAllJetHLT();
@@ -9,18 +13,9 @@ namespace JetSelections
   // JetID = 2 : passed tight ID
   // JetID = 6 : Passed tight ID and lepton veto
   TString JetPreselection();
+  template <typename T>
+  auto Define_LooseVetoMap(T &df);
 
-  //TString JetID();
-
-  //ROOT::VecOps::RVec<int> SelectedJetExcludingPhoton (
-  //  const ROOT::VecOps::RVec<int>& goodJET,
-  //  const ROOT::VecOps::RVec<float>& jetETA,
-  //  const ROOT::VecOps::RVec<float>& jetPHI,
-  //  int phoIDX,
-  //  const ROOT::VecOps::RVec<float>& phoETA,
-  //  const ROOT::VecOps::RVec<float>& phoPHI
-  //  );
-  //TString SelectedJetExcludingPhoton2();
 
 };
 
@@ -30,41 +25,27 @@ namespace JetSelections
 
 #ifdef __MyJetSelections_C__
 
-TString JetSelections::EventPassedAllJetHLT() // event based, not object based
-{ return "HLT_PFJet40==1 || HLT_PFJet60==1 || HLT_PFJet80==1 || HLT_PFJet110==1 || HLT_PFJet140==1 || HLT_PFJet200==1 || HLT_PFJet260==1 || HLT_PFJet320==1 || HLT_PFJet400==1 || HLT_PFJet450==1 || HLT_PFJet500==1 || HLT_PFJet550==1"; }
+//TString JetSelections::EventPassedAllJetHLT() // event based, not object based
+//{ return "HLT_PFJet40==1 || HLT_PFJet60==1 || HLT_PFJet80==1 || HLT_PFJet110==1 || HLT_PFJet140==1 || HLT_PFJet200==1 || HLT_PFJet260==1 || HLT_PFJet320==1 || HLT_PFJet400==1 || HLT_PFJet450==1 || HLT_PFJet500==1 || HLT_PFJet550==1"; }
 
 TString JetSelections::JetPreselection()
-{ return "Jet_pt > 30. && abs(Jet_eta)<2.4 && Jet_jetId!=0"; }
+{ return "Jet_pt > 15. && abs(Jet_eta)<2.4 && Jet_jetId==6"; } // leave some jets for JEC JER pt > 25GeV
 
-//ROOT::VecOps::RVec<int> JetSelections::SelectedJetExcludingPhoton (
-//    const ROOT::VecOps::RVec<int>& goodJET,
-//    const ROOT::VecOps::RVec<float>& jetETA,
-//    const ROOT::VecOps::RVec<float>& jetPHI,
-//    int phoIDX,
-//    const ROOT::VecOps::RVec<float>& phoETA,
-//    const ROOT::VecOps::RVec<float>& phoPHI
-//    )
-//{
-//  ROOT::VecOps::RVec<int> selectedJetExcludingPhoton(goodJET.size());
-//
-//  const float phoEta = phoETA[phoIDX];
-//  const float phoPhi = phoPHI[phoIDX];
-//
-//  const float DELTAR_CUT = 0.4;
-//  for ( size_t iCand = 0; iCand < goodJET.size(); ++iCand )
-//  {
-//    double deltaR = 999;
-//    if ( goodJET[iCand] )
-//    {
-//      float deltaEta = phoEta - jetETA[iCand];
-//      float deltaPhi = TMath::DeltaPhi(phoPhi - jetPHI[iCand]);
-//      deltaR = TMath::Sqrt(deltaEta*deltaEta - deltaPhi*deltaPhi);
-//    }
-//    selectedJetExcludingPhoton[iCand] = deltaR < DELTAR_CUT ? 1 : 0;
-//  }
-//  return selectedJetExcludingPhoton;
-//}
-//TString JetSelections::SelectedJetExcludingPhoton2(const char* additionalCUT)
-//{ return Form("%s && DeltaR(Jet<F8>
+// see Run3 VetoMap section in https://cms-jerc.web.cern.ch/Recommendations/
+template <typename T>
+auto JetSelections::Define_LooseVetoMap(T &df)
+{
+  return df
+    .Define("Jet_reject_pf_muon",
+      [](const RVecShort& jetMUidx, const RVecBool& muISpf)
+      {
+        RVecBool jet_has_pf_muon;
+        for ( auto&& muidx : jetMUidx ) { bool reject_pf_muon = true; if ( muidx != -1 && muidx < muISpf.size() ) reject_pf_muon = muISpf[muidx] == 1 ? false : true; jet_has_pf_muon.push_back(reject_pf_muon); }
+        return jet_has_pf_muon;
+      }, {"Jet_muonIdx1", "Muon_isPFcand"}
+      )
+    .Define("LooseVetoMap", "Jet_pt > 15. && Jet_jetId == 6 && (Jet_neEmEF+Jet_neEmEF) < 0.9 && Jet_reject_pf_muon");
+}
+
 #endif // __MyJetSelections_C__
 #endif // __MyJetSelections_h__

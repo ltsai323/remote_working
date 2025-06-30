@@ -1,0 +1,249 @@
+#singleMAKEFILE := makefile.3fits_btagcut_psuedodata
+iYAMLcvsb := source.btag_psuedofit_cvsb.yaml
+iYAMLcvsl := source.btag_psuedofit_cvsl.yaml
+iYAMLbtag := source.btag_psuedofit_btag.yaml
+#binningFOLDER := /afs/cern.ch/work/l/ltsai/Work/CMSSW/CMSSW_13_0_21/src/macros/step2bak.makehisto/makehisto_allgjets_binned_ctagfit
+self:=makefile.runbinned
+
+check_defined = \
+    $(strip $(foreach 1,$1, \
+    $(call __check_defined,$1,$(strip $(value 2)))))
+__check_defined = \
+    $(if $(value $1),, \
+    $(error Undefined $1$(if $2, ($2))))
+# 通用目標，使用 % 做 pattern matching
+test_makebin_%:
+	@bin_hist=$*; \
+	echo "Running binning $$bin_hist"; \
+	cc=$${bin_hist##*__}; binning_str=$${cc%.*} ; \
+	MAKEFLAGS=-j1 make -f $(singleMAKEFILE) all \
+		oDIR=binned__$$binning_str \
+		iYAMLcvsb=$(iYAMLcvsb) \
+		iYAMLcvsl=$(iYAMLcvsl) \
+		iYAMLbtag=$(iYAMLbtag) \
+		rootMAKEHISTO=$(binningFOLDER)/$$bin_hist > logs_$$binning_str; \
+	mv logs_$$binning_str binned__$$binning_str
+makebin_%:
+	@bin_hist=$*; \
+	if [ -f "$(binningFOLDER)/$$bin_hist" ]; then \
+		echo "Running binning $(binningFOLDER)/$$bin_hist"; \
+		cc=$${bin_hist##*__}; binning_str=$${cc%.*}; \
+		MAKEFLAGS=-j1 make -f $(singleMAKEFILE) all \
+			oDIR=binned_$$binning_str \
+			iYAMLcvsb=$(iYAMLcvsb) \
+			iYAMLcvsl=$(iYAMLcvsl) \
+			iYAMLbtag=$(iYAMLbtag) \
+			rootMAKEHISTO=$(binningFOLDER)/$$bin_hist 2>&1 > logs_$$binning_str; \
+		mv logs_$$binning_str binned_$$binning_str; \
+	else \
+		echo "Skipping $$bin_hist: file not found."; \
+	fi
+
+# 提供 binning 的實際清單
+BINNING_FILELIST := \
+	makehisto_binned_ctagfit_psuedodata__0_0_210_230.root \
+	makehisto_binned_ctagfit_psuedodata__0_0_230_250.root \
+	makehisto_binned_ctagfit_psuedodata__0_0_250_300.root \
+	makehisto_binned_ctagfit_psuedodata__0_0_300_400.root \
+	makehisto_binned_ctagfit_psuedodata__0_0_400_500.root \
+	makehisto_binned_ctagfit_psuedodata__0_0_500_600.root \
+	makehisto_binned_ctagfit_psuedodata__0_0_600_1000.root \
+	makehisto_binned_ctagfit_psuedodata__0_0_1000_1500.root \
+	makehisto_binned_ctagfit_psuedodata__0_1_210_230.root \
+	makehisto_binned_ctagfit_psuedodata__0_1_230_250.root \
+	makehisto_binned_ctagfit_psuedodata__0_1_250_300.root \
+	makehisto_binned_ctagfit_psuedodata__0_1_300_400.root \
+	makehisto_binned_ctagfit_psuedodata__0_1_400_500.root \
+	makehisto_binned_ctagfit_psuedodata__0_1_500_600.root \
+	makehisto_binned_ctagfit_psuedodata__0_1_600_1000.root \
+	makehisto_binned_ctagfit_psuedodata__0_1_1000_1500.root \
+	makehisto_binned_ctagfit_psuedodata__1_0_210_230.root \
+	makehisto_binned_ctagfit_psuedodata__1_0_230_250.root \
+	makehisto_binned_ctagfit_psuedodata__1_0_250_300.root \
+	makehisto_binned_ctagfit_psuedodata__1_0_300_400.root \
+	makehisto_binned_ctagfit_psuedodata__1_0_400_500.root \
+	makehisto_binned_ctagfit_psuedodata__1_0_500_600.root \
+	makehisto_binned_ctagfit_psuedodata__1_0_600_1000.root \
+	makehisto_binned_ctagfit_psuedodata__1_1_210_230.root \
+	makehisto_binned_ctagfit_psuedodata__1_1_230_250.root \
+	makehisto_binned_ctagfit_psuedodata__1_1_250_300.root \
+	makehisto_binned_ctagfit_psuedodata__1_1_300_400.root \
+	makehisto_binned_ctagfit_psuedodata__1_1_400_500.root \
+	makehisto_binned_ctagfit_psuedodata__1_1_500_600.root \
+	makehisto_binned_ctagfit_psuedodata__1_1_600_1000.root \
+	makehisto_binned_ctagfit_psuedodata__1_1_1000_1500.root
+
+BINNING_FILELIST_DATA := \
+	makehisto_binned_ctagfit_data__0_0_1000_1500.root \
+	makehisto_binned_ctagfit_data__0_0_210_230.root \
+	makehisto_binned_ctagfit_data__0_0_230_250.root \
+	makehisto_binned_ctagfit_data__0_0_250_300.root \
+	makehisto_binned_ctagfit_data__0_0_300_400.root \
+	makehisto_binned_ctagfit_data__0_0_400_500.root \
+	makehisto_binned_ctagfit_data__0_0_500_600.root \
+	makehisto_binned_ctagfit_data__0_0_600_1000.root \
+	makehisto_binned_ctagfit_data__0_1_1000_1500.root \
+	makehisto_binned_ctagfit_data__0_1_210_230.root \
+	makehisto_binned_ctagfit_data__0_1_230_250.root \
+	makehisto_binned_ctagfit_data__0_1_250_300.root \
+	makehisto_binned_ctagfit_data__0_1_300_400.root \
+	makehisto_binned_ctagfit_data__0_1_400_500.root \
+	makehisto_binned_ctagfit_data__0_1_500_600.root \
+	makehisto_binned_ctagfit_data__0_1_600_1000.root \
+	makehisto_binned_ctagfit_data__1_0_1000_1500.root \
+	makehisto_binned_ctagfit_data__1_0_210_230.root \
+	makehisto_binned_ctagfit_data__1_0_230_250.root \
+	makehisto_binned_ctagfit_data__1_0_250_300.root \
+	makehisto_binned_ctagfit_data__1_0_300_400.root \
+	makehisto_binned_ctagfit_data__1_0_400_500.root \
+	makehisto_binned_ctagfit_data__1_0_500_600.root \
+	makehisto_binned_ctagfit_data__1_0_600_1000.root \
+	makehisto_binned_ctagfit_data__1_1_1000_1500.root \
+	makehisto_binned_ctagfit_data__1_1_210_230.root \
+	makehisto_binned_ctagfit_data__1_1_230_250.root \
+	makehisto_binned_ctagfit_data__1_1_250_300.root \
+	makehisto_binned_ctagfit_data__1_1_300_400.root \
+	makehisto_binned_ctagfit_data__1_1_400_500.root \
+	makehisto_binned_ctagfit_data__1_1_500_600.root \
+	makehisto_binned_ctagfit_data__1_1_600_1000.root \
+	makehisto_binned_ctagfit_data__1_1_1000_1500.root
+
+	
+test_BINNING_FILELIST := \
+	makehisto_binned_ctagfit_psuedodata__0_0_600_1000.root \
+	makehisto_binned_ctagfit_psuedodata__0_0_1000_1500.root \
+	makehisto_binned_ctagfit_psuedodata__0_1_600_1000.root \
+	makehisto_binned_ctagfit_psuedodata__0_1_1000_1500.root \
+	makehisto_binned_ctagfit_psuedodata__1_0_600_1000.root \
+	makehisto_binned_ctagfit_psuedodata__1_1_600_1000.root
+	
+cleanworkspace: ## manually clean up output directory [oDIR=hi_hiii/][forcerun=1]
+	$(call check_defined,oDIR) 
+	@if [ -d "$(oDIR)" ]; then \
+		if [ "$(forcerun)" == "" ]; then read -p "[FolderExisting] folder '$(oDIR)' existing, remove content inside it?"; fi; \
+	    echo "[FolderRemoval] '$(oDIR)' removed"; rm -rf "$(oDIR)"; fi # Removing oDIR, ask folder removal once option 'forcerun' checked
+	/bin/rm -rf binned_*
+
+
+# Create output directory
+ifdef oDIR
+$(oDIR):
+	$(call check_defined,binningFOLDER)
+	$(call check_defined,singleMAKEFILE)
+	@echo "[INFO] Creating directory: $(oDIR)"
+	mkdir $@
+endif
+allbinning: $(oDIR) $(addprefix makebin_,$(BINNING_FILELIST)) ## run "make -f singleMAKEFILE all" for all histograms for psuedo data
+	make -f $(self) merge_binning_estimation binningDIR=./
+	make -f $(self) merge_binning binningDIR=./
+	mv merging_binning_result.* $(oDIR)/
+	mv binned_* $(oDIR)/
+allbinning_data: $(oDIR) $(addprefix makebin_,$(BINNING_FILELIST_DATA)) ## run "make -f singleMAKEFILE all" for all histograms for data
+	make -f $(self) merge_binning_estimation binningDIR=./
+	mv merging_binning_result.* $(oDIR)/
+	mv binned_* $(oDIR)/
+
+print-bins:
+	@echo "Loaded BINNING_LIST: $(BINNING_FILELIST)"
+
+test: ## 
+	$(MAKE) -f $(self) merge_binning binningDIR=./
+	
+	#python3 merging_binning_result.py $(BINNING_FILELIST)
+merge_binning: ## run commands after parallelly binning finished (psuedodata only) [binningDIR=./]
+	$(call check_defined,binningDIR)
+	work_dir=$$PWD ; cd $(binningDIR) && \
+		python3 $${work_dir}/merging_binning_result.py $(BINNING_FILELIST) && \
+		DrawPlotablesWithCMSFormat.py $${work_dir}/input.check.mergebin.stack_ratio.yaml && \
+		DrawPlotablesWithCMSFormat.py $${work_dir}/input.check.mergebin.fit_significance.yaml
+
+merge_binning_estimation: ## run commands for merging estimation for all binning in pt spectrum  [binningDIR=./]
+	$(call check_defined,binningDIR)
+	work_dir=$$PWD ; cd $(binningDIR) && \
+					 echo hiiiii
+
+IN_ARGS = \n    [singleMAKEFILE=makefile_3fits_btagcut_psuedodata] \n    [binningFOLDER=/afs/cern.ch/work/l/ltsai/Work/CMSSW/CMSSW_13_0_21/src/macros/step2bak.makehisto/makehisto_allgjets_binned_ctagfit] \n    [oDIR=result_test] \n    [iYAMLcvsb=source.btag_psuedofit_cvsb.yaml] \n    [iYAMLcvsl=source.btag_psuedofit_cvsl.yaml] \n    [iYAMLbtag=source.btag_psuedofit_btag.yaml]\n    [forcerun=1]
+
+help:  ## Display this help
+	@awk 'BEGIN {FS = ":.*##"; printf "Usage: make \033[32m<command>\033[0m $(IN_ARGS)\n\nCommands:\n\033[36m\033[0m\n"} /^[0-9a-zA-Z_-]+:.*?##/ { printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2 } /^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } ' $(MAKEFILE_LIST)
+
+.DEFAULT_GOAL := help
+
+#singleMAKEFILE:=makefile_3fits_btagcut_psuedodata
+#iYAMLcvsb:=source.btag_psuedofit_cvsb.yaml
+#iYAMLcvsl:=source.btag_psuedofit_cvsl.yaml
+#iYAMLbtag:=source.btag_psuedofit_btag.yaml
+#binningFOLDER:=/afs/cern.ch/work/l/ltsai/Work/CMSSW/CMSSW_13_0_21/src/macros/step2bak.makehisto/makehisto_allgjets_binned_ctagfit
+#
+#
+#
+#makesinglebin: ## hiiii
+#	make -f $(singleMAKEFILE) all \
+#		oDIR=$(outDIR) \
+#		iYAMLcvsb=$(iYAMLcvsb) \
+#		iYAMLcvsl=$(iYAMLcvsl) \
+#		iYAMLbtag=$(iYAMLbtag) \
+#		rootMAKEHISTO=$(rootFILE) | tee $(outLOG)
+##mv log_full_$binningSTR $out_dir
+##
+##out_folder=${outTAG}_3fit_psueoddata_GJetPythia1
+##mkdir $out_folder; mv binned__* $out_folder
+#makebin_0_0_210_230:
+#	make -f $(singleMAKEFILE) all \
+#		oDIR=binned__0_0_210_230 \
+#		iYAMLcvsb=$(iYAMLcvsb) \
+#		iYAMLcvsl=$(iYAMLcvsl) \
+#		iYAMLbtag=$(iYAMLbtag) \
+#		rootMAKEHISTO=$(binningFOLDER)/makehisto_binned_ctagfit_psuedodata__0_0_210_230.root | tee logs_0_0_210_230
+#	mv logs_0_0_210_230 binned__0_0_210_230
+#makebin_0_1_210_230:
+#	make -f $(singleMAKEFILE) all \
+#		oDIR=binned__0_1_210_230 \
+#		iYAMLcvsb=$(iYAMLcvsb) \
+#		iYAMLcvsl=$(iYAMLcvsl) \
+#		iYAMLbtag=$(iYAMLbtag) \
+#		rootMAKEHISTO=$(binningFOLDER)/makehisto_binned_ctagfit_psuedodata__0_1_210_230.root | tee logs_0_1_210_230
+#	mv logs_0_1_210_230 binned__0_1_210_230
+#
+#
+#
+### [binningFOLDER=/afs/cern.ch/work/l/ltsai/Work/CMSSW/CMSSW_13_0_21/src/macros/step2bak.makehisto/makehisto_allgjets_binned_ctagfit]
+#allbinning: \
+#		makebin_0_0_210_230 \
+#		makebin_0_1_210_230
+#	mkdir  testres; mv binned__* testres/ 
+#
+	
+
+	
+#runWPcut $folder/makehisto_binned_ctagfit_psuedodata__0_0_210_230.root
+#runWPcut $folder/makehisto_binned_ctagfit_psuedodata__0_0_230_250.root
+#runWPcut $folder/makehisto_binned_ctagfit_psuedodata__0_0_250_300.root
+#runWPcut $folder/makehisto_binned_ctagfit_psuedodata__0_0_300_400.root
+#runWPcut $folder/makehisto_binned_ctagfit_psuedodata__0_0_400_500.root
+#runWPcut $folder/makehisto_binned_ctagfit_psuedodata__0_0_500_600.root
+#runWPcut $folder/makehisto_binned_ctagfit_psuedodata__0_0_600_1000.root
+#runWPcut $folder/makehisto_binned_ctagfit_psuedodata__0_0_1000_1500.root
+#runWPcut $folder/makehisto_binned_ctagfit_psuedodata__0_1_210_230.root
+#runWPcut $folder/makehisto_binned_ctagfit_psuedodata__0_1_230_250.root
+#runWPcut $folder/makehisto_binned_ctagfit_psuedodata__0_1_250_300.root
+#runWPcut $folder/makehisto_binned_ctagfit_psuedodata__0_1_300_400.root
+#runWPcut $folder/makehisto_binned_ctagfit_psuedodata__0_1_400_500.root
+#runWPcut $folder/makehisto_binned_ctagfit_psuedodata__0_1_500_600.root
+#runWPcut $folder/makehisto_binned_ctagfit_psuedodata__0_1_600_1000.root
+#runWPcut $folder/makehisto_binned_ctagfit_psuedodata__0_1_1000_1500.root
+#runWPcut $folder/makehisto_binned_ctagfit_psuedodata__1_0_210_230.root
+#runWPcut $folder/makehisto_binned_ctagfit_psuedodata__1_0_230_250.root
+#runWPcut $folder/makehisto_binned_ctagfit_psuedodata__1_0_250_300.root
+#runWPcut $folder/makehisto_binned_ctagfit_psuedodata__1_0_300_400.root
+#runWPcut $folder/makehisto_binned_ctagfit_psuedodata__1_0_400_500.root
+#runWPcut $folder/makehisto_binned_ctagfit_psuedodata__1_0_500_600.root
+#runWPcut $folder/makehisto_binned_ctagfit_psuedodata__1_0_600_1000.root
+#runWPcut $folder/makehisto_binned_ctagfit_psuedodata__1_1_210_230.root
+#runWPcut $folder/makehisto_binned_ctagfit_psuedodata__1_1_230_250.root
+#runWPcut $folder/makehisto_binned_ctagfit_psuedodata__1_1_250_300.root
+#runWPcut $folder/makehisto_binned_ctagfit_psuedodata__1_1_300_400.root
+#runWPcut $folder/makehisto_binned_ctagfit_psuedodata__1_1_400_500.root
+#runWPcut $folder/makehisto_binned_ctagfit_psuedodata__1_1_500_600.root
+#runWPcut $folder/makehisto_binned_ctagfit_psuedodata__1_1_600_1000.root
+

@@ -1,0 +1,53 @@
+OUTPUT_DIR=/afs/cern.ch/user/l/ltsai/eos_storage/condor_storage/$(jobname)
+
+
+timeSTAMP=$$(date "+%Y%m%d_%H%M")
+
+check_defined = \
+    $(strip $(foreach 1,$1, \
+    $(call __check_defined,$1,$(strip $(value 2)))))
+__check_defined = \
+    $(if $(value $1),, \
+    $(error Undefined $1$(if $2, ($2))))
+
+check_shell_var_defined = \
+  	$(if $(shell [ -z "$${$1}" ] && echo undefined), \
+	$(error Shell variable $1 is undefined), \
+	$(info Shell variable $1 is set))
+
+
+step10_prepare_histograms: ## Create histograms for 
+	python3 make_hist_source_and_datacard.py test.datafit.yaml
+
+check1_makehisto_content: ## Create secondary rootfile for checking makehisto.root is correct or not
+	python3 secondary_plot_creation.py
+	DrawRatioPlotablesWithCMSFormat.py input.check.yaml
+
+
+_TMP_DATACARD=datacard_gjet_inclusive.txt
+_TMP_INPUT_WORKSPACE=ws_gjet_inclusive.root
+#step2_text2workspace: ## create workspace for combine
+# 	text2workspace.py $(_TMP_DATACARD) -o $(_TMP_INPUT_WORKSPACE) \
+#     -P HiggsAnalysis.CombinedLimit.PhysicsModel:multiSignalModel \
+#     --PO "map=.*/gjet:nSIGN[$initSIGN,0.,$nDATA]" \
+#     --PO "map=.*/SB:nFAKE[$initFAKE,0.,$nDATA]" \
+#     --PO verbose || exit "failed to create workspace from datacard"
+
+
+
+
+clean: ## clean logs
+	@echo hi
+
+$(OUTPUT_DIR):
+	$(call check_defined, jobname)
+	@echo Folder not found: Initialize folder $(OUTPUT_DIR)
+	mkdir -p $@
+
+IN_ARGS = [opts]
+
+help:  ## Display this help
+	@awk 'BEGIN {FS = ":.*##"; printf "Usage: make \033[32m<command>\033[0m $(IN_ARGS)\n\nCommands:\n\033[36m\033[0m\n"} /^[0-9a-zA-Z_-]+:.*?##/ { printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2 } /^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } ' $(MAKEFILE_LIST)
+
+.DEFAULT_GOAL := help
+

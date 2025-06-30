@@ -1,0 +1,17 @@
+Combination of SBbtag=datacard_SBbtag.txt  SBcvsl=datacard_SBcvsl.txt  SBcvsb=datacard_SBcvsb.txt
+imax 3 number of bins
+jmax 2 number of processes minus 1
+kmax 0 number of nuisance parameters
+----------------------------------------------------------------------------------------------------------------------------------
+shapes *       SBbtag  datacard_SBbtag.root SBbtag/$PROCESS
+shapes *       SBcvsb  datacard_SBcvsb.root SBcvsb/$PROCESS
+shapes *       SBcvsl  datacard_SBcvsl.root SBcvsl/$PROCESS
+----------------------------------------------------------------------------------------------------------------------------------
+bin          SBbtag  SBcvsl  SBcvsb
+observation  45977   45978   45978 
+----------------------------------------------------------------------------------------------------------------------------------
+bin          SBbtag  SBbtag  SBbtag  SBcvsl  SBcvsl  SBcvsl  SBcvsb  SBcvsb  SBcvsb
+process      cjet    bjet    ljet    cjet    bjet    ljet    cjet    bjet    ljet  
+process      -1      0       1       -1      0       1       -1      0       1     
+rate         1       1       1       1       1       1       1       1       1     
+----------------------------------------------------------------------------------------------------------------------------------

@@ -1,0 +1,50 @@
+figNAME: 'hi.pdf'
+upperpad:
+  legNcolumn: 2
+  legFONTsize: 'xx-small'
+  xLABEL: ''
+  yLABEL: 'Entries'
+  yRANGE:
+    - 1e-1
+    - 1e8
+  ySCALE: log
+  plotables:
+    - type: TH1F
+      objname: data_obs
+      file: postfit.gjet_btag_postfit.root
+      label: psuedo data
+      plotstyle: data
+      legorder: -1
+    # the foramt is controlled in each DrawObj.py
+    - type: TH1F
+      objname: Bjet
+      file: postfit.gjet_btag_postfit.root
+      label: b-jet
+      plotstyle: hist1
+      legorder: 0
+    - type: TH1F
+      objname: TotalSig
+      file: postfit.gjet_btag_postfit.root
+      label: c-jet
+      plotstyle: hist2
+      legorder: 1
+    - type: TH1F
+      objname: TotalProcs
+      file: postfit.gjet_btag_postfit.root
+      label: l-jet
+      plotstyle: histBKG
+      legorder: 2
+
+lowerpad:
+  xLABEL: 'SV mass [GeV]'
+  yLABEL: 'data / MC'
+  yRANGE:
+    -   0.5
+    -   2.0
+  # the foramt is controlled in each DrawObj.py
+  plotables:
+    - type: TGraphAsymmError
+      objname: ratio
+      file: postfit.gjet_btag_postfit.root
+      label: 'all MC'
+      plotstyle: data

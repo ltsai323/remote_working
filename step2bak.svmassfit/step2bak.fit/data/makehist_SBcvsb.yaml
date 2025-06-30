@@ -1,0 +1,19 @@
+channel: SBcvsb
+inputFILE: out_makehisto.root
+datacardTEMPLATE: data/datacard_SBcvsb_template.txt
+outputDATACARD:   datacard_SBcvsb.txt
+outputROOT:       datacard_SBcvsb.root
+outputYAML:       datacard_SBcvsb.defaultValue.yaml
+load_data:
+    - name: data_obs
+      histSOURCE: jettag2_data_dataSideband
+      normalize: -1
+    - name: ljet
+      histSOURCE: jettag2_gjetL_signalRegion
+      normalize:  1
+    - name: cjet
+      histSOURCE: jettag2_gjetC_signalRegion
+      normalize: 1
+    - name: bjet
+      histSOURCE: jettag2_gjetB_signalRegion
+      normalize: 1

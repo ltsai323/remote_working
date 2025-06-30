@@ -1,0 +1,41 @@
+figNAME: 'hi.png'
+upperpad:
+  xLABEL: ''
+  yLABEL: 'Entries'
+  yRANGE:
+    - 1e-1
+    - 1e8
+  ySCALE: log
+  plotables:
+    - type: TH1F
+      objname: data_phoeta
+      file: makehisto.root
+      label: data
+      plotstyle: data0
+      legorder: -1
+    # the foramt is controlled in each DrawObj.py
+    - type: TH1F
+      objname: fake_phoeta
+      file: makehisto.root
+      label: QCD
+      plotstyle: histBKG
+      legorder: 1
+    - type: TH1F
+      objname: stak_phoeta
+      file: makehisto.root
+      label: gjet Madgraph
+      plotstyle: hist1
+      legorder: 0
+lowerpad:
+  xLABEL: '$\eta^{\gamma}$'
+  yLABEL: 'data / MC'
+  yRANGE:
+    -   0.5
+    -   2.0
+  # the foramt is controlled in each DrawObj.py
+  plotables:
+    - type: TGraphAsymmError
+      objname: ratio_phoeta
+      file: makehisto.root
+      label: 'original'
+      plotstyle: data

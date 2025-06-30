@@ -1,0 +1,57 @@
+fitinfo:
+  numB:
+    composition: 0
+    errDn: 0
+    errUp: 0
+    error: 64.54274308649295
+    value: 210.91867065429688
+  numC:
+    composition: 0
+    errDn: 0
+    errUp: 0
+    error: 133.7551612778068
+    value: 2415.6943359375
+  numL:
+    composition: 0
+    errDn: 0
+    errUp: 0
+    error: 142.81333541723507
+    value: 22752.5
+ratio:
+  numB:
+    composition: 0
+    errDn: 0
+    errUp: 0
+    error: 2.026481004530224
+    value: 1.1697500874598261
+  numC:
+    composition: 0
+    errDn: 0
+    errUp: 0
+    error: 0.07786799876945459
+    value: 0.9694821379336426
+  numL:
+    composition: 0
+    errDn: 0
+    errUp: 0
+    error: 0.008829325625487895
+    value: 1.0142792351844476
+truthinfo:
+  numB:
+    composition: 0
+    errDn: 0
+    errUp: 0
+    error: 134.07542770069318
+    value: 180.31088256835938
+  numC:
+    composition: 0
+    errDn: 0
+    errUp: 0
+    error: 134.07542770069318
+    value: 2491.73681640625
+  numL:
+    composition: 0
+    errDn: 0
+    errUp: 0
+    error: 134.07542770069318
+    value: 22432.185546875

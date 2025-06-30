@@ -1,0 +1,44 @@
+figNAME: 'postfit.BDTfit.pdf'
+upperpad:
+  legNcolumn: 2
+  legFONTsize: 'xx-small'
+  xLABEL: ''
+  yLABEL: 'Entries'
+  yRANGE:
+    - 1e-1
+    - 1e8
+  ySCALE: log
+  plotables:
+    - type: TH1F
+      objname: data_obs
+      file: postfit.BDTAll_postfit.root
+      label: psuedo data
+      plotstyle: data
+      legorder: -1
+    # the foramt is controlled in each DrawObj.py
+    - type: TH1F
+      objname: TotalBkg
+      file: postfit.BDTAll_postfit.root
+      label: Di-jet
+      plotstyle: histBKG
+      legorder: 0
+    - type: TH1F
+      objname: TotalProcs
+      file: postfit.BDTAll_postfit.root
+      label: gjet
+      plotstyle: hist1
+      legorder: 1
+
+lowerpad:
+  xLABEL: 'Photon BDT Score'
+  yLABEL: 'data / MC'
+  yRANGE:
+    -   0.5
+    -   2.0
+  # the foramt is controlled in each DrawObj.py
+  plotables:
+    - type: TGraphAsymmError
+      objname: ratio
+      file: postfit.BDTAll_postfit.root
+      label: 'all MC'
+      plotstyle: data

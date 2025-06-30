@@ -1,0 +1,17 @@
+figNAME: 'outputs/extracted_xsC_0_1.pdf'
+yLABEL: 'differential XS (c)'
+yRANGE:
+  - 1e-4
+  - 1e7
+ySCALE: log
+xLABEL: '$p^{\gamma}_{T}$ (GeV)'
+legNcolumn: 1
+legFONTsize: 'small'
+
+plotables:
+  # B efficiency
+  - type: TH1F
+    objname: bin_0_1_fit_XSC
+    file: calculated_xs.root
+    label: 'barrel pho endcap jet'
+    plotstyle: cross1

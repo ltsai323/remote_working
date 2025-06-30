@@ -1,0 +1,4 @@
+$(iFILE):
+	$(error input file $(iFILE) does not exist. Stop this command)
+all: $(iFILE)
+	echo $(iFILE) found! keep running on

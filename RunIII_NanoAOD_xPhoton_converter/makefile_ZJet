@@ -1,0 +1,168 @@
+# =====================================================
+# Compiler and Flags
+# =====================================================
+CXX          = $(shell root-config --ld)
+ROOT_FLAGS   = $(shell root-config --cflags --libs)
+LD_FLAGS     = $(shell root-config --ldflags)
+EXTRA_LIBS   = -lXMLIO -lTMVA
+MYLIB        = -I./extlib/ -L./extlib/ -lcorrectionlib
+NEW_LD_LIBRARY_PATH = $(LD_LIBRARY_PATH):./extlib
+
+FOLDER_CHIP01 = /data4/ltsai/ReceivedFile/2022EE_NanoAODv12_ZJet/
+FOLDER_LXPLUS = /afs/cern.ch/user/l/ltsai/eos_storage/condor_summary/2022EE_ZJet/
+DATA_FOLDER = $(FOLDER_LXPLUS)
+# =====================================================
+# Targets and Source Files
+# =====================================================
+TARGET_1 = stage1_ForTrigSF_DYZjet.exe
+SOURCE_1 = ForTrigSF_DYZjet.C
+
+TARGET_2 = stage2_EstimateSR_ZJet.exe
+SOURCE_2 = EstimateSR_ZJet.cc
+
+# =====================================================
+# Phony Targets
+# =====================================================
+.PHONY: all clean runMC runMC_DY_40 runMC_DY_100 runMC_DY_200 runMC_DY_400 runMC_DY_600 runData runData_E runData_F runData_G
+
+# Build all targets
+all: $(TARGET_1) $(TARGET_2)
+runall:	runMC runData
+
+# =====================================================
+# Compilation Rules
+# =====================================================
+
+$(TARGET_1): $(SOURCE_1)
+	@echo "[Compiling] $(SOURCE_1)"
+	$(CXX) $(LD_FLAGS) $(ROOT_FLAGS) $(EXTRA_LIBS) $(SOURCE_1) $(MYLIB) -o $(TARGET_1)
+	@echo "[Usage] ./$(TARGET_1) in.root out.root 2022EE"
+
+$(TARGET_2): $(SOURCE_2)
+	@echo "[Compiling] $(SOURCE_2)"
+	$(CXX) $(LD_FLAGS) $(ROOT_FLAGS) $(EXTRA_LIBS) $(SOURCE_2) $(MYLIB) -o $(TARGET_2)
+	@echo "[Usage] ./$(TARGET_2) in.root out.root 2022EE"
+
+# =====================================================
+# Running the Executables
+# =====================================================
+
+### Example: make run iFILE=hi.root oFILE=jj.root dataset=2022EE_RunG
+run1: $(TARGET_1)
+	./$(TARGET_1) $(iFILE) $(oFILE) 2022EE
+
+run2: $(TARGET_2)
+	./$(TARGET_2) $(iFILE) $(oFILE) $(dataset)
+
+# =====================================================
+# Test Execution
+# =====================================================
+
+test: clean $(TARGET_2)
+	echo -e " \n\n\n data execution started \n\n\n"
+	LD_LIBRARY_PATH=$(NEW_LD_LIBRARY_PATH) ./$(TARGET_2) \
+		/data4/ltsai/ReceivedFile/2022EE_NanoAODv12_ZJet/ZJetMC_DYto2L2Jets_MLL50_PTLL600_1J.root \
+		stage2_ZJetMC_DYto2L2Jets_MLL50_PTLL40to100_1J.root \
+		2022EE_DYto2L2Jets_MLL50_PTLL40to100_1J 
+	echo -e " \n\n\n MC execution finished \n\n\n"
+
+	echo -e " \n\n\n data execution started \n\n\n"
+	LD_LIBRARY_PATH=$(NEW_LD_LIBRARY_PATH) ./$(TARGET_2) \
+		/data4/ltsai/ReceivedFile/2022EE_NanoAODv12_ZJet/ZJetData_2022EERunG.root \
+		stage2_ZJetData_2022EERunG.root \
+		2022EE_RunG
+	echo -e " \n\n\n data execution finished \n\n\n"
+
+# =====================================================
+# Cleaning up
+# =====================================================
+
+clean:
+	rm -f $(TARGET_1) $(TARGET_2) out_*.root log_*
+
+# =====================================================
+# Running Monte Carlo Simulations
+# =====================================================
+
+#runMC: runMC_DY_40 runMC_DY_100 runMC_DY_200 runMC_DY_400 runMC_DY_600
+runMC: runMC_DY_0J runMC_DY_1J runMC_DY_2J
+
+runMC_DY_0J: $(TARGET_2)
+	LD_LIBRARY_PATH=$(NEW_LD_LIBRARY_PATH) ./$(TARGET_2) \
+		$(DATA_FOLDER)/DYto2L2Jets_MLL50_0J \
+		stage2_ZJetMC_DYto2L2Jets_MLL50_0J.root \
+		2022EE_DYto2L2Jets_MLL50_0J \
+		> log_2022EE_DYto2L2Jets_MLL50_0J 2>&1
+runMC_DY_1J: $(TARGET_2)
+	LD_LIBRARY_PATH=$(NEW_LD_LIBRARY_PATH) ./$(TARGET_2) \
+		$(DATA_FOLDER)/DYto2L2Jets_MLL50_1J \
+		stage2_ZJetMC_DYto2L2Jets_MLL50_1J.root \
+		2022EE_DYto2L2Jets_MLL50_1J \
+		> log_2022EE_DYto2L2Jets_MLL50_1J 2>&1
+runMC_DY_2J: $(TARGET_2)
+	LD_LIBRARY_PATH=$(NEW_LD_LIBRARY_PATH) ./$(TARGET_2) \
+		$(DATA_FOLDER)/DYto2L2Jets_MLL50_2J \
+		stage2_ZJetMC_DYto2L2Jets_MLL50_2J.root \
+		2022EE_DYto2L2Jets_MLL50_2J \
+		> log_2022EE_DYto2L2Jets_MLL50_2J 2>&1
+
+
+
+runMC_DY_40: $(TARGET_2)
+	LD_LIBRARY_PATH=$(NEW_LD_LIBRARY_PATH) ./$(TARGET_2) \
+		/data4/ltsai/ReceivedFile/2022EE_NanoAODv12_ZJet/ZJetMC_DYto2L2Jets_MLL50_PTLL40to100_1J.root \
+		stage2_ZJetMC_DYto2L2Jets_MLL50_PTLL40to100_1J.root \
+		2022EE_DYto2L2Jets_MLL50_PTLL40to100_1J \
+		> log_2022EE_DYto2L2Jets_MLL50_PTLL40to100_1J 2>&1
+
+runMC_DY_100: $(TARGET_2)
+	LD_LIBRARY_PATH=$(NEW_LD_LIBRARY_PATH) ./$(TARGET_2) \
+		/data4/ltsai/ReceivedFile/2022EE_NanoAODv12_ZJet/ZJetMC_DYto2L2Jets_MLL50_PTLL100to200_1J.root \
+		stage2_ZJetMC_DYto2L2Jets_MLL50_PTLL100to200_1J.root \
+		2022EE_DYto2L2Jets_MLL50_PTLL100to200_1J \
+		> log_2022EE_DYto2L2Jets_MLL50_PTLL100to200_1J 2>&1
+
+runMC_DY_200: $(TARGET_2)
+	LD_LIBRARY_PATH=$(NEW_LD_LIBRARY_PATH) ./$(TARGET_2) \
+		/data4/ltsai/ReceivedFile/2022EE_NanoAODv12_ZJet/ZJetMC_DYto2L2Jets_MLL50_PTLL200to400_1J.root \
+		stage2_ZJetMC_DYto2L2Jets_MLL50_PTLL200to400_1J.root \
+		2022EE_DYto2L2Jets_MLL50_PTLL200to400_1J \
+		> log_2022EE_DYto2L2Jets_MLL50_PTLL200to400_1J 2>&1
+
+runMC_DY_400: $(TARGET_2)
+	LD_LIBRARY_PATH=$(NEW_LD_LIBRARY_PATH) ./$(TARGET_2) \
+		/data4/ltsai/ReceivedFile/2022EE_NanoAODv12_ZJet/ZJetMC_DYto2L2Jets_MLL50_PTLL400to600_1J.root \
+		stage2_ZJetMC_DYto2L2Jets_MLL50_PTLL400to600_1J.root \
+		2022EE_DYto2L2Jets_MLL50_PTLL400to600_1J \
+		> log_2022EE_DYto2L2Jets_MLL50_PTLL400to600_1J 2>&1
+
+runMC_DY_600: $(TARGET_2)
+	LD_LIBRARY_PATH=$(NEW_LD_LIBRARY_PATH) ./$(TARGET_2) \
+		/data4/ltsai/ReceivedFile/2022EE_NanoAODv12_ZJet/ZJetMC_DYto2L2Jets_MLL50_PTLL600_1J.root \
+		stage2_ZJetMC_DYto2L2Jets_MLL50_PTLL600_1J.root \
+		2022EE_DYto2L2Jets_MLL50_PTLL600_1J \
+		> log_2022EE_DYto2L2Jets_MLL50_PTLL600_1J 2>&1
+
+# =====================================================
+# Running Data Processing
+# =====================================================
+
+runData: runData_E runData_F runData_G
+
+runData_E: $(TARGET_2)
+	LD_LIBRARY_PATH=$(NEW_LD_LIBRARY_PATH) ./$(TARGET_2) \
+		$(DATA_FOLDER)/ZJetData_2022EERunE.root \
+		stage2_ZJetData_2022EERunE.root \
+		2022EE_RunE > log_ZJetData_2022EERunE.root 2>&1 
+
+runData_F: $(TARGET_2)
+	LD_LIBRARY_PATH=$(NEW_LD_LIBRARY_PATH) ./$(TARGET_2) \
+		$(DATA_FOLDER)/ZJetData_2022EERunF.root \
+		stage2_ZJetData_2022EERunF.root \
+		2022EE_RunF > log_ZJetData_2022EERunF.root 2>&1 
+
+runData_G: $(TARGET_2)
+	LD_LIBRARY_PATH=$(NEW_LD_LIBRARY_PATH) ./$(TARGET_2) \
+		$(DATA_FOLDER)/ZJetData_2022EERunG.root \
+		stage2_ZJetData_2022EERunG.root \
+		2022EE_RunG > log_ZJetData_2022EERunG.root 2>&1 

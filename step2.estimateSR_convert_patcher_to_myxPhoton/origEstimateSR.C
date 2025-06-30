@@ -31,29 +31,31 @@
 #include <string>
 #include <vector>
 #include "TLorentzVector.h"
-//#include "/cvmfs/cms.cern.ch/slc7_amd64_gcc11/external/py3-correctionlib/2.1.0-d2a3f7d7a03ec004ef7327ef5e29e333/lib/python3.9/site-packages/correctionlib/include/correction.h"
-//#include "/eos/user/s/sakarmak/SWAN_projects/GammaJets13p6TeV/ForSRStudy/GetPhotonSF.h"
-#include "extlib/correction.h"
-#include "extlib/GetPhotonSF.h"
-#include "extlib/ExternalFilesMgr.h"
+#include "/cvmfs/cms.cern.ch/slc7_amd64_gcc11/external/py3-correctionlib/2.1.0-d2a3f7d7a03ec004ef7327ef5e29e333/lib/python3.9/site-packages/correctionlib/include/correction.h"
+#include "/eos/user/s/sakarmak/SWAN_projects/GammaJets13p6TeV/ForSRStudy/GetPhotonSF.h"
 
 using correction::CorrectionSet;
 using namespace std;
 
 //Photon scale and smearing files
-auto cset_photon_scale_smearing_file = CorrectionSet::from_file("data/Photon_scale_smearing.json");
+auto cset_photon_scale_smearing_file = CorrectionSet::from_file("/eos/user/s/sakarmak/SWAN_projects/GammaJets13p6TeV/EGmSFs/SS.json");
 auto cset_scale = cset_photon_scale_smearing_file->at("Prompt2022FG_ScaleJSON");
 auto cset_smearing = cset_photon_scale_smearing_file->at("Prompt2022FG_SmearingJSON");
 
 //Jet JEC-JER files
-auto cset_jet_jerc_file = CorrectionSet::from_file("data/jet_jerc.json");
+auto cset_jet_jerc_file = CorrectionSet::from_file("/eos/user/s/sakarmak/SWAN_projects/GammaJets13p6TeV/EGmSFs/jet_jerc.json");
 correction::Correction::Ref jec_sf_L2;
 correction::Correction::Ref jec_sf_L3;
 correction::Correction::Ref jec_sf_L23;
-//For MC 
-//jec_sf_L2   = cset_jet_jerc_file->at("Summer22EE_22Sep2023_V2_MC_L2Relative_AK4PFPuppi");
-//jec_sf_L3   = cset_jet_jerc_file->at("Summer22EE_22Sep2023_V2_MC_L3Absolute_AK4PFPuppi");
-//jec_sf_L23 = cset_jet_jerc_file->at("Summer22EE_22Sep2023_V2_MC_L2L3Residual_AK4PFPuppi");
+TString   JER_corr = "Summer22EE_22Sep2023_JRV1_MC_ScaleFactor_AK4PFPuppi";
+TString   JER_reso = "Summer22EE_22Sep2023_JRV1_MC_PtResolution_AK4PFPuppi";
+auto jet_jerc_corr = cset_jet_jerc_file->at(std::string(JER_corr.Data()));
+auto jet_jerc_reso = cset_jet_jerc_file->at(std::string(JER_reso.Data()));
+
+//Jet-Veto map file
+auto cset_jet_vetomap_file = CorrectionSet::from_file("/eos/user/s/sakarmak/SWAN_projects/GammaJets13p6TeV/EGmSFs/jetvetomaps.json.gz");
+auto cset_veto = cset_jet_vetomap_file->at("Summer22EE_23Sep2023_RunEFG_V1");
+
 
 int main(int argc, char** argv){
 TChain *tr = new TChain("Events");
@@ -71,7 +73,7 @@ bool isEraG = false;
 TFile *fpu;
 //string path_PU = "/eos/user/s/sakarmak/SWAN_projects/GammaJets13p6TeV/Pileup_files/";
 //Getting the Pileup SF histos
-  fpu = new TFile("data/PileupSF_DYJets_EraEFG.root");
+   fpu = new TFile("/eos/user/s/sakarmak/SWAN_projects/GammaJets13p6TeV/Pileup_files/PileupSF_DYJets_EraEFG.root");
    TH1D *h_pu_nom, *h_pu_up, *h_pu_down;
    if(isData==false){
     h_pu_nom = (TH1D*)fpu->Get("pileupSF_nom");
@@ -79,13 +81,13 @@ TFile *fpu;
     //h_pu_down = (TH1D*)fpu->Get("pileupSF_down");
    }
 //Getting the CDFs for Shower shape corrections
-  TFile *fss_barrel = new TFile("data/output_ShowerShapeCorrection_barrel_1000Bins.root");
-  TFile *fss_endcap = new TFile("data/output_ShowerShapeCorrection_endcap_1000Bins.root");
+   TFile *fss_barrel = new TFile("/eos/user/s/sakarmak/SWAN_projects/GammaJets13p6TeV/TagAndProbe/output_ShowerShapeCorrection_barrel_1000Bins.root");
+   TFile *fss_endcap = new TFile("/eos/user/s/sakarmak/SWAN_projects/GammaJets13p6TeV/TagAndProbe/output_ShowerShapeCorrection_endcap_1000Bins.root");
 
 if(fileName=="DataE"){
   path = "/eos/user/s/sakarmak/SWAN_projects/GammaJets13p6TeV/ForSRStudy/Data/";
   tr->Add((path+"outFile_EGamma2022E.root").c_str());
-  fout = new TFile("qcdEstimate/outfile_dataQCD_G.root","RECREATE");
+  fout = new TFile("outfile_data_E.root","RECREATE");
   isData = true;
   jec_sf_L2   = cset_jet_jerc_file->at("Summer22EE_22Sep2023_RunE_V2_DATA_L2Relative_AK4PFPuppi");
   jec_sf_L3   = cset_jet_jerc_file->at("Summer22EE_22Sep2023_RunE_V2_DATA_L3Absolute_AK4PFPuppi");
@@ -98,16 +100,16 @@ else if(fileName=="DataF"){
   tr->Add((path+"outFile_EGamma2022F_merged_3.root").c_str());
   tr->Add((path+"outFile_EGamma2022F_merged_4.root").c_str());
   tr->Add((path+"outFile_EGamma2022F_merged_5.root").c_str());
-  fout = new TFile("qcdEstimate/outfile_dataQCD_G.root","RECREATE");
+  fout = new TFile("outfile_data_F.root","RECREATE");
   isData = true; 
   jec_sf_L2   = cset_jet_jerc_file->at("Summer22EE_22Sep2023_RunF_V2_DATA_L2Relative_AK4PFPuppi");
   jec_sf_L3   = cset_jet_jerc_file->at("Summer22EE_22Sep2023_RunF_V2_DATA_L3Absolute_AK4PFPuppi");
   jec_sf_L23 = cset_jet_jerc_file->at("Summer22EE_22Sep2023_RunF_V2_DATA_L2L3Residual_AK4PFPuppi");
 }
-if(fileName=="DataG"){
+else if(fileName=="DataG"){
   path = "/eos/user/s/sakarmak/SWAN_projects/GammaJets13p6TeV/ForSRStudy/Data/";
   tr->Add((path+"outFile_EGamma2022G.root").c_str());
-  fout = new TFile("qcdEstimate/outfile_dataQCD_G.root","RECREATE");
+  fout = new TFile("outfile_data_G.root","RECREATE");
   isData = true;
   isEraG = true;
   jec_sf_L2   = cset_jet_jerc_file->at("Summer22EE_22Sep2023_RunG_V2_DATA_L2Relative_AK4PFPuppi");
@@ -359,29 +361,6 @@ else if(fileName=="GJetsFlatPt_forVal"){
   normWgt = 1.0*lumi*1000*295100.0/27275.228;
   isSignal = true;
 }
-  else if (fileName=="test1") {
-    tr->Add("/afs/cern.ch/user/l/ltsai/eos_storage/condor_storage/G4JetsMadgraph_600toinf/outFile_G4JetsMadgraph_600toinf_0.root");
-
-    fout = new TFile("mytesting_gjetmadgraph.root", "RECREATE");
-    normWgt = 1.0;
-    isSignal = true;
-  }
-  else if (fileName=="test2") {
-    tr->Add("/afs/cern.ch/user/l/ltsai/eos_storage/condor_storage/QCD4JetsMadgraph_400to600/outFile_QCD4JetsMadgraph_400to600_0.root");
-
-    fout = new TFile("mytesting_qcdmadgraph.root", "RECREATE");
-    normWgt = 1.0;
-    isQCD = true;
-  }
-  else if (fileName=="test3") {
-    tr->Add("/afs/cern.ch/user/l/ltsai/eos_storage/condor_storage/Run2022E/outFile_Run2022E_0.root");
-
-    fout = new TFile("mytesting_data.root", "RECREATE");
-    isData = true; 
-    jec_sf_L2   = cset_jet_jerc_file->at("Summer22EE_22Sep2023_RunE_V2_DATA_L2Relative_AK4PFPuppi");
-    jec_sf_L3   = cset_jet_jerc_file->at("Summer22EE_22Sep2023_RunE_V2_DATA_L3Absolute_AK4PFPuppi");
-    jec_sf_L23 = cset_jet_jerc_file->at("Summer22EE_22Sep2023_RunE_V2_DATA_L2L3Residual_AK4PFPuppi");
-  }
 else{
   cout<<"No such sample"<<endl;
   abort();
@@ -450,11 +429,18 @@ else{
    Int_t 	    Pileup_nPU;
    Int_t           nJet;
    UChar_t         Jet_jetId[91];   //[nJet]
+   Float_t         Jet_chEmEF[91];   //[nJet]
+   Float_t         Jet_neEmEF[91];
    Float_t         Jet_eta[91];   //[nJet]
    Float_t         Jet_mass[91];   //[nJet]
    Float_t         Jet_phi[91];   //[nJet]
    Float_t         Jet_pt[91];   //[nJet]
    Float_t         Jet_rawFactor[91];   //[nJet]
+   Int_t           nGenJet;
+   Float_t         GenJet_eta[25];   //[nGenJet]
+   Float_t         GenJet_mass[25];   //[nGenJet]
+   Float_t         GenJet_phi[25];   //[nGenJet]
+   Float_t         GenJet_pt[25];   //[nGenJet]
 
    
    TBranch        *b_run;   //!
@@ -519,11 +505,18 @@ else{
    TBranch	  *b_Pileup_nPU; //!
    TBranch        *b_nJet;   //!
    TBranch        *b_Jet_jetId;   //!
+   TBranch	  *b_Jet_chEmEF;
+   TBranch	  *b_Jet_neEmEF;
    TBranch        *b_Jet_mass;   //!
    TBranch        *b_Jet_eta;   //!
    TBranch        *b_Jet_phi;   //!
    TBranch        *b_Jet_pt;   //!
    TBranch	  *b_Jet_rawFactor;
+   TBranch        *b_nGenJet;   //!
+   TBranch        *b_GenJet_eta;   //!
+   TBranch        *b_GenJet_mass;   //!
+   TBranch        *b_GenJet_phi;   //!
+   TBranch        *b_GenJet_pt;   //!
   
    tr->SetBranchAddress("run", &run, &b_run);
    tr->SetBranchAddress("luminosityBlock", &luminosityBlock, &b_luminosityBlock);
@@ -578,6 +571,8 @@ else{
    tr->SetBranchAddress("Rho_fixedGridRhoFastjetAll", &Rho_fixedGridRhoFastjetAll, &b_Rho_fixedGridRhoFastjetAll);
    tr->SetBranchAddress("nJet", &nJet, &b_nJet);
    tr->SetBranchAddress("Jet_jetId", Jet_jetId, &b_Jet_jetId);
+   tr->SetBranchAddress("Jet_neEmEF", Jet_neEmEF, &b_Jet_neEmEF);
+   tr->SetBranchAddress("Jet_chEmEF", Jet_chEmEF, &b_Jet_chEmEF);
    tr->SetBranchAddress("Jet_mass", Jet_mass, &b_Jet_mass);
    tr->SetBranchAddress("Jet_eta", Jet_eta, &b_Jet_eta);
    tr->SetBranchAddress("Jet_phi", Jet_phi, &b_Jet_phi);
@@ -590,6 +585,11 @@ else{
     tr->SetBranchAddress("GenIsolatedPhoton_mass", GenIsolatedPhoton_mass, &b_GenIsolatedPhoton_mass);
     tr->SetBranchAddress("GenIsolatedPhoton_phi", GenIsolatedPhoton_phi, &b_GenIsolatedPhoton_phi);
     tr->SetBranchAddress("GenIsolatedPhoton_pt", GenIsolatedPhoton_pt, &b_GenIsolatedPhoton_pt);
+    tr->SetBranchAddress("nGenJet", &nGenJet, &b_nGenJet);
+    tr->SetBranchAddress("GenJet_eta", GenJet_eta, &b_GenJet_eta);
+    tr->SetBranchAddress("GenJet_mass", GenJet_mass, &b_GenJet_mass);
+    tr->SetBranchAddress("GenJet_phi", GenJet_phi, &b_GenJet_phi);
+    tr->SetBranchAddress("GenJet_pt", GenJet_pt, &b_GenJet_pt);
     tr->SetBranchAddress("genWeight", &genWeight, &b_genWeight);
     tr->SetBranchAddress("Pileup_nPU", &Pileup_nPU, &b_Pileup_nPU);
     tr->SetBranchAddress("Photon_MyMVA", Photon_MyMVA, &b_Photon_MyMVA);
@@ -640,58 +640,6 @@ else{
 
    TH1D *h_mva = new TH1D("MyMVA","MyMVA",100, -1,1);
    TH1D *h_PhoPt = new TH1D("Pho_pt","Pho_pt", 75,210,1710);
-
-
-  TH1D *b_mva              = new TH1D( "b_MyMVA","MyMVA",100, -1,1);
-  TH1D *b_esEnergyOverRawE = new TH1D( "b_esEnergyOverRawE","", 100, 0., 1.);
-  TH1D *b_energyRaw        = new TH1D( "b_energyRaw","", 100, 0., 6000.);
-  TH1D *b_esEffSigmaRR     = new TH1D( "b_esEffSigmaRR","", 100, 0., 15.);
-  TH1D *b_etaWidth         = new TH1D( "b_etaWidth","", 100, 0., 0.15);
-  TH1D *b_HoverE           = new TH1D( "b_HoverE","", 100, 0., 0.05);
-  TH1D *b_phiWidth         = new TH1D( "b_phiWidth","", 100, 0., 0.4);
-  TH1D *b_r9               = new TH1D( "b_r9","", 100, 0., 5.);
-  TH1D *b_s4               = new TH1D( "b_s4","", 100, 0., 2.);
-  TH1D *b_sieie            = new TH1D( "b_sieie","", 100, 0., 0.05);
-  TH1D *b_sieip            = new TH1D( "b_sieip","", 100, -0.001, 0.001);
-  TH1D *borig_mva              = new TH1D( "borig_MyMVA","MyMVA",100, -1,1);
-  TH1D *borig_esEnergyOverRawE = new TH1D( "borig_esEnergyOverRawE","", 100, 0., 1.);
-  TH1D *borig_energyRaw        = new TH1D( "borig_energyRaw","", 100, 0., 6000.);
-  TH1D *borig_esEffSigmaRR     = new TH1D( "borig_esEffSigmaRR","", 100, 0., 15.);
-  TH1D *borig_etaWidth         = new TH1D( "borig_etaWidth","", 100, 0., 0.15);
-  TH1D *borig_HoverE           = new TH1D( "borig_HoverE","", 100, 0., 0.05);
-  TH1D *borig_phiWidth         = new TH1D( "borig_phiWidth","", 100, 0., 0.4);
-  TH1D *borig_r9               = new TH1D( "borig_r9","", 100, 0., 5.);
-  TH1D *borig_s4               = new TH1D( "borig_s4","", 100, 0., 2.);
-  TH1D *borig_sieie            = new TH1D( "borig_sieie","", 100, 0., 0.05);
-  TH1D *borig_sieip            = new TH1D( "borig_sieip","", 100, -0.001, 0.001);
-
-
-  TH1D *e_mva              = new TH1D( "e_MyMVA","MyMVA",100, -1,1);
-  TH1D *e_esEnergyOverRawE = new TH1D( "e_esEnergyOverRawE","", 100, 0., 1.);
-  TH1D *e_energyRaw        = new TH1D( "e_energyRaw","", 100, 0., 6000.);
-  TH1D *e_esEffSigmaRR     = new TH1D( "e_esEffSigmaRR","", 100, 0., 15.);
-  TH1D *e_etaWidth         = new TH1D( "e_etaWidth","", 100, 0., 0.15);
-  TH1D *e_HoverE           = new TH1D( "e_HoverE","", 100, 0., 0.05);
-  TH1D *e_phiWidth         = new TH1D( "e_phiWidth","", 100, 0., 0.4);
-  TH1D *e_r9               = new TH1D( "e_r9","", 100, 0., 5.);
-  TH1D *e_s4               = new TH1D( "e_s4","", 100, 0., 2.);
-  TH1D *e_sieie            = new TH1D( "e_sieie","", 100, 0., 0.05);
-  TH1D *e_sieip            = new TH1D( "e_sieip","", 100, -0.001, 0.001);
-  TH1D *eorig_mva              = new TH1D( "eorig_MyMVA","MyMVA",100, -1,1);
-  TH1D *eorig_esEnergyOverRawE = new TH1D( "eorig_esEnergyOverRawE","", 100, 0., 1.);
-  TH1D *eorig_energyRaw        = new TH1D( "eorig_energyRaw","", 100, 0., 6000.);
-  TH1D *eorig_esEffSigmaRR     = new TH1D( "eorig_esEffSigmaRR","", 100, 0., 15.);
-  TH1D *eorig_etaWidth         = new TH1D( "eorig_etaWidth","", 100, 0., 0.15);
-  TH1D *eorig_HoverE           = new TH1D( "eorig_HoverE","", 100, 0., 0.05);
-  TH1D *eorig_phiWidth         = new TH1D( "eorig_phiWidth","", 100, 0., 0.4);
-  TH1D *eorig_r9               = new TH1D( "eorig_r9","", 100, 0., 5.);
-  TH1D *eorig_s4               = new TH1D( "eorig_s4","", 100, 0., 2.);
-  TH1D *eorig_sieie            = new TH1D( "eorig_sieie","", 100, 0., 0.05);
-  TH1D *eorig_sieip            = new TH1D( "eorig_sieip","", 100, -0.001, 0.001);
-
-
-
-
 
    double photonPt, photonEta, photonPhi, photonMVA, wgt;
    double jetPt, jetEta;
@@ -756,8 +704,8 @@ else{
 
    // book the MVA of your choice (prior training of these methods, ie,
    // existence of the weight files is required)
-  reader_barrel->BookMVA( "BDT",  "data/TMVAClassification_BDTG.weights_Barrel_original.xml");
-  reader_endcap->BookMVA( "BDT",  "data/TMVAClassification_BDTG.weights_Endcap_original.xml");
+      reader_barrel->BookMVA( "BDT",  "/eos/user/s/sakarmak/SWAN_projects/GammaJets13p6TeV/ForSRStudy/GJets/TMVAClassification_BDTG.weights_Barrel.xml");
+      reader_endcap->BookMVA( "BDT",  "/eos/user/s/sakarmak/SWAN_projects/GammaJets13p6TeV/ForSRStudy/GJets/TMVAClassification_BDTG.weights_Endcap.xml");
 
 //Booking Histograms for Pt and Correlation matrix
       const int NBINSX = 10, NBINSY = 2;
@@ -791,11 +739,9 @@ else{
   for(int iEvent = 0; iEvent< nEntries; ++iEvent){
     tr->GetEntry(iEvent);
     if(iEvent%100000==0){cout<<"Events completed: "<<iEvent<<endl;}
-    //std::cout<<"hi01\n";
     TLorentzVector recoPho;
     TLorentzVector genPho;
     vector<TLorentzVector> SelPhoton;
-    vector<int>            SelPhotonIdx;
     vector<TLorentzVector> GenPhoton;
     vector<TLorentzVector> SelJet;
     vector<double> MyPhotonMVA;
@@ -803,32 +749,13 @@ else{
     vector<double> SelPhoton_sieie;
     vector<double> SelPhoton_hoe;
     vector<double> SelPhoton_pfChargedIsoWorstVtx;
-
-    vector<Float_t> SSVar_photon_esEffSigmaRR;
-    vector<Float_t> SSVar_photon_energyRaw;
-    vector<Float_t> SSVar_photon_esEnergyOverRawE;
-    vector<Float_t> SSVar_photon_etaWidth;
-    vector<Float_t> SSVar_photon_hoe;
-    vector<Float_t> SSVar_photon_phiWidth;
-    vector<Float_t> SSVar_photon_r9;
-    vector<Float_t> SSVar_photon_s4;
-    vector<Float_t> SSVar_photon_sieie;
-    vector<Float_t> SSVar_photon_sieip;
-    vector<Float_t> SSVar_photon_rho;
-    vector<Float_t> SSVar_photon_eta;
-
-
-
-
     for(int ij=0; ij< nPhoton; ++ij){
-    //std::cout<<"hi02\n";
       if(HLT_Photon200==0) continue;
       if(isSignal == true && nGenIsolatedPhoton < 1) continue;
       if(abs(Photon_eta[ij])>2.5 || Photon_pixelSeed[ij]==1)continue;
-      //if(abs(Photon_eta[ij])>1.44 && abs(Photon_eta[ij])<1.566) continue;
-      if(abs(Photon_eta[ij])>1.4442 && abs(Photon_eta[ij])<1.566) continue;
-      if(abs(Photon_eta[ij])<1.5 && (Photon_pfChargedIsoPFPV[ij]>1.7 || Photon_sieie[ij]>0.015 || Photon_hoe[ij]>0.05 || Photon_pfChargedIsoWorstVtx[ij]>10)) continue;
-      if(abs(Photon_eta[ij])>1.5 && (Photon_pfChargedIsoPFPV[ij]>1.5 || Photon_sieie[ij]>0.04 || Photon_hoe[ij]>0.05 || Photon_pfChargedIsoWorstVtx[ij]>10)) continue;
+      if(abs(Photon_eta[ij])>1.44 && abs(Photon_eta[ij])<1.566) continue;
+      if(abs(Photon_eta[ij])<1.44 && (Photon_pfChargedIsoPFPV[ij]>1.7 || Photon_sieie[ij]>0.015 || Photon_hoe[ij]>0.05 || Photon_pfChargedIsoWorstVtx[ij]>10)) continue;
+      if(abs(Photon_eta[ij])>1.566 && (Photon_pfChargedIsoPFPV[ij]>1.5 || Photon_sieie[ij]>0.04 || Photon_hoe[ij]>0.05 || Photon_pfChargedIsoWorstVtx[ij]>10)) continue;
       if(Photon_pt[ij]>700 && Photon_pt[ij]<900 && Photon_seediEtaOriX[ij]+0==-21 && Photon_seediPhiOriY[ij]==260 && isEraG==true) continue; //Only for Era G
       //Applying the photon scales and smearing
       Float_t Photon_pt_nom=0;
@@ -845,9 +772,7 @@ else{
 	Photon_pt_nom = Photon_pt[ij]*scale;
       }
       recoPho.SetPtEtaPhiM(Photon_pt_nom, Photon_eta[ij], Photon_phi[ij],0.);
-    //std::cout<<"hi03\n";
       if(recoPho.Pt()<210) continue;
-    //std::cout<<"hi04\n";
 	//cout<<Photon_pt_nom<<"	"<<Photon_pt[ij]<<endl;
       //recoPho.SetPtEtaPhiM(Photon_pt[ij], Photon_eta[ij], Photon_phi[ij], 0.);
       
@@ -865,27 +790,10 @@ else{
           photon_rho = Rho_fixedGridRhoFastjetAll;
           photon_eta = Photon_eta[ij];
 
-          if(abs(Photon_eta[ij])<1.5){MyPhotonMVA.push_back(reader_barrel->EvaluateMVA("BDT"));}
+          if(abs(Photon_eta[ij])<1.44){MyPhotonMVA.push_back(reader_barrel->EvaluateMVA("BDT"));}
           else{MyPhotonMVA.push_back(reader_endcap->EvaluateMVA("BDT"));}
 
-          SSVar_photon_esEffSigmaRR    .push_back(photon_esEffSigmaRR);
-          SSVar_photon_energyRaw       .push_back(photon_energyRaw);
-          SSVar_photon_esEnergyOverRawE.push_back(photon_esEnergyOverRawE);
-          SSVar_photon_etaWidth        .push_back(photon_etaWidth);
-          SSVar_photon_hoe             .push_back(photon_hoe);
-          SSVar_photon_phiWidth        .push_back(photon_phiWidth);
-          SSVar_photon_r9              .push_back(photon_r9);
-          SSVar_photon_s4              .push_back(photon_s4);
-          SSVar_photon_sieie           .push_back(photon_sieie);
-          SSVar_photon_sieip           .push_back(photon_sieip);
-          SSVar_photon_rho             .push_back(photon_rho);
-          SSVar_photon_eta             .push_back(photon_eta);
-
-
-
-
           SelPhoton.push_back(recoPho);
-          SelPhotonIdx.push_back(ij);
           SelPhoton_pfChargedIsoPFPV.push_back(Photon_pfChargedIsoPFPV[ij]);
           SelPhoton_sieie.push_back(Photon_sieie[ij]);
           SelPhoton_hoe.push_back(Photon_hoe[ij]);
@@ -897,12 +805,12 @@ else{
         for(int ik=0; ik< nGenIsolatedPhoton; ++ik){
           genPho.SetPtEtaPhiM(GenIsolatedPhoton_pt[ik], GenIsolatedPhoton_eta[ik], GenIsolatedPhoton_phi[ik], GenIsolatedPhoton_mass[ik]);
 	  if(recoPho.DeltaR(genPho)> 0.1) continue;
-	  if(abs(Photon_eta[ij])<1.5){
+	  if(abs(Photon_eta[ij])<1.44){
             photon_esEffSigmaRR = Photon_esEffSigmaRR[ij];
             photon_energyRaw = Photon_energyRaw[ij];
             photon_esEnergyOverRawE = Photon_esEnergyOverRawE[ij];
             photon_etaWidth = Photon_etaWidth[ij];
-            photon_hoe = grDataInv_b[0]->Eval(grMC_b[0]->Eval(Photon_hoe[ij]));
+            photon_hoe = Photon_hoe[ij];//grDataInv_b[0]->Eval(grMC_b[0]->Eval(Photon_hoe[ij]));
             photon_phiWidth = Photon_phiWidth[ij];
             photon_r9 = Photon_r9[ij];
             photon_s4 = Photon_s4[ij];
@@ -921,7 +829,7 @@ else{
                 photon_energyRaw        = grDataInv_e[1]->Eval(grMC_e[1]->Eval(Photon_energyRaw[ij]));
                 photon_esEnergyOverRawE = grDataInv_e[2]->Eval(grMC_e[2]->Eval(Photon_esEnergyOverRawE[ij]));
                 photon_etaWidth         = grDataInv_e[3]->Eval(grMC_e[3]->Eval(Photon_etaWidth[ij]));
-                photon_hoe              = grDataInv_e[4]->Eval(grMC_e[4]->Eval(Photon_hoe[ij]));
+                photon_hoe              = Photon_hoe[ij];//grDataInv_e[4]->Eval(grMC_e[4]->Eval(Photon_hoe[ij]));
                 photon_phiWidth         = grDataInv_e[5]->Eval(grMC_e[5]->Eval(Photon_phiWidth[ij]));
                 photon_r9               = grDataInv_e[6]->Eval(grMC_e[6]->Eval(Photon_r9[ij]));
                 photon_s4               = grDataInv_e[7]->Eval(grMC_e[7]->Eval(Photon_s4[ij]));
@@ -935,26 +843,12 @@ else{
                 SelPhoton_hoe.push_back(photon_hoe);
 	  }
 
-          SSVar_photon_esEffSigmaRR    .push_back(photon_esEffSigmaRR);
-          SSVar_photon_energyRaw       .push_back(photon_energyRaw);
-          SSVar_photon_esEnergyOverRawE.push_back(photon_esEnergyOverRawE);
-          SSVar_photon_etaWidth        .push_back(photon_etaWidth);
-          SSVar_photon_hoe             .push_back(photon_hoe);
-          SSVar_photon_phiWidth        .push_back(photon_phiWidth);
-          SSVar_photon_r9              .push_back(photon_r9);
-          SSVar_photon_s4              .push_back(photon_s4);
-          SSVar_photon_sieie           .push_back(photon_sieie);
-          SSVar_photon_sieip           .push_back(photon_sieip);
-          SSVar_photon_rho             .push_back(photon_rho);
-          SSVar_photon_eta             .push_back(photon_eta);
-
 	  SelPhoton.push_back(recoPho);
-          SelPhotonIdx.push_back(ij);
 	  SelPhoton_pfChargedIsoPFPV.push_back(Photon_pfChargedIsoPFPV[ij]);
 	  SelPhoton_pfChargedIsoWorstVtx.push_back(Photon_pfChargedIsoWorstVtx[ij]);
 	  GenPhoton.push_back(genPho);
       }
-    } // isSignal end
+    }
 
     if(isQCD == true && nGenIsolatedPhoton <1){
           photon_esEffSigmaRR = Photon_esEffSigmaRR[ij];
@@ -970,24 +864,10 @@ else{
           photon_rho = Rho_fixedGridRhoFastjetAll;
           photon_eta = Photon_eta[ij];
 
-          if(abs(Photon_eta[ij])<1.5){MyPhotonMVA.push_back(reader_barrel->EvaluateMVA("BDT"));}
+          if(abs(Photon_eta[ij])<1.44){MyPhotonMVA.push_back(reader_barrel->EvaluateMVA("BDT"));}
           else{MyPhotonMVA.push_back(reader_endcap->EvaluateMVA("BDT"));}
 
-          SSVar_photon_esEffSigmaRR    .push_back(photon_esEffSigmaRR);
-          SSVar_photon_energyRaw       .push_back(photon_energyRaw);
-          SSVar_photon_esEnergyOverRawE.push_back(photon_esEnergyOverRawE);
-          SSVar_photon_etaWidth        .push_back(photon_etaWidth);
-          SSVar_photon_hoe             .push_back(photon_hoe);
-          SSVar_photon_phiWidth        .push_back(photon_phiWidth);
-          SSVar_photon_r9              .push_back(photon_r9);
-          SSVar_photon_s4              .push_back(photon_s4);
-          SSVar_photon_sieie           .push_back(photon_sieie);
-          SSVar_photon_sieip           .push_back(photon_sieip);
-          SSVar_photon_rho             .push_back(photon_rho);
-          SSVar_photon_eta             .push_back(photon_eta);
-
           SelPhoton.push_back(recoPho);
-          SelPhotonIdx.push_back(ij);
 	  SelPhoton_pfChargedIsoPFPV.push_back(Photon_pfChargedIsoPFPV[ij]);
           SelPhoton_sieie.push_back(Photon_sieie[ij]);
           SelPhoton_hoe.push_back(Photon_hoe[ij]);
@@ -1011,53 +891,81 @@ else{
           photon_rho = Rho_fixedGridRhoFastjetAll;
           photon_eta = Photon_eta[ij];
 
-          if(abs(Photon_eta[ij])<1.5){MyPhotonMVA.push_back(reader_barrel->EvaluateMVA("BDT"));}
+          if(abs(Photon_eta[ij])<1.44){MyPhotonMVA.push_back(reader_barrel->EvaluateMVA("BDT"));}
           else{MyPhotonMVA.push_back(reader_endcap->EvaluateMVA("BDT"));}
 
-          SSVar_photon_esEffSigmaRR    .push_back(photon_esEffSigmaRR);
-          SSVar_photon_energyRaw       .push_back(photon_energyRaw);
-          SSVar_photon_esEnergyOverRawE.push_back(photon_esEnergyOverRawE);
-          SSVar_photon_etaWidth        .push_back(photon_etaWidth);
-          SSVar_photon_hoe             .push_back(photon_hoe);
-          SSVar_photon_phiWidth        .push_back(photon_phiWidth);
-          SSVar_photon_r9              .push_back(photon_r9);
-          SSVar_photon_s4              .push_back(photon_s4);
-          SSVar_photon_sieie           .push_back(photon_sieie);
-          SSVar_photon_sieip           .push_back(photon_sieip);
-          SSVar_photon_rho             .push_back(photon_rho);
-          SSVar_photon_eta             .push_back(photon_eta);
-
           SelPhoton.push_back(recoPho);
-          SelPhotonIdx.push_back(ij);
 	  SelPhoton_pfChargedIsoPFPV.push_back(Photon_pfChargedIsoPFPV[ij]);
           SelPhoton_sieie.push_back(Photon_sieie[ij]);
           SelPhoton_hoe.push_back(Photon_hoe[ij]);
           SelPhoton_pfChargedIsoWorstVtx.push_back(Photon_pfChargedIsoWorstVtx[ij]);
       }
     }
-  } // loop for ij ( index of isolated photon )
+  }
   if(SelPhoton.size()<1) continue;
+
+//Jet Selection starts here
  
   TLorentzVector jet_raw4v;
+  TLorentzVector jet_jec4v;
   TLorentzVector jet_corr4v;
-  for(int ij=0; ij<nJet; ++ij){
-	//Applying the JEC
-	   Float_t jet_pt_raw = (1-Jet_rawFactor[ij])*Jet_pt[ij];
-	   Float_t jet_mass_raw = (1-Jet_rawFactor[ij])*Jet_mass[ij];
-	   Float_t jet_eta_raw = Jet_eta[ij];
-	   Float_t jet_phi_raw = Jet_phi[ij];
+  TLorentzVector genjet_4v;
+  bool isApplyJetVeto = false;
+  
+  for(int iJet=0; iJet<nJet; ++iJet){
+	//Calculating the raw jet pt, eta, phi, m and four-vector
+	   Float_t jet_pt_raw = (1-Jet_rawFactor[iJet])*Jet_pt[iJet];
+	   Float_t jet_mass_raw = (1-Jet_rawFactor[iJet])*Jet_mass[iJet];
+	   Float_t jet_eta_raw = Jet_eta[iJet];
+	   Float_t jet_phi_raw = Jet_phi[iJet];
+	   jet_raw4v.SetPtEtaPhiM(jet_pt_raw, jet_eta_raw, jet_phi_raw, jet_mass_raw);
 
+	//Getting the JECs and JEC corrected Jet four-vector
 	   Float_t jet_raw_jec_sf_L2 = jec_sf_L2->evaluate({jet_eta_raw,jet_pt_raw});
 	   Float_t jet_raw_jec_sf_L3 = jec_sf_L3->evaluate({jet_eta_raw,jet_pt_raw*jet_raw_jec_sf_L2});	   
 	   Float_t jet_raw_sf_L23   = jec_sf_L23->evaluate({jet_eta_raw,jet_pt_raw*jet_raw_jec_sf_L2*jet_raw_jec_sf_L3});
+	   jet_jec4v = jet_raw4v*(jet_raw_jec_sf_L2*jet_raw_jec_sf_L3*jet_raw_sf_L23);
 
-	   jet_raw4v.SetPtEtaPhiM(jet_pt_raw, jet_eta_raw, jet_phi_raw, jet_mass_raw);
-	   jet_corr4v = jet_raw4v*(jet_raw_jec_sf_L2*jet_raw_jec_sf_L3*jet_raw_sf_L23);
+	//Getting the JER, only applicable for MC
+	   Float_t ptscale = 1;
+  	   Float_t res = 1;
+	   if(isData==false){
+	     Float_t factor = jet_jerc_corr->evaluate({jet_jec4v.Eta(), jet_jec4v.Pt(), "nom"});
+	     Float_t res = jet_jerc_reso->evaluate({jet_jec4v.Eta(), jet_jec4v.Pt(), Rho_fixedGridRhoFastjetAll});
+	     bool isSmeared = false;
+	     for(int jj=0; jj< nGenJet; ++jj){
+		genjet_4v.SetPtEtaPhiM(GenJet_pt[jj], GenJet_eta[jj], GenJet_phi[jj], GenJet_mass[jj]);
+		double deltaPt = fabs(genjet_4v.Pt() - jet_jec4v.Pt());
+                double deltaR = jet_jec4v.DeltaR(genjet_4v);
+		if ((deltaR < 0.25) && deltaPt <= 2*jet_jec4v.Pt()*res){
+			double ptratio = 1.0*jet_jec4v.Pt()/genjet_4v.Pt();
+        		ptscale = max(0.0, ptratio + factor*(1 - ptratio));
+        		isSmeared = true;	
+		}	
+	     }
 
-           if(jet_corr4v.Pt()>25 && abs(jet_corr4v.Eta())<2.5 && jet_corr4v.DeltaR(SelPhoton[0])>0.4 && Jet_jetId[ij]==6){
-           	SelJet.push_back(jet_corr4v);
+	     // If that didn't work, use Gaussian smearing with a reproducible seed
+	     if(!isSmeared && factor > 1){
+	       TRandom3 JERrand;
+   
+      	       JERrand.SetSeed(abs(static_cast<int>(jet_jec4v.Phi()*1e4)));
+      	       ptscale = max(0.0, 1.0 + JERrand.Gaus(0,res)*sqrt(factor*factor - 1.0)); 
+	     }
+	   }
+	//Getting the final jet four-vector
+	   jet_corr4v.SetPtEtaPhiM(ptscale*jet_jec4v.Pt(), jet_jec4v.Eta(), jet_jec4v.Phi(), ptscale*jet_jec4v.M());
+
+	//Checking Jet veto
+	   if(jet_corr4v.Pt()>15 && Jet_jetId[iJet]==6 && (Jet_neEmEF[iJet]+Jet_chEmEF[iJet])<0.9){
+		double 	isVeto = cset_veto->evaluate({"jetvetomap", jet_corr4v.Eta(), jet_corr4v.Phi()});
+		if(abs(isVeto)>0){isApplyJetVeto = true;} 
+	   }
+
+           if(jet_corr4v.Pt()>25 && abs(jet_corr4v.Eta())<2.5 && jet_corr4v.DeltaR(SelPhoton[0])>0.4 && Jet_jetId[iJet]==6){ 
+		SelJet.push_back(jet_corr4v);
       	   }
      }
+  if(isApplyJetVeto==true)continue;
   if(SelJet.size()<1) continue;
   double wgt_gen;
   if(isData==false){
@@ -1068,13 +976,6 @@ else{
   else{
    wgt = 1;
   }
-    //std::cout<<"hi08\n";
-    //std::cout<<"len of pho : " << SelPhoton.size() << std::endl;
-    //std::cout<<"len of gen : " << GenPhoton.size() << std::endl;
-    //std::cout<<"len of jet : " << SelJet.size() << std::endl;
-
-  photonPt = SelPhoton[0].Pt();
-    //std::cout<<"hi081\n";
   photonPt = SelPhoton[0].Pt();
   photonEta = SelPhoton[0].Eta();
   photonPhi = SelPhoton[0].Phi();
@@ -1085,74 +986,13 @@ else{
   photonHoE = SelPhoton_hoe[0];
   jetPt = SelJet[0].Pt();
   jetEta = SelJet[0].Eta();
-  if ( isSignal)
-  {
   genPhotonPt = GenPhoton[0].Pt();
   genPhotonEta = GenPhoton[0].Eta();
   genPhotonPhi = GenPhoton[0].Phi();
-  }
-  //tree->Fill();
+  tree->Fill();
   h_mva->Fill(MyPhotonMVA[0] , wgt);
   h_PhoPt->Fill(SelPhoton[0].Pt() , wgt);
 
-
-  int pIdx = SelPhotonIdx[0];
-  if ( abs(photonEta) < 1.5 )
-  {
-    b_mva              ->Fill(MyPhotonMVA[0]  ,wgt);
-    b_esEffSigmaRR     ->Fill(SSVar_photon_esEffSigmaRR    [0],wgt);
-    b_energyRaw        ->Fill(SSVar_photon_energyRaw       [0],wgt);
-    b_esEnergyOverRawE ->Fill(SSVar_photon_esEnergyOverRawE[0],wgt);
-    b_etaWidth         ->Fill(SSVar_photon_etaWidth        [0],wgt);
-    b_HoverE           ->Fill(SSVar_photon_hoe             [0],wgt);
-    b_phiWidth         ->Fill(SSVar_photon_phiWidth        [0],wgt);
-    b_r9               ->Fill(SSVar_photon_r9              [0],wgt);
-    b_s4               ->Fill(SSVar_photon_s4              [0],wgt);
-    b_sieie            ->Fill(SSVar_photon_sieie           [0],wgt);
-    b_sieip            ->Fill(SSVar_photon_sieip           [0],wgt);
-
-    borig_mva              ->Fill(MyPhotonMVA[0]  ,wgt);
-    borig_esEffSigmaRR     ->Fill(Photon_esEffSigmaRR[pIdx]    ,wgt);
-    borig_energyRaw        ->Fill(Photon_energyRaw[pIdx]       ,wgt);
-    borig_esEnergyOverRawE ->Fill(Photon_esEnergyOverRawE[pIdx],wgt);
-    borig_etaWidth         ->Fill(Photon_etaWidth[pIdx]        ,wgt);
-    borig_HoverE           ->Fill(Photon_hoe[pIdx]             ,wgt);
-    borig_phiWidth         ->Fill(Photon_phiWidth[pIdx]        ,wgt);
-    borig_r9               ->Fill(Photon_r9[pIdx]              ,wgt);
-    borig_s4               ->Fill(Photon_s4[pIdx]              ,wgt);
-    borig_sieie            ->Fill(Photon_sieie[pIdx]           ,wgt);
-    borig_sieip            ->Fill(Photon_sieip[pIdx]           ,wgt);
-  } else {
-    e_mva              ->Fill(MyPhotonMVA[0]  ,wgt);
-    e_esEffSigmaRR     ->Fill(SSVar_photon_esEffSigmaRR    [0],wgt);
-    e_energyRaw        ->Fill(SSVar_photon_energyRaw       [0],wgt);
-    e_esEnergyOverRawE ->Fill(SSVar_photon_esEnergyOverRawE[0],wgt);
-    e_etaWidth         ->Fill(SSVar_photon_etaWidth        [0],wgt);
-    e_HoverE           ->Fill(SSVar_photon_hoe             [0],wgt);
-    e_phiWidth         ->Fill(SSVar_photon_phiWidth        [0],wgt);
-    e_r9               ->Fill(SSVar_photon_r9              [0],wgt);
-    e_s4               ->Fill(SSVar_photon_s4              [0],wgt);
-    e_sieie            ->Fill(SSVar_photon_sieie           [0],wgt);
-    e_sieip            ->Fill(SSVar_photon_sieip           [0],wgt);
-
-    eorig_mva              ->Fill(MyPhotonMVA[0]  ,wgt);
-    eorig_esEffSigmaRR     ->Fill(Photon_esEffSigmaRR[pIdx]    ,wgt);
-    eorig_energyRaw        ->Fill(Photon_energyRaw[pIdx]       ,wgt);
-    eorig_esEnergyOverRawE ->Fill(Photon_esEnergyOverRawE[pIdx],wgt);
-    eorig_etaWidth         ->Fill(Photon_etaWidth[pIdx]        ,wgt);
-    eorig_HoverE           ->Fill(Photon_hoe[pIdx]             ,wgt);
-    eorig_phiWidth         ->Fill(Photon_phiWidth[pIdx]        ,wgt);
-    eorig_r9               ->Fill(Photon_r9[pIdx]              ,wgt);
-    eorig_s4               ->Fill(Photon_s4[pIdx]              ,wgt);
-    eorig_sieie            ->Fill(Photon_sieie[pIdx]           ,wgt);
-    eorig_sieip            ->Fill(Photon_sieip[pIdx]           ,wgt);
-  }
-
-  tree->Fill();
-  //std::cout<<"hi09\n";
-  if (!isSignal ) continue; // only do it in gjet
-  //  Filling histograms {{{
-  // barrel photon - barrel jet
   if(abs(SelPhoton[0].Eta())<=1.5 && abs(SelJet[0].Eta())<1.5){
 	if(GenPhoton[0].Pt()>=210){
 		//cout<<SelPhoton[0].Pt()<<endl;
@@ -1169,7 +1009,7 @@ else{
         if(GenPhoton[0].Pt()>=600 && GenPhoton[0].Pt()<800){h_reco_pt[7]->Fill(SelPhoton[0].Pt(),wgt); h_gen_pt[7]->Fill(GenPhoton[0].Pt(),wgt);}
         if(GenPhoton[0].Pt()>=800 && GenPhoton[0].Pt()<1000){h_reco_pt[8]->Fill(SelPhoton[0].Pt(),wgt);h_gen_pt[8]->Fill(GenPhoton[0].Pt(),wgt);}
         if(GenPhoton[0].Pt()>=1000 && GenPhoton[0].Pt()<1500){h_reco_pt[9]->Fill(SelPhoton[0].Pt(),wgt);h_gen_pt[9]->Fill(GenPhoton[0].Pt(),wgt);}
-  } // end of barrel photon - barrel jet
+  }
   if(abs(SelPhoton[0].Eta())<=1.5 && abs(SelJet[0].Eta())>1.5 && abs(SelJet[0].Eta())<2.5){
 	if(GenPhoton[0].Pt()>=210){
 		h_pt_reco[1]->Fill(SelPhoton[0].Pt(),wgt);
@@ -1185,43 +1025,41 @@ else{
         if(GenPhoton[0].Pt()>=600 && GenPhoton[0].Pt()<800){h_reco_pt[17]->Fill(SelPhoton[0].Pt(),wgt);h_gen_pt[17]->Fill(GenPhoton[0].Pt(),wgt);}
         if(GenPhoton[0].Pt()>=800 && GenPhoton[0].Pt()<1000){h_reco_pt[18]->Fill(SelPhoton[0].Pt(),wgt);h_gen_pt[18]->Fill(GenPhoton[0].Pt(),wgt);}
         if(GenPhoton[0].Pt()>=1000 && GenPhoton[0].Pt()<1500){h_reco_pt[19]->Fill(SelPhoton[0].Pt(),wgt);h_gen_pt[19]->Fill(GenPhoton[0].Pt(),wgt);}
-  } // end of barrel photon - endcap jet
+  }
   if(abs(SelPhoton[0].Eta())>1.5 && abs(SelPhoton[0].Eta())<=2.5 && abs(SelJet[0].Eta())<1.5){
 	if(GenPhoton[0].Pt()>=210){
 		h_pt_reco[2]->Fill(SelPhoton[0].Pt(),wgt);
 		h_pt_gen[2]->Fill(GenPhoton[0].Pt(),wgt_gen);
 	}
-	if(GenPhoton[0].Pt() <210){h_reco_pt[20]->Fill(SelPhoton[0].Pt(),wgt); h_gen_pt[20]->Fill(GenPhoton[0].Pt(),wgt);}
-	if(GenPhoton[0].Pt()>=210 && GenPhoton[0].Pt()<230 ){h_reco_pt[21]->Fill(SelPhoton[0].Pt(),wgt); h_gen_pt[21]->Fill(GenPhoton[0].Pt(),wgt);}
-  if(GenPhoton[0].Pt()>=230 && GenPhoton[0].Pt()<250 ){h_reco_pt[22]->Fill(SelPhoton[0].Pt(),wgt); h_gen_pt[22]->Fill(GenPhoton[0].Pt(),wgt);}
-  if(GenPhoton[0].Pt()>=250 && GenPhoton[0].Pt()<300 ){h_reco_pt[23]->Fill(SelPhoton[0].Pt(),wgt); h_gen_pt[23]->Fill(GenPhoton[0].Pt(),wgt);}
-  if(GenPhoton[0].Pt()>=300 && GenPhoton[0].Pt()<400 ){h_reco_pt[24]->Fill(SelPhoton[0].Pt(),wgt); h_gen_pt[24]->Fill(GenPhoton[0].Pt(),wgt);}
-  if(GenPhoton[0].Pt()>=400 && GenPhoton[0].Pt()<500 ){h_reco_pt[25]->Fill(SelPhoton[0].Pt(),wgt); h_gen_pt[25]->Fill(GenPhoton[0].Pt(),wgt);}
-  if(GenPhoton[0].Pt()>=500 && GenPhoton[0].Pt()<600 ){h_reco_pt[26]->Fill(SelPhoton[0].Pt(),wgt); h_gen_pt[26]->Fill(GenPhoton[0].Pt(),wgt);}
-  if(GenPhoton[0].Pt()>=600 && GenPhoton[0].Pt()<800 ){h_reco_pt[27]->Fill(SelPhoton[0].Pt(),wgt); h_gen_pt[27]->Fill(GenPhoton[0].Pt(),wgt);}
-  if(GenPhoton[0].Pt()>=800 && GenPhoton[0].Pt()<1000){h_reco_pt[28]->Fill(SelPhoton[0].Pt(),wgt); h_gen_pt[28]->Fill(GenPhoton[0].Pt(),wgt);}
-  if(GenPhoton[0].Pt()>=1000&& GenPhoton[0].Pt()<1500){h_reco_pt[29]->Fill(SelPhoton[0].Pt(),wgt); h_gen_pt[29]->Fill(GenPhoton[0].Pt(),wgt);}
-  } // end of endcap photon - barrel jet
+	if(GenPhoton[0].Pt()<210){h_reco_pt[20]->Fill(SelPhoton[0].Pt(),wgt); h_gen_pt[20]->Fill(GenPhoton[0].Pt(),wgt);}
+	if(GenPhoton[0].Pt()>=210 && GenPhoton[0].Pt()<230){h_reco_pt[21]->Fill(SelPhoton[0].Pt(),wgt); h_gen_pt[21]->Fill(GenPhoton[0].Pt(),wgt);}
+        if(GenPhoton[0].Pt()>=230 && GenPhoton[0].Pt()<250){h_reco_pt[22]->Fill(SelPhoton[0].Pt(),wgt); h_gen_pt[22]->Fill(GenPhoton[0].Pt(),wgt);}
+        if(GenPhoton[0].Pt()>=250 && GenPhoton[0].Pt()<300){h_reco_pt[23]->Fill(SelPhoton[0].Pt(),wgt); h_gen_pt[23]->Fill(GenPhoton[0].Pt(),wgt);}
+        if(GenPhoton[0].Pt()>=300 && GenPhoton[0].Pt()<400){h_reco_pt[24]->Fill(SelPhoton[0].Pt(),wgt); h_gen_pt[24]->Fill(GenPhoton[0].Pt(),wgt);}
+        if(GenPhoton[0].Pt()>=400 && GenPhoton[0].Pt()<500){h_reco_pt[25]->Fill(SelPhoton[0].Pt(),wgt); h_gen_pt[25]->Fill(GenPhoton[0].Pt(),wgt);}
+        if(GenPhoton[0].Pt()>=500 && GenPhoton[0].Pt()<600){h_reco_pt[26]->Fill(SelPhoton[0].Pt(),wgt); h_gen_pt[26]->Fill(GenPhoton[0].Pt(),wgt);}
+        if(GenPhoton[0].Pt()>=600 && GenPhoton[0].Pt()<800){h_reco_pt[27]->Fill(SelPhoton[0].Pt(),wgt); h_gen_pt[27]->Fill(GenPhoton[0].Pt(),wgt);}
+        if(GenPhoton[0].Pt()>=800 && GenPhoton[0].Pt()<1000){h_reco_pt[28]->Fill(SelPhoton[0].Pt(),wgt);h_gen_pt[28]->Fill(GenPhoton[0].Pt(),wgt);}
+        if(GenPhoton[0].Pt()>=1000 && GenPhoton[0].Pt()<1500){h_reco_pt[29]->Fill(SelPhoton[0].Pt(),wgt);h_gen_pt[29]->Fill(GenPhoton[0].Pt(),wgt);}
+  }
   if(abs(SelPhoton[0].Eta())>1.5 && abs(SelPhoton[0].Eta())<=2.5 && abs(SelJet[0].Eta())>1.5 && abs(SelJet[0].Eta())<=2.5){
 	if(GenPhoton[0].Pt()>=210){
 		h_pt_reco[3]->Fill(SelPhoton[0].Pt(),wgt);
 		h_pt_gen[3]->Fill(GenPhoton[0].Pt(),wgt_gen);
 	}
-	if(GenPhoton[0].Pt() <210){h_reco_pt[30]->Fill(SelPhoton[0].Pt(),wgt); h_gen_pt[30]->Fill(GenPhoton[0].Pt(),wgt);}
-	if(GenPhoton[0].Pt()>=210 && GenPhoton[0].Pt()<230 ){h_reco_pt[31]->Fill(SelPhoton[0].Pt(),wgt); h_gen_pt[31]->Fill(GenPhoton[0].Pt(),wgt);}
-  if(GenPhoton[0].Pt()>=230 && GenPhoton[0].Pt()<250 ){h_reco_pt[32]->Fill(SelPhoton[0].Pt(),wgt); h_gen_pt[32]->Fill(GenPhoton[0].Pt(),wgt);}
-  if(GenPhoton[0].Pt()>=250 && GenPhoton[0].Pt()<300 ){h_reco_pt[33]->Fill(SelPhoton[0].Pt(),wgt); h_gen_pt[33]->Fill(GenPhoton[0].Pt(),wgt);}
-  if(GenPhoton[0].Pt()>=300 && GenPhoton[0].Pt()<400 ){h_reco_pt[34]->Fill(SelPhoton[0].Pt(),wgt); h_gen_pt[34]->Fill(GenPhoton[0].Pt(),wgt);}
-  if(GenPhoton[0].Pt()>=400 && GenPhoton[0].Pt()<500 ){h_reco_pt[35]->Fill(SelPhoton[0].Pt(),wgt); h_gen_pt[35]->Fill(GenPhoton[0].Pt(),wgt);}
-  if(GenPhoton[0].Pt()>=500 && GenPhoton[0].Pt()<600 ){h_reco_pt[36]->Fill(SelPhoton[0].Pt(),wgt); h_gen_pt[36]->Fill(GenPhoton[0].Pt(),wgt);}
-  if(GenPhoton[0].Pt()>=600 && GenPhoton[0].Pt()<800 ){h_reco_pt[37]->Fill(SelPhoton[0].Pt(),wgt); h_gen_pt[37]->Fill(GenPhoton[0].Pt(),wgt);}
-  if(GenPhoton[0].Pt()>=800 && GenPhoton[0].Pt()<1000){h_reco_pt[38]->Fill(SelPhoton[0].Pt(),wgt); h_gen_pt[38]->Fill(GenPhoton[0].Pt(),wgt);}
-  if(GenPhoton[0].Pt()>=1000&& GenPhoton[0].Pt()<1500){h_reco_pt[39]->Fill(SelPhoton[0].Pt(),wgt); h_gen_pt[39]->Fill(GenPhoton[0].Pt(),wgt);}
-  } // end of endcap photon - endcap jet
-  //  Filling histograms end }}}
-} // end of event looping
+	if(GenPhoton[0].Pt()<210){h_reco_pt[30]->Fill(SelPhoton[0].Pt(),wgt); h_gen_pt[30]->Fill(GenPhoton[0].Pt(),wgt);}
+	if(GenPhoton[0].Pt()>=210 && GenPhoton[0].Pt()<230){h_reco_pt[31]->Fill(SelPhoton[0].Pt(),wgt); h_gen_pt[31]->Fill(GenPhoton[0].Pt(),wgt);}
+        if(GenPhoton[0].Pt()>=230 && GenPhoton[0].Pt()<250){h_reco_pt[32]->Fill(SelPhoton[0].Pt(),wgt); h_gen_pt[32]->Fill(GenPhoton[0].Pt(),wgt);}
+        if(GenPhoton[0].Pt()>=250 && GenPhoton[0].Pt()<300){h_reco_pt[33]->Fill(SelPhoton[0].Pt(),wgt); h_gen_pt[33]->Fill(GenPhoton[0].Pt(),wgt);}
+        if(GenPhoton[0].Pt()>=300 && GenPhoton[0].Pt()<400){h_reco_pt[34]->Fill(SelPhoton[0].Pt(),wgt); h_gen_pt[34]->Fill(GenPhoton[0].Pt(),wgt);}
+        if(GenPhoton[0].Pt()>=400 && GenPhoton[0].Pt()<500){h_reco_pt[35]->Fill(SelPhoton[0].Pt(),wgt); h_gen_pt[35]->Fill(GenPhoton[0].Pt(),wgt);}
+        if(GenPhoton[0].Pt()>=500 && GenPhoton[0].Pt()<600){h_reco_pt[36]->Fill(SelPhoton[0].Pt(),wgt); h_gen_pt[36]->Fill(GenPhoton[0].Pt(),wgt);}
+        if(GenPhoton[0].Pt()>=600 && GenPhoton[0].Pt()<800){h_reco_pt[37]->Fill(SelPhoton[0].Pt(),wgt); h_gen_pt[37]->Fill(GenPhoton[0].Pt(),wgt);}
+        if(GenPhoton[0].Pt()>=800 && GenPhoton[0].Pt()<1000){h_reco_pt[38]->Fill(SelPhoton[0].Pt(),wgt);h_gen_pt[38]->Fill(GenPhoton[0].Pt(),wgt);}
+        if(GenPhoton[0].Pt()>=1000 && GenPhoton[0].Pt()<1500){h_reco_pt[39]->Fill(SelPhoton[0].Pt(),wgt);h_gen_pt[39]->Fill(GenPhoton[0].Pt(),wgt);}
+  }
+}
 
-// write gen-reco photon pt matrix
  for(int j=0;j<NBINSX_gen;++j){
    for(int i=0;i<NBINSX;++i){
 	h_corrMatrix[0]->SetBinContent(i+1,j,h_reco_pt[j]->GetBinContent(i+1)/h_gen_pt[j]->Integral());
@@ -1259,56 +1097,6 @@ else{
   }
   h_mva->Write();
   h_PhoPt->Write();
-  tree->Write();
-
-    b_mva              ->Write();
-    b_esEffSigmaRR     ->Write();
-    b_energyRaw        ->Write();
-    b_esEnergyOverRawE ->Write();
-    b_etaWidth         ->Write();
-    b_HoverE           ->Write();
-    b_phiWidth         ->Write();
-    b_r9               ->Write();
-    b_s4               ->Write();
-    b_sieie            ->Write();
-    b_sieip            ->Write();
-    borig_mva              ->Write();
-    borig_esEffSigmaRR     ->Write();
-    borig_energyRaw        ->Write();
-    borig_esEnergyOverRawE ->Write();
-    borig_etaWidth         ->Write();
-    borig_HoverE           ->Write();
-    borig_phiWidth         ->Write();
-    borig_r9               ->Write();
-    borig_s4               ->Write();
-    borig_sieie            ->Write();
-    borig_sieip            ->Write();
-
-    e_mva              ->Write();
-    e_esEffSigmaRR     ->Write();
-    e_energyRaw        ->Write();
-    e_esEnergyOverRawE ->Write();
-    e_etaWidth         ->Write();
-    e_HoverE           ->Write();
-    e_phiWidth         ->Write();
-    e_r9               ->Write();
-    e_s4               ->Write();
-    e_sieie            ->Write();
-    e_sieip            ->Write();
-    eorig_mva              ->Write();
-    eorig_esEffSigmaRR     ->Write();
-    eorig_energyRaw        ->Write();
-    eorig_esEnergyOverRawE ->Write();
-    eorig_etaWidth         ->Write();
-    eorig_HoverE           ->Write();
-    eorig_phiWidth         ->Write();
-    eorig_r9               ->Write();
-    eorig_s4               ->Write();
-    eorig_sieie            ->Write();
-    eorig_sieip            ->Write();
-
-
-
-
+  //tree->Write();
   delete fout;
 }

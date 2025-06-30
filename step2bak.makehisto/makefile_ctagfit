@@ -1,0 +1,45 @@
+oDIR ?= output
+
+
+timeSTAMP := $$(date "+%Y%m%d_%H%M")
+
+check_defined = \
+    $(strip $(foreach 1,$1, \
+    $(call __check_defined,$1,$(strip $(value 2)))))
+__check_defined = \
+    $(if $(value $1),, \
+    $(error Undefined $1$(if $2, ($2))))
+
+check_shell_var_defined = \
+  	$(if $(shell [ -z "$${$1}" ] && echo undefined), \
+	$(error Shell variable $1 is undefined), \
+	$(info Shell variable $1 is set))
+# Check if directory exists and print info or abort
+define check_dir_existed
+	@if [ ! -d "$(1)" ]; then \
+		echo "[ERROR] Directory '$(1)' does not exist. Please execute step1 again. Aborting..."; \
+		exit 1; \
+	else \
+		echo "[INFO] Shell program running in folder: $(1)"; \
+	fi
+endef
+
+
+
+psuedodata: ## make_histo for psuedo data from GJetPythiaFlat [oNAME=hiii.root]
+	$(call check_defined,oNAME)
+	python3 makehisto_GJetPythiaFlatPsuedodata_ctagfit_estimateSR.py $(oNAME)
+	make linkpsuedodata root=$(oNAME)
+
+linkedfile=makehisto_psuedodata_ctagfit.root
+linkpsuedodata: ## link another file to makehisto_psuedodata_rescaled.root [root=hi.root]
+	$(call check_defined,root)
+	/bin/rm -f $(linkedfile) ;  ln -s $(root) $(linkedfile)
+
+IN_ARGS = [opts]
+
+help:  ## Display this help
+	@awk 'BEGIN {FS = ":.*##"; printf "Usage: make \033[32m<command>\033[0m $(IN_ARGS)\n\nCommands:\n\033[36m\033[0m\n"} /^[0-9a-zA-Z_-]+:.*?##/ { printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2 } /^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } ' $(MAKEFILE_LIST)
+
+.DEFAULT_GOAL := help
+

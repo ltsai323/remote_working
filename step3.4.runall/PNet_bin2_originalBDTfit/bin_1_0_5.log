@@ -1,0 +1,645 @@
+[step31] start
+i@ [GotExternalFile] data era = "2022EE, xPhotonFiles <ExternalFileMgr.EstimateSRFiles object at 0x7f694f1bc880>
+i@ [LoadRDataframe] Loading dataframe from input files...
+i@ [LoadRDataframe] Loading dataframe from input files... Finished
+[step31] finished
+[step32] start
+[LinkFile] Linked /home/ltsai/Work/2022EE/step3.4.runall//../step3.2.fit/data to data in the current directory.
+{'channel': 'gjet_inclusive',
+ 'datacardTEMPLATE': 'data/datacard_gjet_inclusive_template.txt',
+ 'inputFILE': 'out_makehisto.root',
+ 'load_data': [{'histSOURCE': 'BDT_data_signalRegion',
+                'name': 'data_obs',
+                'normalize': -1},
+               {'histSOURCE': 'BDT_gjets_signalRegion',
+                'name': 'gjet',
+                'normalize': 1},
+               {'histSOURCE': 'BDT_data_dataSideband',
+                'name': 'SB',
+                'normalize': 1}],
+ 'outputDATACARD': 'datacard_gjet_inclusive.txt',
+ 'outputROOT': 'datacard_gjet_inclusive.root',
+ 'outputYAML': 'datacard_gjet_inclusive.defaultValue.yaml'}
+i@ [ReadTemplate] tempelate "data/datacard_gjet_inclusive_template.txt" is required for create output datacard
+i@ [Output Files] datacard "datacard_gjet_inclusive.txt"
+i@ [Output Files] datacard "datacard_gjet_inclusive.txt" exported.
+i@ [Output Files] Root file "datacard_gjet_inclusive.root"
+i@ [Output Files] Root file "datacard_gjet_inclusive.root" generated
+i@ [Output Files] yaml file "datacard_gjet_inclusive.defaultValue.yaml" generated for inclusive photon
+i@ [get_yaml_configurables] Got yaml file "/data4/ltsai/Work/2022EE/step3.2.fit/data/initcomposition_gjet_inclusive.yaml"
+i@ [UsedValue]
+i@     nDATA   = 6995.0
+i@     initSIGN= 5596.0 with 80.0% composition
+i@     initFAKE= 1399.0 with 20.0% composition
+i@     initL   = 5596.0 with frac = 1.0
+i@     initC   = 0.0 with frac = 0.0
+i@     initB   = 0.0 with frac = 0.0
+Will create a POI  nSIGN  with factory  nSIGN[5596.0,0.,6995.0]
+Mapping  nSIGN  to  ['.*/gjet']  patterns
+Will create a POI  nFAKE  with factory  nFAKE[1399.0,0.,6995.0]
+Mapping  nFAKE  to  ['.*/SB']  patterns
+MH (not there before) will be assumed to be 0
+Will scale  gjet_inclusive/gjet  by  nSIGN
+Will scale  gjet_inclusive/SB  by  nFAKE
+Will scale  gjet_inclusive/gjet  by  nSIGN
+Will scale  gjet_inclusive/SB  by  nFAKE
+ <<< Combine >>> 
+ <<< v10.0.2 >>>
+>>> Random number generator seed is 123456
+>>> Method used is MultiDimFit
+ModelConfig 'ModelConfig' defines more than one parameter of interest. This is not supported in some statistical methods.
+Doing initial fit: 
+PDF didn't factorize!
+Parameters: 
+  1) RooRealVar:: nFAKE = 1399
+  2) RooRealVar:: nSIGN = 5596
+Obs: 
+  1) RooRealVar::    CMS_th1x = 4.5
+  2) RooCategory:: CMS_channel = gjet_inclusive(idx = 0)
+
+
+ --- MultiDimFit ---
+best fit parameter values: 
+   nSIGN :  +6660.570
+   nFAKE :  +334.428
+Done in 0.00 min (cpu), 0.02 min (real)
+i@ [GenerateYAML] file "fitinfo_gjet_inclusive.yaml"
+i@ [GenerateYAML] file "fitinfo_gjet_inclusive.yaml" generated
+[SetFlag] Changing value of flag "workspaces-use-clone" from 0 to 1
+[#1] INFO:ObjectHandling -- RooWorkspace::import(w) importing dataset gjet_inclusive
+[SetFlag] Changing value of flag "workspaces-use-clone" from 0 to 1
+>> Doing prefit: gjet_inclusive,SB
+>> Doing prefit: gjet_inclusive,gjet
+>> Doing prefit: gjet_inclusive,TotalBkg
+>> Doing prefit: gjet_inclusive,TotalSig
+>> Doing prefit: gjet_inclusive,TotalProcs
+Bin                       Total relative bkg uncert. (prefit)
+----------------------------------------------------------
+gjet_inclusive            0.00000   
+>> Doing postfit: gjet_inclusive,SB
+>> Doing postfit: gjet_inclusive,gjet
+>> Doing postfit: gjet_inclusive,TotalBkg
+>> Doing postfit: gjet_inclusive,TotalSig
+>> Doing postfit: gjet_inclusive,TotalProcs
+
+Bin                       Total relative bkg uncert. (postfit)
+----------------------------------------------------------
+gjet_inclusive            0.08108   
+
+Bin                       Process              Scale factor
+----------------------------------------------------------
+gjet_inclusive            SB                   0.23905   
+gjet_inclusive            gjet                 1.19024   
+{'channel': 'SBbtag',
+ 'datacardTEMPLATE': 'data/datacard_SBbtag_template.txt',
+ 'inputFILE': 'out_makehisto.root',
+ 'load_data': [{'histSOURCE': 'jettag0_data_dataSideband',
+                'name': 'data_obs',
+                'normalize': -1},
+               {'histSOURCE': 'jettag0_gjetL_signalRegion',
+                'name': 'ljet',
+                'normalize': 1},
+               {'histSOURCE': 'jettag0_gjetC_signalRegion',
+                'name': 'cjet',
+                'normalize': 1},
+               {'histSOURCE': 'jettag0_gjetB_signalRegion',
+                'name': 'bjet',
+                'normalize': 1}],
+ 'outputDATACARD': 'datacard_SBbtag.txt',
+ 'outputROOT': 'datacard_SBbtag.root',
+ 'outputYAML': 'datacard_SBbtag.defaultValue.yaml'}
+i@ [ReadTemplate] tempelate "data/datacard_SBbtag_template.txt" is required for create output datacard
+i@ [Output Files] datacard "datacard_SBbtag.txt"
+i@ [Output Files] datacard "datacard_SBbtag.txt" exported.
+i@ [Output Files] Root file "datacard_SBbtag.root"
+i@ [Output Files] Root file "datacard_SBbtag.root" generated
+i@ [Output Files] yaml file "datacard_SBbtag.defaultValue.yaml" generated for LCB jets
+{'channel': 'SBcvsl',
+ 'datacardTEMPLATE': 'data/datacard_SBcvsl_template.txt',
+ 'inputFILE': 'out_makehisto.root',
+ 'load_data': [{'histSOURCE': 'jettag1_data_dataSideband',
+                'name': 'data_obs',
+                'normalize': -1},
+               {'histSOURCE': 'jettag1_gjetL_signalRegion',
+                'name': 'ljet',
+                'normalize': 1},
+               {'histSOURCE': 'jettag1_gjetC_signalRegion',
+                'name': 'cjet',
+                'normalize': 1},
+               {'histSOURCE': 'jettag1_gjetB_signalRegion',
+                'name': 'bjet',
+                'normalize': 1}],
+ 'outputDATACARD': 'datacard_SBcvsl.txt',
+ 'outputROOT': 'datacard_SBcvsl.root',
+ 'outputYAML': 'datacard_SBcvsl.defaultValue.yaml'}
+i@ [ReadTemplate] tempelate "data/datacard_SBcvsl_template.txt" is required for create output datacard
+i@ [Output Files] datacard "datacard_SBcvsl.txt"
+i@ [Output Files] datacard "datacard_SBcvsl.txt" exported.
+i@ [Output Files] Root file "datacard_SBcvsl.root"
+i@ [Output Files] Root file "datacard_SBcvsl.root" generated
+i@ [Output Files] yaml file "datacard_SBcvsl.defaultValue.yaml" generated for LCB jets
+{'channel': 'SBcvsb',
+ 'datacardTEMPLATE': 'data/datacard_SBcvsb_template.txt',
+ 'inputFILE': 'out_makehisto.root',
+ 'load_data': [{'histSOURCE': 'jettag2_data_dataSideband',
+                'name': 'data_obs',
+                'normalize': -1},
+               {'histSOURCE': 'jettag2_gjetL_signalRegion',
+                'name': 'ljet',
+                'normalize': 1},
+               {'histSOURCE': 'jettag2_gjetC_signalRegion',
+                'name': 'cjet',
+                'normalize': 1},
+               {'histSOURCE': 'jettag2_gjetB_signalRegion',
+                'name': 'bjet',
+                'normalize': 1}],
+ 'outputDATACARD': 'datacard_SBcvsb.txt',
+ 'outputROOT': 'datacard_SBcvsb.root',
+ 'outputYAML': 'datacard_SBcvsb.defaultValue.yaml'}
+i@ [ReadTemplate] tempelate "data/datacard_SBcvsb_template.txt" is required for create output datacard
+i@ [Output Files] datacard "datacard_SBcvsb.txt"
+i@ [Output Files] datacard "datacard_SBcvsb.txt" exported.
+i@ [Output Files] Root file "datacard_SBcvsb.root"
+i@ [Output Files] Root file "datacard_SBcvsb.root" generated
+i@ [Output Files] yaml file "datacard_SBcvsb.defaultValue.yaml" generated for LCB jets
+i@ [get_yaml_configurables] No input yaml found, use default yaml configurations.
+i@ [UsedValue]
+i@     nDATA   = 762.0
+i@     initSIGN= 762.0 with 100.0% composition
+i@     initFAKE= 0.0 with 0.0% composition
+i@     initL   = 609.6 with frac = 0.8
+i@     initC   = 106.68 with frac = 0.14
+i@     initB   = 22.86 with frac = 0.03
+Will create a POI  nL  with factory  nL[609.6,0.,762.0]
+Mapping  nL  to  ['.*/ljet']  patterns
+Will create a POI  nC  with factory  nC[106.68,0.,762.0]
+Mapping  nC  to  ['.*/cjet']  patterns
+Will create a POI  nB  with factory  nB[22.86,0.,762.0]
+Mapping  nB  to  ['.*/bjet']  patterns
+MH (not there before) will be assumed to be 0
+Will scale  SBbtag/cjet  by  nC
+Will scale  SBbtag/bjet  by  nB
+Will scale  SBbtag/ljet  by  nL
+Will scale  SBcvsl/cjet  by  nC
+Will scale  SBcvsl/bjet  by  nB
+Will scale  SBcvsl/ljet  by  nL
+Will scale  SBcvsb/cjet  by  nC
+Will scale  SBcvsb/bjet  by  nB
+Will scale  SBcvsb/ljet  by  nL
+Will scale  SBbtag/cjet  by  nC
+Will scale  SBbtag/bjet  by  nB
+Will scale  SBbtag/ljet  by  nL
+Will scale  SBcvsl/cjet  by  nC
+Will scale  SBcvsl/bjet  by  nB
+Will scale  SBcvsl/ljet  by  nL
+Will scale  SBcvsb/cjet  by  nC
+Will scale  SBcvsb/bjet  by  nB
+Will scale  SBcvsb/ljet  by  nL
+ <<< Combine >>> 
+ <<< v10.0.2 >>>
+>>> Random number generator seed is 123456
+>>> Method used is MultiDimFit
+ModelConfig 'ModelConfig' defines more than one parameter of interest. This is not supported in some statistical methods.
+Doing initial fit: 
+PDF didn't factorize!
+Parameters: 
+  1) RooRealVar:: nB = 22.86
+  2) RooRealVar:: nC = 106.68
+  3) RooRealVar:: nL = 609.6
+Obs: 
+  1) RooRealVar::    CMS_th1x = 4.5
+  2) RooCategory:: CMS_channel = SBcvsl(idx = 1)
+
+
+ --- MultiDimFit ---
+best fit parameter values: 
+   nL :  +606.885
+   nC :  +127.007
+   nB :   +28.109
+Done in 0.00 min (cpu), 0.01 min (real)
+i@ [GenerateYAML] file "fitinfo_sideband.yaml"
+i@ [GenerateYAML] file "fitinfo_sideband.yaml" generated
+[SetFlag] Changing value of flag "workspaces-use-clone" from 0 to 1
+[#1] INFO:ObjectHandling -- RooWorkspace::import(w) importing dataset SBbtag
+[#1] INFO:ObjectHandling -- RooWorkspace::import(w) importing dataset SBcvsb
+[#1] INFO:ObjectHandling -- RooWorkspace::import(w) importing dataset SBcvsl
+[SetFlag] Changing value of flag "workspaces-use-clone" from 0 to 1
+>> Doing prefit: SBbtag,bjet
+>> Doing prefit: SBbtag,cjet
+>> Doing prefit: SBbtag,ljet
+>> Doing prefit: SBbtag,TotalBkg
+>> Doing prefit: SBbtag,TotalSig
+>> Doing prefit: SBbtag,TotalProcs
+>> Doing prefit: SBcvsb,bjet
+>> Doing prefit: SBcvsb,cjet
+>> Doing prefit: SBcvsb,ljet
+>> Doing prefit: SBcvsb,TotalBkg
+>> Doing prefit: SBcvsb,TotalSig
+>> Doing prefit: SBcvsb,TotalProcs
+>> Doing prefit: SBcvsl,bjet
+>> Doing prefit: SBcvsl,cjet
+>> Doing prefit: SBcvsl,ljet
+>> Doing prefit: SBcvsl,TotalBkg
+>> Doing prefit: SBcvsl,TotalSig
+>> Doing prefit: SBcvsl,TotalProcs
+Bin                       Total relative bkg uncert. (prefit)
+----------------------------------------------------------
+SBbtag                    0.00000   
+SBcvsb                    0.00000   
+SBcvsl                    0.00000   
+>> Doing postfit: SBbtag,bjet
+>> Doing postfit: SBbtag,cjet
+>> Doing postfit: SBbtag,ljet
+>> Doing postfit: SBbtag,TotalBkg
+>> Doing postfit: SBbtag,TotalSig
+>> Doing postfit: SBbtag,TotalProcs
+>> Doing postfit: SBcvsb,bjet
+>> Doing postfit: SBcvsb,cjet
+>> Doing postfit: SBcvsb,ljet
+>> Doing postfit: SBcvsb,TotalBkg
+>> Doing postfit: SBcvsb,TotalSig
+>> Doing postfit: SBcvsb,TotalProcs
+>> Doing postfit: SBcvsl,bjet
+>> Doing postfit: SBcvsl,cjet
+>> Doing postfit: SBcvsl,ljet
+>> Doing postfit: SBcvsl,TotalBkg
+>> Doing postfit: SBcvsl,TotalSig
+>> Doing postfit: SBcvsl,TotalProcs
+
+Bin                       Total relative bkg uncert. (postfit)
+----------------------------------------------------------
+SBbtag                    0.03492   
+SBcvsb                    0.03520   
+SBcvsl                    0.03603   
+
+Bin                       Process              Scale factor
+----------------------------------------------------------
+SBbtag                    bjet                 1.22961   
+SBbtag                    cjet                 1.19054   
+SBbtag                    ljet                 0.99555   
+SBcvsb                    bjet                 1.22961   
+SBcvsb                    cjet                 1.19054   
+SBcvsb                    ljet                 0.99555   
+SBcvsl                    bjet                 1.22961   
+SBcvsl                    cjet                 1.19054   
+SBcvsl                    ljet                 0.99555   
+{'channel': 'gjet',
+ 'datacardTEMPLATE': 'data/datacard_gjet_template.txt',
+ 'inputFILE': 'out_makehisto.root',
+ 'load_data': [{'histSOURCE': 'BDT_data_signalRegion',
+                'name': 'data_obs',
+                'normalize': -1},
+               {'histSOURCE': 'BDT_gjets_signalRegion',
+                'name': 'ljet',
+                'normalize': 1},
+               {'histSOURCE': 'BDT_gjets_signalRegion_shapeUncUp',
+                'name': 'ljet_shapeUp',
+                'normalize': 'BDT_gjets_signalRegion'},
+               {'histSOURCE': 'BDT_gjets_signalRegion_shapeUncDown',
+                'name': 'ljet_shapeDown',
+                'normalize': 'BDT_gjets_signalRegion'},
+               {'histSOURCE': 'BDT_gjets_signalRegion',
+                'name': 'cjet',
+                'normalize': 1},
+               {'histSOURCE': 'BDT_gjets_signalRegion_shapeUncUp',
+                'name': 'cjet_shapeUp',
+                'normalize': 'BDT_gjets_signalRegion'},
+               {'histSOURCE': 'BDT_gjets_signalRegion_shapeUncDown',
+                'name': 'cjet_shapeDown',
+                'normalize': 'BDT_gjets_signalRegion'},
+               {'histSOURCE': 'BDT_gjets_signalRegion',
+                'name': 'bjet',
+                'normalize': 1},
+               {'histSOURCE': 'BDT_gjets_signalRegion_shapeUncUp',
+                'name': 'bjet_shapeUp',
+                'normalize': 'BDT_gjets_signalRegion'},
+               {'histSOURCE': 'BDT_gjets_signalRegion_shapeUncDown',
+                'name': 'bjet_shapeDown',
+                'normalize': 'BDT_gjets_signalRegion'},
+               {'histSOURCE': 'BDT_data_dataSideband',
+                'name': 'SB',
+                'normalize': 1}],
+ 'outputDATACARD': 'datacard_gjet.txt',
+ 'outputROOT': 'datacard_gjet.root',
+ 'outputYAML': 'datacard_gjet.defaultValue.yaml'}
+i@ [ReadTemplate] tempelate "data/datacard_gjet_template.txt" is required for create output datacard
+i@ [Output Files] datacard "datacard_gjet.txt"
+i@ [Output Files] datacard "datacard_gjet.txt" exported.
+i@ [Output Files] Root file "datacard_gjet.root"
+i@ [Output Files] Root file "datacard_gjet.root" generated
+i@ [Output Files] yaml file "datacard_gjet.defaultValue.yaml" generated for LCB jets
+{'channel': 'btag',
+ 'datacardTEMPLATE': 'data/datacard_btag_template.txt',
+ 'inputFILE': 'out_makehisto.root',
+ 'load_data': [{'histSOURCE': 'jettag0_data_signalRegion',
+                'name': 'data_obs',
+                'normalize': -1},
+               {'histSOURCE': 'jettag0_gjetL_signalRegion',
+                'name': 'ljet',
+                'normalize': 1},
+               {'histSOURCE': 'jettag0_gjetC_signalRegion',
+                'name': 'cjet',
+                'normalize': 1},
+               {'histSOURCE': 'jettag0_gjetB_signalRegion',
+                'name': 'bjet',
+                'normalize': 1},
+               {'histSOURCE': 'jettag0_data_dataSideband',
+                'name': 'SB',
+                'normalize': 1}],
+ 'outputDATACARD': 'datacard_btag.txt',
+ 'outputROOT': 'datacard_btag.root',
+ 'outputYAML': 'datacard_btag.defaultValue.yaml'}
+i@ [ReadTemplate] tempelate "data/datacard_btag_template.txt" is required for create output datacard
+i@ [Output Files] datacard "datacard_btag.txt"
+i@ [Output Files] datacard "datacard_btag.txt" exported.
+i@ [Output Files] Root file "datacard_btag.root"
+i@ [Output Files] Root file "datacard_btag.root" generated
+i@ [Output Files] yaml file "datacard_btag.defaultValue.yaml" generated for LCB jets
+{'channel': 'cvsl',
+ 'datacardTEMPLATE': 'data/datacard_cvsl_template.txt',
+ 'inputFILE': 'out_makehisto.root',
+ 'load_data': [{'histSOURCE': 'jettag1_data_signalRegion',
+                'name': 'data_obs',
+                'normalize': -1},
+               {'histSOURCE': 'jettag1_gjetL_signalRegion',
+                'name': 'ljet',
+                'normalize': 1},
+               {'histSOURCE': 'jettag1_gjetC_signalRegion',
+                'name': 'cjet',
+                'normalize': 1},
+               {'histSOURCE': 'jettag1_gjetB_signalRegion',
+                'name': 'bjet',
+                'normalize': 1},
+               {'histSOURCE': 'jettag1_data_dataSideband',
+                'name': 'SB',
+                'normalize': 1}],
+ 'outputDATACARD': 'datacard_cvsl.txt',
+ 'outputROOT': 'datacard_cvsl.root',
+ 'outputYAML': 'datacard_cvsl.defaultValue.yaml'}
+i@ [ReadTemplate] tempelate "data/datacard_cvsl_template.txt" is required for create output datacard
+i@ [Output Files] datacard "datacard_cvsl.txt"
+i@ [Output Files] datacard "datacard_cvsl.txt" exported.
+i@ [Output Files] Root file "datacard_cvsl.root"
+i@ [Output Files] Root file "datacard_cvsl.root" generated
+i@ [Output Files] yaml file "datacard_cvsl.defaultValue.yaml" generated for LCB jets
+{'channel': 'cvsb',
+ 'datacardTEMPLATE': 'data/datacard_cvsb_template.txt',
+ 'inputFILE': 'out_makehisto.root',
+ 'load_data': [{'histSOURCE': 'jettag2_data_signalRegion',
+                'name': 'data_obs',
+                'normalize': -1},
+               {'histSOURCE': 'jettag2_gjetL_signalRegion',
+                'name': 'ljet',
+                'normalize': 1},
+               {'histSOURCE': 'jettag2_gjetC_signalRegion',
+                'name': 'cjet',
+                'normalize': 1},
+               {'histSOURCE': 'jettag2_gjetB_signalRegion',
+                'name': 'bjet',
+                'normalize': 1},
+               {'histSOURCE': 'jettag2_data_dataSideband',
+                'name': 'SB',
+                'normalize': 1}],
+ 'outputDATACARD': 'datacard_cvsb.txt',
+ 'outputROOT': 'datacard_cvsb.root',
+ 'outputYAML': 'datacard_cvsb.defaultValue.yaml'}
+i@ [ReadTemplate] tempelate "data/datacard_cvsb_template.txt" is required for create output datacard
+i@ [Output Files] datacard "datacard_cvsb.txt"
+i@ [Output Files] datacard "datacard_cvsb.txt" exported.
+i@ [Output Files] Root file "datacard_cvsb.root"
+i@ [Output Files] Root file "datacard_cvsb.root" generated
+i@ [Output Files] yaml file "datacard_cvsb.defaultValue.yaml" generated for LCB jets
+/home/ltsai/Work/2022EE/step3.4.runall/bin_1_0_5
+i@ [get_yaml_configurables] Got yaml file "fitinfo_merged.yaml"
+i@ [UsedValue]
+i@     nDATA   = 6995.0
+i@     initSIGN= 6660.572070017147 with 95.21904317394062% composition
+i@     initFAKE= 334.42792998285375 with 4.7809568260593815% composition
+i@     initL   = 5304.721476852208 with frac = 0.7964363152425962
+i@     initC   = 1110.1545312685375 with frac = 0.16667555273006446
+i@     initB   = 245.69606189640132 with frac = 0.03688813202733933
+Will create a POI  nL  with factory  nL[5304.721476852208,0.,6995.0]
+Mapping  nL  to  ['.*/ljet']  patterns
+Will create a POI  nC  with factory  nC[1110.1545312685375,0.,6995.0]
+Mapping  nC  to  ['.*/cjet']  patterns
+Will create a POI  nB  with factory  nB[245.69606189640132,0.,6995.0]
+Mapping  nB  to  ['.*/bjet']  patterns
+Will create a POI  nFAKE  with factory  nFAKE[334.42792998285375,0.,6995.0]
+Mapping  nFAKE  to  ['.*/SB']  patterns
+MH (not there before) will be assumed to be 0
+Will scale  gjet/cjet  by  nC
+Will scale  gjet/bjet  by  nB
+Will scale  gjet/ljet  by  nL
+Will scale  gjet/SB  by  nFAKE
+Will scale  btag/cjet  by  nC
+Will scale  btag/bjet  by  nB
+Will scale  btag/ljet  by  nL
+Will scale  btag/SB  by  nFAKE
+Will scale  cvsl/cjet  by  nC
+Will scale  cvsl/bjet  by  nB
+Will scale  cvsl/ljet  by  nL
+Will scale  cvsl/SB  by  nFAKE
+Will scale  cvsb/cjet  by  nC
+Will scale  cvsb/bjet  by  nB
+Will scale  cvsb/ljet  by  nL
+Will scale  cvsb/SB  by  nFAKE
+Will scale  gjet/cjet  by  nC
+Will scale  gjet/bjet  by  nB
+Will scale  gjet/ljet  by  nL
+Will scale  gjet/SB  by  nFAKE
+Will scale  btag/cjet  by  nC
+Will scale  btag/bjet  by  nB
+Will scale  btag/ljet  by  nL
+Will scale  btag/SB  by  nFAKE
+Will scale  cvsl/cjet  by  nC
+Will scale  cvsl/bjet  by  nB
+Will scale  cvsl/ljet  by  nL
+Will scale  cvsl/SB  by  nFAKE
+Will scale  cvsb/cjet  by  nC
+Will scale  cvsb/bjet  by  nB
+Will scale  cvsb/ljet  by  nL
+Will scale  cvsb/SB  by  nFAKE
+ <<< Combine >>> 
+ <<< v10.0.2 >>>
+>>> Random number generator seed is 123456
+>>> Method used is MultiDimFit
+ModelConfig 'ModelConfig' defines more than one parameter of interest. This is not supported in some statistical methods.
+Doing initial fit: 
+PDF didn't factorize!
+Parameters: 
+  1) RooRealVar::    nB = 245.696
+  2) RooRealVar::    nC = 1110.15
+  3) RooRealVar:: nFAKE = 334.428
+  4) RooRealVar::    nL = 5304.72
+Obs: 
+  1) RooRealVar::    CMS_th1x = 4.5
+  2) RooCategory:: CMS_channel = gjet(idx = 0)
+
+
+ --- MultiDimFit ---
+best fit parameter values: 
+      nL :  +5353.083
+      nC :  +1082.378
+      nB :  +222.043
+   nFAKE :  +337.476
+Done in 0.00 min (cpu), 0.02 min (real)
+i@ [GenerateYAML] file "fitinfo.signal_region.yaml"
+i@ [GenerateYAML] file "fitinfo.signal_region.yaml" generated
+[SetFlag] Changing value of flag "workspaces-use-clone" from 0 to 1
+[#1] INFO:ObjectHandling -- RooWorkspace::import(w) importing dataset btag
+[#1] INFO:ObjectHandling -- RooWorkspace::import(w) importing dataset cvsb
+[#1] INFO:ObjectHandling -- RooWorkspace::import(w) importing dataset cvsl
+[#1] INFO:ObjectHandling -- RooWorkspace::import(w) importing dataset gjet
+[SetFlag] Changing value of flag "workspaces-use-clone" from 0 to 1
+>> Doing prefit: btag,SB
+>> Doing prefit: btag,bjet
+>> Doing prefit: btag,cjet
+>> Doing prefit: btag,ljet
+>> Doing prefit: btag,TotalBkg
+>> Doing prefit: btag,TotalSig
+>> Doing prefit: btag,TotalProcs
+>> Doing prefit: cvsb,SB
+>> Doing prefit: cvsb,bjet
+>> Doing prefit: cvsb,cjet
+>> Doing prefit: cvsb,ljet
+>> Doing prefit: cvsb,TotalBkg
+>> Doing prefit: cvsb,TotalSig
+>> Doing prefit: cvsb,TotalProcs
+>> Doing prefit: cvsl,SB
+>> Doing prefit: cvsl,bjet
+>> Doing prefit: cvsl,cjet
+>> Doing prefit: cvsl,ljet
+>> Doing prefit: cvsl,TotalBkg
+>> Doing prefit: cvsl,TotalSig
+>> Doing prefit: cvsl,TotalProcs
+>> Doing prefit: gjet,SB
+>> Doing prefit: gjet,bjet
+>> Doing prefit: gjet,cjet
+>> Doing prefit: gjet,ljet
+>> Doing prefit: gjet,TotalBkg
+>> Doing prefit: gjet,TotalSig
+>> Doing prefit: gjet,TotalProcs
+Bin                       Total relative bkg uncert. (prefit)
+----------------------------------------------------------
+btag                      0.00000   
+cvsb                      0.00000   
+cvsl                      0.00000   
+gjet                      0.00000   
+>> Doing postfit: btag,SB
+>> Doing postfit: btag,bjet
+>> Doing postfit: btag,cjet
+>> Doing postfit: btag,ljet
+>> Doing postfit: btag,TotalBkg
+>> Doing postfit: btag,TotalSig
+>> Doing postfit: btag,TotalProcs
+>> Doing postfit: cvsb,SB
+>> Doing postfit: cvsb,bjet
+>> Doing postfit: cvsb,cjet
+>> Doing postfit: cvsb,ljet
+>> Doing postfit: cvsb,TotalBkg
+>> Doing postfit: cvsb,TotalSig
+>> Doing postfit: cvsb,TotalProcs
+>> Doing postfit: cvsl,SB
+>> Doing postfit: cvsl,bjet
+>> Doing postfit: cvsl,cjet
+>> Doing postfit: cvsl,ljet
+>> Doing postfit: cvsl,TotalBkg
+>> Doing postfit: cvsl,TotalSig
+>> Doing postfit: cvsl,TotalProcs
+>> Doing postfit: gjet,SB
+>> Doing postfit: gjet,bjet
+>> Doing postfit: gjet,cjet
+>> Doing postfit: gjet,ljet
+>> Doing postfit: gjet,TotalBkg
+>> Doing postfit: gjet,TotalSig
+>> Doing postfit: gjet,TotalProcs
+
+Bin                       Total relative bkg uncert. (postfit)
+----------------------------------------------------------
+btag                      0.01113   
+cvsb                      0.01085   
+cvsl                      0.01121   
+gjet                      0.01086   
+
+Bin                       Process              Scale factor
+----------------------------------------------------------
+btag                      SB                   1.00912   
+btag                      bjet                 0.90373   
+btag                      cjet                 0.97498   
+btag                      ljet                 1.00912   
+cvsb                      SB                   1.00912   
+cvsb                      bjet                 0.90373   
+cvsb                      cjet                 0.97498   
+cvsb                      ljet                 1.00912   
+cvsl                      SB                   1.00912   
+cvsl                      bjet                 0.90373   
+cvsl                      cjet                 0.97498   
+cvsl                      ljet                 1.00912   
+gjet                      SB                   1.00912   
+gjet                      bjet                 0.90373   
+gjet                      cjet                 0.97498   
+gjet                      ljet                 1.00912   
+[step32] finished
+[step33] start
+i-secondary_plotable.py@ [Recorded] directory "cvsl_postfit" recorded
+i-secondary_plotable.py@ [Recorded] directory "btag_postfit" recorded
+i-secondary_plotable.py@ [Recorded] directory "cvsb_postfit" recorded
+i-secondary_plotable.py@ [Recorded] directory "gjet_postfit" recorded
+i-secondary_plotable.py@ [SkipFolder] directory "SBbtag_postfit" is skipped because missing folder in root file.
+i-secondary_plotable.py@ [SkipFolder] directory "SBcvsb_postfit" is skipped because missing folder in root file.
+i-secondary_plotable.py@ [SkipFolder] directory "SBcvsl_postfit" is skipped because missing folder in root file.
+i-secondary_plotable.py@ [SkipFolder] directory "gjet_inclusive_postfit" is skipped because missing folder in root file.
+i-input_yaml_generator.py@ [TemplateFile] Use template file /home/ltsai/Work/2022EE/step3.4.runall//../step3.3.visualization/data/input.template.yaml
+i-input_yaml_generator.py@ [ExportYAML] Config file input.gjet.yaml
+i-input_yaml_generator.py@ [ExportYAML] Config file input.gjet.yaml generated
+i-input_yaml_generator.py@ [ExportYAML] Config file input.btag.yaml
+i-input_yaml_generator.py@ [ExportYAML] Config file input.btag.yaml generated
+i-input_yaml_generator.py@ [ExportYAML] Config file input.cvsb.yaml
+i-input_yaml_generator.py@ [ExportYAML] Config file input.cvsb.yaml generated
+i-input_yaml_generator.py@ [ExportYAML] Config file input.cvsl.yaml
+i-input_yaml_generator.py@ [ExportYAML] Config file input.cvsl.yaml generated
+/cvmfs/cms.cern.ch/el9_amd64_gcc12/external/py3-numpy/1.24.3-ac08ea497df571aa0b37dc29bb7a2045/lib/python3.9/site-packages/numpy/core/getlimits.py:518: UserWarning: The value of the smallest subnormal for <class 'numpy.float64'> type is zero.
+  setattr(self, word, getattr(machar, word).flat[0])
+/cvmfs/cms.cern.ch/el9_amd64_gcc12/external/py3-numpy/1.24.3-ac08ea497df571aa0b37dc29bb7a2045/lib/python3.9/site-packages/numpy/core/getlimits.py:89: UserWarning: The value of the smallest subnormal for <class 'numpy.float64'> type is zero.
+  return self._float_to_str(self.smallest_subnormal)
+i@ [DrawObject] DrawObj_TH1F(gjet_postfit/sign, label=B+C jet)
+i@ [DrawObject] DrawObj_TH1F(gjet_postfit/bjet, label=B jet)
+i@ [DrawObject] DrawObj_TH1F(gjet_postfit/fit, label=gjet+di-jet)
+i@ [DrawObject] DrawObj_TH1F(gjet_postfit/data, label=data)
+i@ [ReorderedLegend] Use the option "legorder" to arrange items
+i@ [DrawObject] DrawObj_TGraphAsymmError(gjet_postfit/fit_ratio, label=data / MC)
+i@ [SavedOutput] outputs/gjet.pdf
+/cvmfs/cms.cern.ch/el9_amd64_gcc12/external/py3-numpy/1.24.3-ac08ea497df571aa0b37dc29bb7a2045/lib/python3.9/site-packages/numpy/core/getlimits.py:518: UserWarning: The value of the smallest subnormal for <class 'numpy.float64'> type is zero.
+  setattr(self, word, getattr(machar, word).flat[0])
+/cvmfs/cms.cern.ch/el9_amd64_gcc12/external/py3-numpy/1.24.3-ac08ea497df571aa0b37dc29bb7a2045/lib/python3.9/site-packages/numpy/core/getlimits.py:89: UserWarning: The value of the smallest subnormal for <class 'numpy.float64'> type is zero.
+  return self._float_to_str(self.smallest_subnormal)
+i@ [DrawObject] DrawObj_TH1F(btag_postfit/sign, label=B+C jet)
+i@ [DrawObject] DrawObj_TH1F(btag_postfit/bjet, label=B jet)
+i@ [DrawObject] DrawObj_TH1F(btag_postfit/fit, label=btag+di-jet)
+i@ [DrawObject] DrawObj_TH1F(btag_postfit/data, label=data)
+i@ [ReorderedLegend] Use the option "legorder" to arrange items
+i@ [DrawObject] DrawObj_TGraphAsymmError(btag_postfit/fit_ratio, label=data / MC)
+i@ [SavedOutput] outputs/btag.pdf
+/cvmfs/cms.cern.ch/el9_amd64_gcc12/external/py3-numpy/1.24.3-ac08ea497df571aa0b37dc29bb7a2045/lib/python3.9/site-packages/numpy/core/getlimits.py:518: UserWarning: The value of the smallest subnormal for <class 'numpy.float64'> type is zero.
+  setattr(self, word, getattr(machar, word).flat[0])
+/cvmfs/cms.cern.ch/el9_amd64_gcc12/external/py3-numpy/1.24.3-ac08ea497df571aa0b37dc29bb7a2045/lib/python3.9/site-packages/numpy/core/getlimits.py:89: UserWarning: The value of the smallest subnormal for <class 'numpy.float64'> type is zero.
+  return self._float_to_str(self.smallest_subnormal)
+i@ [DrawObject] DrawObj_TH1F(cvsl_postfit/sign, label=B+C jet)
+i@ [DrawObject] DrawObj_TH1F(cvsl_postfit/bjet, label=B jet)
+i@ [DrawObject] DrawObj_TH1F(cvsl_postfit/fit, label=cvsl+di-jet)
+i@ [DrawObject] DrawObj_TH1F(cvsl_postfit/data, label=data)
+i@ [ReorderedLegend] Use the option "legorder" to arrange items
+i@ [DrawObject] DrawObj_TGraphAsymmError(cvsl_postfit/fit_ratio, label=data / MC)
+i@ [SavedOutput] outputs/cvsl.pdf
+/cvmfs/cms.cern.ch/el9_amd64_gcc12/external/py3-numpy/1.24.3-ac08ea497df571aa0b37dc29bb7a2045/lib/python3.9/site-packages/numpy/core/getlimits.py:518: UserWarning: The value of the smallest subnormal for <class 'numpy.float64'> type is zero.
+  setattr(self, word, getattr(machar, word).flat[0])
+/cvmfs/cms.cern.ch/el9_amd64_gcc12/external/py3-numpy/1.24.3-ac08ea497df571aa0b37dc29bb7a2045/lib/python3.9/site-packages/numpy/core/getlimits.py:89: UserWarning: The value of the smallest subnormal for <class 'numpy.float64'> type is zero.
+  return self._float_to_str(self.smallest_subnormal)
+i@ [DrawObject] DrawObj_TH1F(cvsb_postfit/sign, label=B+C jet)
+i@ [DrawObject] DrawObj_TH1F(cvsb_postfit/bjet, label=B jet)
+i@ [DrawObject] DrawObj_TH1F(cvsb_postfit/fit, label=cvsb+di-jet)
+i@ [DrawObject] DrawObj_TH1F(cvsb_postfit/data, label=data)
+i@ [ReorderedLegend] Use the option "legorder" to arrange items
+i@ [DrawObject] DrawObj_TGraphAsymmError(cvsb_postfit/fit_ratio, label=data / MC)
+i@ [SavedOutput] outputs/cvsb.pdf
+[step33] finished

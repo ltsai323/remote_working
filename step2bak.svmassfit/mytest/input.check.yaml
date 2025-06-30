@@ -1,0 +1,60 @@
+figNAME: 'checkplot.beforefit.pdf'
+upperpad:
+  legNcolumn: 2
+  legFONTsize: 'xx-small'
+  xLABEL: ''
+  yLABEL: 'Entries'
+  yRANGE:
+    - 1e-1
+    - 1e8
+  ySCALE: log
+  plotables:
+    - type: TH1F
+      objname: data_allgjets_BDTAll
+      file: secondary_plot_creation.root
+      label: data
+      plotstyle: data0
+      legorder: -1
+    # the foramt is controlled in each DrawObj.py
+    - type: TH1F
+      objname: sigB_allgjets_BDTAll
+      file: secondary_plot_creation.root
+      label: b-jet
+      plotstyle: hist1
+      legorder: 0
+    - type: TH1F
+      objname: sumCB_allgjets_BDTAll
+      file: secondary_plot_creation.root
+      label: c-jet
+      plotstyle: hist2
+      legorder: 1
+    - type: TH1F
+      objname: sumLCB_allgjets_BDTAll
+      file: secondary_plot_creation.root
+      label: l-jet
+      plotstyle: hist3
+      legorder: 2
+    - type: TH1F
+      objname: stak_allgjets_BDTAll
+      file: secondary_plot_creation.root
+      label: QCD
+      plotstyle: histBKG
+      legorder: 3
+lowerpad:
+  xLABEL: 'BDT Score'
+  yLABEL: 'data / MC'
+  yRANGE:
+    -   0.5
+    -   2.0
+  # the foramt is controlled in each DrawObj.py
+  plotables:
+    - type: TGraphAsymmError
+      objname: diff_allgjets_BDTAll
+      file: secondary_plot_creation.root
+      label: 'all MC'
+      plotstyle: data
+    - type: TGraphAsymmError
+      objname: diffLCB_allgjets_BDTAll
+      file: secondary_plot_creation.root
+      label: 'gjet'
+      plotstyle: data2

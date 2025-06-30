@@ -1,0 +1,32 @@
+figNAME: 'outputs/extracted_CoverB_noERR.pdf'
+yLABEL: 'C / B'
+yRANGE:
+  - 0.
+  - 100.
+ySCALE: linear
+xLABEL: '$p^{\gamma}_{T}$ (GeV)'
+legNcolumn: 1
+legFONTsize: 'small'
+
+plotables:
+  # B efficiency
+  - type: TH1F
+    objname: bin_0_0_fit_CoverB
+    file: calculated_xs.root
+    label: 'barrel pho barrel jet'
+    plotstyle: line1
+  - type: TH1F
+    objname: bin_0_1_fit_CoverB
+    file: calculated_xs.root
+    label: 'barrel pho endcap jet'
+    plotstyle: line2
+  - type: TH1F
+    objname: bin_1_0_fit_CoverB
+    file: calculated_xs.root
+    label: 'endcap pho barrel jet'
+    plotstyle: line3
+  - type: TH1F
+    objname: bin_1_1_fit_CoverB
+    file: calculated_xs.root
+    label: 'endcap pho endcap jet'
+    plotstyle: line4
