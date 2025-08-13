@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 import ROOT
+from makehisto_usefulfunc import CreateJetPtSF_toTH1, UpdateEvtWeight_ReweightJetPtFromGJetandQCD, UpdateEvtWeight_ReweightJetPtFromGJet, LoadAdditionalFunc, Define_NormalizeBTagSF
+import makehisto_usefulfunc as extfunc
 ### used for miniAOD v12
 DEBUG_MODE = True
 
@@ -11,13 +13,13 @@ def info(mesg):
 #from makehisto_usefulfunc import hBDTAll, hBDTAct, hSVmAll, hSVmAct
 import makehisto_usefulfunc as frag
 
-DATA_LUMINOSITY = 26.81
+DATA_LUMINOSITY = 26.81 # 2022EE
 
 def define_and_filter(usedDF: frag.UsedDataFrames, dfCUTfuncs:dict, dfDEFfuncs:dict, rescaleSIGN=False):
-    the_data0 = dfCUTfuncs['data'](usedDF.dfSR)
-    the_sign0 = dfCUTfuncs['sign'](usedDF.dfsign)
-    the_fake0 = dfCUTfuncs['fake'](usedDF.dffake)
-    the_side0 = dfCUTfuncs['side'](usedDF.dfSB)
+    the_data0 = usedDF.dfSR
+    the_sign0 = usedDF.dfsign
+    the_fake0 = usedDF.dffake
+    the_side0 = usedDF.dfSB
 
     the_dataD = dfDEFfuncs['data'](the_data0)
     the_signD = dfDEFfuncs['sign'](the_sign0)
@@ -36,10 +38,10 @@ def define_and_filter(usedDF: frag.UsedDataFrames, dfCUTfuncs:dict, dfDEFfuncs:d
     the_sign2 = DefineJetTruth(the_sign1)
     the_fake2 = DefineJetTruth(the_fake1)
 
-    the_data = the_data1
-    the_sign = the_sign2
-    the_fake = the_fake2
-    the_side = the_side1
+    the_data = dfCUTfuncs['data'](the_data1)
+    the_sign = dfCUTfuncs['sign'](the_sign2)
+    the_fake = dfCUTfuncs['fake'](the_fake2)
+    the_side = dfCUTfuncs['side'](the_side1)
     ############ defining variables end #################
 
 
@@ -58,6 +60,91 @@ def define_and_filter(usedDF: frag.UsedDataFrames, dfCUTfuncs:dict, dfDEFfuncs:d
     return usedDF
 
 
+def main_content_WPbL( usedDF: frag.UsedDataFrames, outputFILE):
+    #used_df = define_and_filter(usedDF, dfCUTfuncs, dfDEFfuncs)
+    the_data = usedDF.dfSR
+    the_sign = usedDF.dfsign
+    the_fake = usedDF.dffake
+    the_side = usedDF.dfSB
+
+
+
+
+
+    class NameSet:
+        def __init__(self, varNAME):
+            self.data = f'data_{varNAME}'
+            self.gjet = f'gjet_{varNAME}'
+            self.sigL = f'sigL_{varNAME}'
+            self.sigC = f'sigC_{varNAME}'
+            self.sigB = f'sigB_{varNAME}'
+            self.fake = f'fake_{varNAME}'
+            self.side = f'side_{varNAME}' # data sideband
+
+            #print(f'[NameSet] Generating histograms: {self.data} {self.sign} {self.fake} {self.stak} {self.diff}')
+
+
+
+    def plot_all_vars(oTAG, dfDATA, dfSIGN, dfFAKE, dfSIDE):
+        if not dfSIGN.HasColumn(extfunc.evtwgt_WPbLCentral):
+            raise RuntimeError(f'[NoWPbSF] Need to add btag sf to dfSIGN.')
+        if not dfFAKE.HasColumn(extfunc.evtwgt_WPbLCentral):
+            raise RuntimeError(f'[NoWPbSF] Need to add btag sf to dfFAKE.')
+        dfSigL = dfSIGN.Filter('isLJet')
+        dfSigC = dfSIGN.Filter('isCJet')
+        dfSigB = dfSIGN.Filter('isBJet')
+
+        names = NameSet(oTAG)
+        hists = frag.histCollection()
+
+        ### all entries
+        hists.data_BDTAll = dfDATA.Histo1D( frag.hBDTAll(names.data), 'photon_mva', 'event_weight' )
+        hists.gjet_BDTAll = dfSIGN.Histo1D( frag.hBDTAll(names.gjet), 'photon_mva', 'event_weight' )
+        hists.sigL_BDTAll = dfSigL.Histo1D( frag.hBDTAll(names.sigL), 'photon_mva', 'event_weight' )
+        hists.sigC_BDTAll = dfSigC.Histo1D( frag.hBDTAll(names.sigC), 'photon_mva', 'event_weight' )
+        hists.sigB_BDTAll = dfSigB.Histo1D( frag.hBDTAll(names.sigB), 'photon_mva', 'event_weight' )
+        hists.fake_BDTAll = dfFAKE.Histo1D( frag.hBDTAll(names.fake), 'photon_mva', 'event_weight' )
+        hists.side_BDTAll = dfSIDE.Histo1D( frag.hBDTAll(names.side), 'photon_mva', 'event_weight' )
+
+        hists.data_btag = dfDATA.Histo1D( frag.hbtag(names.data), 'ParTB', 'event_weight' )
+        hists.sigL_btag = dfSigL.Histo1D( frag.hbtag(names.sigL), 'ParTB', extfunc.evtwgt_WPbLCentral )
+        hists.sigC_btag = dfSigC.Histo1D( frag.hbtag(names.sigC), 'ParTB', extfunc.evtwgt_WPbLCentral )
+        hists.sigB_btag = dfSigB.Histo1D( frag.hbtag(names.sigB), 'ParTB', extfunc.evtwgt_WPbLCentral )
+        hists.fake_btag = dfFAKE.Histo1D( frag.hbtag(names.fake), 'ParTB', extfunc.evtwgt_WPbLCentral )
+        hists.side_btag = dfSIDE.Histo1D( frag.hbtag(names.side), 'ParTB', 'event_weight' )
+
+        hists.data_cvsb = dfDATA.Histo1D( frag.hcvsb(names.data), 'ParTCvsB', 'event_weight' )
+        hists.sigL_cvsb = dfSigL.Histo1D( frag.hcvsb(names.sigL), 'ParTCvsB', 'event_weight' )
+        hists.sigC_cvsb = dfSigC.Histo1D( frag.hcvsb(names.sigC), 'ParTCvsB', 'event_weight' )
+        hists.sigB_cvsb = dfSigB.Histo1D( frag.hcvsb(names.sigB), 'ParTCvsB', 'event_weight' )
+        hists.fake_cvsb = dfFAKE.Histo1D( frag.hcvsb(names.fake), 'ParTCvsB', 'event_weight' )
+        hists.side_cvsb = dfSIDE.Histo1D( frag.hcvsb(names.side), 'ParTCvsB', 'event_weight' )
+
+        hists.data_cvsl = dfDATA.Histo1D( frag.hcvsl(names.data), 'ParTCvsL', 'event_weight' )
+        hists.sigL_cvsl = dfSigL.Histo1D( frag.hcvsl(names.sigL), 'ParTCvsL', 'event_weight' )
+        hists.sigC_cvsl = dfSigC.Histo1D( frag.hcvsl(names.sigC), 'ParTCvsL', 'event_weight' )
+        hists.sigB_cvsl = dfSigB.Histo1D( frag.hcvsl(names.sigB), 'ParTCvsL', 'event_weight' )
+        hists.fake_cvsl = dfFAKE.Histo1D( frag.hcvsl(names.fake), 'ParTCvsL', 'event_weight' )
+        hists.side_cvsl = dfSIDE.Histo1D( frag.hcvsl(names.side), 'ParTCvsL', 'event_weight' )
+
+
+
+        return hists
+
+
+
+    h_allgjets = plot_all_vars(
+            'gjet',
+            the_data,
+            the_sign,
+            the_fake,
+            the_side
+    )
+    ############ ploting ended ##########
+
+    f_out = ROOT.TFile(outputFILE, 'recreate')
+    h_allgjets.WriteAllHists(f_out, writeNORMALIZEDhist = False)
+    f_out.Close()
 def main_content( usedDF: frag.UsedDataFrames, outputFILE):
     #used_df = define_and_filter(usedDF, dfCUTfuncs, dfDEFfuncs)
     the_data = usedDF.dfSR
@@ -72,6 +159,7 @@ def main_content( usedDF: frag.UsedDataFrames, outputFILE):
     class NameSet:
         def __init__(self, varNAME):
             self.data = f'data_{varNAME}'
+            self.gjet = f'gjet_{varNAME}'
             self.sigL = f'sigL_{varNAME}'
             self.sigC = f'sigC_{varNAME}'
             self.sigB = f'sigB_{varNAME}'
@@ -92,6 +180,7 @@ def main_content( usedDF: frag.UsedDataFrames, outputFILE):
 
         ### all entries
         hists.data_BDTAll = dfDATA.Histo1D( frag.hBDTAll(names.data), 'photon_mva', 'event_weight' )
+        hists.gjet_BDTAll = dfSIGN.Histo1D( frag.hBDTAll(names.gjet), 'photon_mva', 'event_weight' )
         hists.sigL_BDTAll = dfSigL.Histo1D( frag.hBDTAll(names.sigL), 'photon_mva', 'event_weight' )
         hists.sigC_BDTAll = dfSigC.Histo1D( frag.hBDTAll(names.sigC), 'photon_mva', 'event_weight' )
         hists.sigB_BDTAll = dfSigB.Histo1D( frag.hBDTAll(names.sigB), 'photon_mva', 'event_weight' )
@@ -135,12 +224,12 @@ def main_content( usedDF: frag.UsedDataFrames, outputFILE):
     ############ ploting ended ##########
 
     f_out = ROOT.TFile(outputFILE, 'recreate')
-    h_allgjets.WriteAllHists(f_out, writeNORMALIZEDhist = True)
+    h_allgjets.WriteAllHists(f_out, writeNORMALIZEDhist = False)
     f_out.Close()
 
 
 
-def test_main_content():
+def test_main_content(outHISTname):
     used_data_frames = frag.UsedDataFrames(
             sidebandFILE = '/afs/cern.ch/user/l/ltsai/eos_storage/condor_summary/2022EE_GJet/stage2/stage2_GJetDataDataSideband.root',
             dataFILE     =' /afs/cern.ch/user/l/ltsai/eos_storage/condor_summary/2022EE_GJet/stage2/stage2_GJetDataSignalRegion.root',
@@ -164,9 +253,18 @@ def test_main_content():
     }
 
     used_df = define_and_filter(used_data_frames, dfCUTfuncs = cut_func, dfDEFfuncs = def_func)
-    main_content(
+    df_sig = Define_NormalizeBTagSF(used_df.dfsign, 'renormREQUIRED_wgt_WPbL_central', extfunc.evtwgt_WPbLCentral)
+    df_bkg = Define_NormalizeBTagSF(used_df.dffake, 'renormREQUIRED_wgt_WPbL_central', extfunc.evtwgt_WPbLCentral)
+    #df_sig = Define_NormalizeBTagSF(used_df.dfsign, 'wgt_WPbL_central', extfunc.evtwgt_WPbLCentral)
+    #df_bkg = Define_NormalizeBTagSF(used_df.dffake, 'wgt_WPbL_central', extfunc.evtwgt_WPbLCentral)
+
+    used_df.dfsign = df_sig
+    used_df.dffake = df_bkg
+
+
+    main_content_WPbL(
         usedDF = used_df,
-        outputFILE = 'makehisto.root',
+        outputFILE = outHISTname,
     )
 def test_main_content2():
     used_data_frames = UsedDataFrames(
@@ -222,10 +320,57 @@ def define_working_points(df):
             .Define('WPb_tight' , 'ParTB > 0.8604')
 
 
+def add_btagSF(usedDFs):
+    dfSIGN = usedDFs.dfsign.Define('event_weight', f'wgt*{DATA_LUMINOSITY}')
+
+    df_new = Define_NormalizeBTagSF(dfSIGN, 'renormREQUIRED_wgt_WPbL_central', extfunc.evtwgt_WPbLCentral)
+    #df_new = Define_NormalizeBTagSF(dfSIGN, 'wgt_WPbL_central', extfunc.evtwgt_WPbLCentral)
+    ## new: filter then calculate weight
+    binning = 'jet_pt > 500 && jet_pt < 1000 && abs(jet_eta) > 1.5 && abs(photon_eta)>1.5'
+    binnedf_sign = df_new.Filter(binning)
+
+    df = binnedf_sign
+
+    #hnew = df.Histo1D( ("hnew", "", 120, 0.85,1.5), extfunc.evtwgt_WPbLCentral)
+    #hnew = df.Histo1D(extfunc.evtwgt_WPbLCentral)
+    hnew = df.Histo1D( ('hi','renormREQUIRED_wgt_WPbL_central', 80, 0.85,1.5),'renormREQUIRED_wgt_WPbL_central')
+
+
+    ## ref: calcualate weight then filter
+
+    canv = ROOT.TCanvas('c1','',800,800)
+    hnew.SetLineColor(ROOT.kRed)
+    hnew.SetLineWidth(2)
+    hnew.Draw("HIST")
+
+    canv.SetLogy()
+    canv.SaveAs("hi.png")
+
+
+
+
+
+
+    #dfSIGN.Define('WPb_loose_sf_central', [&](
+
+
+def testfunc_add_btagSF():
+    used_data_frames = frag.UsedDataFrames(
+            sidebandFILE = '/afs/cern.ch/user/l/ltsai/eos_storage/condor_summary/2022EE_GJet/stage2/stage2_GJetDataDataSideband.root',
+            dataFILE     =' /afs/cern.ch/user/l/ltsai/eos_storage/condor_summary/2022EE_GJet/stage2/stage2_GJetDataSignalRegion.root',
+            signFILE     = '/afs/cern.ch/user/l/ltsai/eos_storage/condor_summary/2022EE_GJet/stage2/stage2_GJetMCGJetMadgraph.root',
+            #dataFILE     = '/afs/cern.ch/user/l/ltsai/eos_storage/condor_summary/2022EE_GJet/stage2/stage2_GJetMCGJeyPythiaFlat.root',
+            fakeFILE     = '/afs/cern.ch/user/l/ltsai/eos_storage/condor_summary/2022EE_GJet/stage2/stage2_QCDMadgraph.root',
+    )
+    add_btagSF(used_data_frames)
+    exit(0)
 
 
 if __name__ == "__main__":
-    test_main_content()
+    testfunc_add_btagSF()
+    import sys
+    outHISTname = sys.argv[1]
+    test_main_content(outHISTname)
     #import sys
     #from collections import namedtuple
     #inARGs = namedtuple('inARGs', 'dataERA pETAbin jETAbin pPTlow pPThigh')
@@ -244,5 +389,4 @@ if __name__ == "__main__":
     ##pPThigh = 220
     ## { return std::vector<float>({190,200,220,250,300,        600,    1000, 9999}); }
 
-    #main_func(dataERA, pETAbin, jETAbin, pPTlow, pPThigh)
 

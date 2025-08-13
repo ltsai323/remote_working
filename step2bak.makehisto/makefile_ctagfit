@@ -1,4 +1,4 @@
-oDIR ?= output
+oDIR ?= makehisto_output
 
 
 timeSTAMP := $$(date "+%Y%m%d_%H%M")
@@ -25,16 +25,41 @@ define check_dir_existed
 endef
 
 
+step2_binned_hastruth_psuedodata: # separate jet pt / jet eta binning
+	python3 makehisto_binned_ctagfit_GJetPythiaFlatPsuedodata_estimateSR.py makehisto_binned_ctagfit_psuedodata.root
 
-psuedodata: ## make_histo for psuedo data from GJetPythiaFlat [oNAME=hiii.root]
+$(oDIR):
+	@echo "[INFO] Creating directory: $(oDIR)"
+	mkdir $@
+
+step3_collect_binned_hists: $(oDIR) # collecting root files generated from binned_hastruth_psuedodata [oDIR=makehisto_output]
+	[ "`ls -A $(oDIR)`" ] &&  read -p "Folder '$(oDIR)' existed, do you want to clean up this folder?" && /bin/rm -r $(oDIR)/* || echo Directly put file in folder $(oDIR)
+	mv makehisto_binned*.root $(oDIR)/
+
+step1_hastruth_psuedodata: # separate jet pt / jet eta binning [oNAME=hiiii.root]
 	$(call check_defined,oNAME)
 	python3 makehisto_GJetPythiaFlatPsuedodata_ctagfit_estimateSR.py $(oNAME)
+
+step0_makehist: ## make_histo for psuedo data from GJetPythiaFlat [oNAME=hiii.root]
+	$(call check_defined,oNAME)
+	python3 makehisto_ctagfit_estimateSR.py $(oNAME)
 	make linkpsuedodata root=$(oNAME)
 
-linkedfile=makehisto_psuedodata_ctagfit.root
+
+cut ?= 1
+stepX_binned_data: # make_histo fro data [cut=1]
+	python3 makehisto_binned_ctagfit_data_estimateSR.py makehisto_binned_ctagfit_data.root $(cut)
+rundata: stepX_binned_data step3_collect_binned_hists ## default execution creating binned histograms from data [cut=WPb_loose][oDIR=makehisto_WPbLoose_binned_ctagfit_data]
+	echo "[FolderGenerated] All data generated binned histograms moved to folder $(oDIR)"
+runpsuedodata: step2_binned_hastruth_psuedodata step3_collect_binned_hists ## default execution creating binned histograms from psuedodata [oDIR=makehisto_WPbLoose_binned_ctagfit]
+	echo "[FolderGenerated] All psuedo data generated binned histograms moved to folder $(oDIR)"
+	
+
+linkedfile=makehisto_ctagfit_psuedodata_mergefake.root
 linkpsuedodata: ## link another file to makehisto_psuedodata_rescaled.root [root=hi.root]
 	$(call check_defined,root)
 	/bin/rm -f $(linkedfile) ;  ln -s $(root) $(linkedfile)
+
 
 IN_ARGS = [opts]
 

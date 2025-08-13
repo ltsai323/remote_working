@@ -1,0 +1,17 @@
+emptyFAKE: 0
+nB:
+  composition: 0.1
+  value: 0.24000000000000005
+nC:
+  composition: 0.2
+  value: 0.4800000000000001
+nDATA:
+  value: 3.0
+nFAKE:
+  composition: 0.2
+  value: 0.6000000000000001
+nL:
+  composition: 0.7
+  value: 1.6800000000000002
+nSIGN:
+  value: 2.4000000000000004

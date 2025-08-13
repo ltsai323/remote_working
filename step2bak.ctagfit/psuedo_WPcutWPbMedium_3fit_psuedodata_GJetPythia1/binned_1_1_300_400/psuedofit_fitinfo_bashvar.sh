@@ -1,0 +1,9 @@
+numB_rangeL=0
+numB_rangeR=174
+numB_central=87
+numC_rangeL=0
+numC_rangeR=160
+numC_central=80
+numL_rangeL=0
+numL_rangeR=218
+numL_central=109

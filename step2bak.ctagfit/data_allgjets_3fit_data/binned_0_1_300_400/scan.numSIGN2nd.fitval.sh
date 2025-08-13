@@ -1,0 +1,3 @@
+numSIGN_rangeL=0
+numSIGN_rangeR=50230
+numSIGN_central=25115

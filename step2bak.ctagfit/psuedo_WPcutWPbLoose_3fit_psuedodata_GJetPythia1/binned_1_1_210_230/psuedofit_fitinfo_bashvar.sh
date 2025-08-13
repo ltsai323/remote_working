@@ -1,0 +1,9 @@
+numB_rangeL=0
+numB_rangeR=506
+numB_central=253
+numC_rangeL=268.5
+numC_rangeR=1074
+numC_central=537
+numL_rangeL=1006.5
+numL_rangeR=4026
+numL_central=2013

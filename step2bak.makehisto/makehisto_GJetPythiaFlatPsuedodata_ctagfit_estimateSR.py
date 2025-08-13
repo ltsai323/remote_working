@@ -61,7 +61,7 @@ def update_truth( usedDF: frag.UsedDataFrames, outputFILE):
         hists.trughSUM_cvsl = sum_hist(names.truthSUM + '_cvsl', hists.truthL_cvsl, hists.truthC_cvsl, hists.truthB_cvsl)
 
         return hists
-    
+
 
 
 
@@ -84,8 +84,10 @@ def update_truth( usedDF: frag.UsedDataFrames, outputFILE):
     def mergefake_hists(addTAG, addNUM):
         def merge_fake(addTAG, hDATA, hSIDE, addNUM):
             hfake = hSIDE.Clone(f'{hSIDE.GetName()}_{addTAG}')
-            hfake.Scale( addNUM / hfake.Integral() )
-            
+            fakeINTEGRAL = hfake.Integral()
+            if fakeINTEGRAL != 0:
+                hfake.Scale( addNUM / hfake.Integral() )
+
             hdata = hDATA.Clone(f'{hDATA.GetName()}_{addTAG}')
             hdata.Add(hfake)
             setattr(hists_mergefake, hfake.GetName(), hfake)
@@ -135,7 +137,7 @@ if __name__ == "__main__":
 
 
     #binning = 'photon_pt>210 && photon_pt<230 && abs(jet_eta)<1.5 && abs(photon_eta)<1.5'
-    binning = 'photon_pt>210'
+    binning = 'photon_pt>210 && WPb_loose'
     cut_func = {
             'data': lambda df: df.Filter(f'{binning} && 1'),
             'sign': lambda df: df.Filter(f'{binning} && 1'),

@@ -9,8 +9,64 @@ def info(mesg):
 
 from makehisto_usefulfunc import UsedDataFrames, histCollection
 from makehisto_usefulfunc import hBDTAll, hBDTAct, hSVmAll, hSVmAct
+from makehisto_usefulfunc import CreateJetPtSF_toTH1, UpdateEvtWeight_ReweightJetPtFromGJetandQCD, UpdateEvtWeight_ReweightJetPtFromGJet,LoadAdditionalFunc
+import makehisto_usefulfunc as frag
 
 DATA_LUMINOSITY = 26.81
+
+
+
+
+
+def testfunc_find_jet_pt_sf():
+    used_data_frames = UsedDataFrames(
+            sidebandFILE = '/afs/cern.ch/user/l/ltsai/eos_storage/condor_summary/2022EE_GJet/stage2/stage2_GJetDataDataSideband.root',
+            #dataFILE     =' /afs/cern.ch/user/l/ltsai/eos_storage/condor_summary/2022EE_GJet/stage2/stage2_GJetDataSignalRegion.root',
+            signFILE     = '/afs/cern.ch/user/l/ltsai/eos_storage/condor_summary/2022EE_GJet/stage2/stage2_GJetMCGJetMadgraph.root',
+            dataFILE     = '/afs/cern.ch/user/l/ltsai/eos_storage/condor_summary/2022EE_GJet/stage2/stage2_GJetMCGJeyPythiaFlat.root',
+            fakeFILE     = '/afs/cern.ch/user/l/ltsai/eos_storage/condor_summary/2022EE_GJet/stage2/stage2_QCDMadgraph.root',
+    )
+
+    general_cut = 'photon_pt>210'
+
+    #binning = 'photon_pt>210 && photon_pt<230 && abs(jet_eta)<1.5 && abs(photon_eta)<1.5'
+    binning = 'photon_pt>210'
+    cut_func = {
+            'data': lambda df: df.Filter(f'{binning}'),
+            'sign': lambda df: df.Filter(f'{binning}'),
+            'fake': lambda df: df.Filter(f'{binning}'),
+            'side': lambda df: df.Filter(f'{binning}'),
+    }
+    def_func = {
+            'data': lambda df: df.Define('event_weight',f'wgt * {DATA_LUMINOSITY}'),
+            'sign': lambda df: df.Define('event_weight',f"wgt * {DATA_LUMINOSITY}"), # gen weight, xs norm, PU weight, photon SF, trigger SF
+            'fake': lambda df: df.Define('event_weight',f"wgt * {DATA_LUMINOSITY}"), # gen weight, xs norm, PU weight, photon SF, trigger SF
+            'side': lambda df: df.Define('event_weight','1'),
+    }
+
+    used_df = define_and_filter(used_data_frames, dfCUTfuncs = cut_func, dfDEFfuncs = def_func)
+    CreateJetPtSF_toTH1(used_df, createINTERMEDIATEhist=True)
+    LoadAdditionalFunc()
+
+
+    ddd = UpdateEvtWeight_ReweightJetPtFromGJet(used_df.dfsign, makehistoADDITIONALfunctions_LOADED = True)
+    #hdata = used_df.dfSR.Histo1D('jet_pt', 'event_weight')
+    hdata = used_df.dfSR.Histo1D( ('hdata','', 100,0,2000), 'jet_pt', 'event_weight')
+    hsign = ddd.Histo1D( ('hsign', '', 100,0,2000), 'jet_pt', 'event_weight')
+    hsign_w = ddd.Histo1D( ('hsign_ww', '',100,0,2000), 'jet_pt', 'event_weight_orig')
+
+    f = ROOT.TFile('hhh.root', 'recreate')
+    f.cd()
+    hdata.Write()
+    hsign.Write()
+    hsign_w.Write()
+    f.Close()
+
+    #canv = ROOT.TCanvas("c1","",800,800)
+    #sfhist_jetpt.Draw()
+    #canv.SaveAs("hi.png")
+
+
 
 def define_and_filter(usedDF: UsedDataFrames, dfCUTfuncs:dict, dfDEFfuncs:dict, rescaleSIGN=False):
     the_data0 = dfCUTfuncs['data'](usedDF.dfSR)
@@ -57,7 +113,7 @@ def define_and_filter(usedDF: UsedDataFrames, dfCUTfuncs:dict, dfDEFfuncs:dict, 
     return usedDF
 
 
-def main_content( usedDF: UsedDataFrames, outputFILE):
+def main_content( usedDF: UsedDataFrames, outputFILE, writeOVERFLOWbin=False):
     #used_df = define_and_filter(usedDF, dfCUTfuncs, dfDEFfuncs)
     the_data = usedDF.dfSR
     the_sign = usedDF.dfsign
@@ -104,29 +160,38 @@ def main_content( usedDF: UsedDataFrames, outputFILE):
         hists.fake_SVmAll = dfFAKE.Histo1D( hSVmAll(names.fake), 'jet_SVmass', 'event_weight' )
         hists.side_SVmAll = dfSIDE.Histo1D( hSVmAll(names.side), 'jet_SVmass', 'event_weight' )
 
+        if frag.cutWPcANDfitbTag:
+            hists.data_btag = dfDATA.Histo1D( frag.hbtag(names.data), 'ParTB', 'event_weight' )
+            hists.sigL_btag = dfSigL.Histo1D( frag.hbtag(names.sigL), 'ParTB', 'event_weight' )
+            hists.sigC_btag = dfSigC.Histo1D( frag.hbtag(names.sigC), 'ParTB', 'event_weight' )
+            hists.sigB_btag = dfSigB.Histo1D( frag.hbtag(names.sigB), 'ParTB', 'event_weight' )
+            hists.fake_btag = dfFAKE.Histo1D( frag.hbtag(names.fake), 'ParTB', 'event_weight' )
+            hists.side_btag = dfSIDE.Histo1D( frag.hbtag(names.side), 'ParTB', 'event_weight' )
 
-        ### only record the jet_SVmass activated distributions
-        dfdata = dfDATA.Filter('jet_SVmass>0')
-        dfsigl = dfSigL.Filter('jet_SVmass>0')
-        dfsigc = dfSigC.Filter('jet_SVmass>0')
-        dfsigb = dfSigB.Filter('jet_SVmass>0')
-        dffake = dfFAKE.Filter('jet_SVmass>0')
-        dfside = dfSIDE.Filter('jet_SVmass>0')
+
+        if frag.cutWPANDfitSVMass:
+            ### only record the jet_SVmass activated distributions
+            dfdata = dfDATA.Filter('jet_SVmass>0')
+            dfsigl = dfSigL.Filter('jet_SVmass>0')
+            dfsigc = dfSigC.Filter('jet_SVmass>0')
+            dfsigb = dfSigB.Filter('jet_SVmass>0')
+            dffake = dfFAKE.Filter('jet_SVmass>0')
+            dfside = dfSIDE.Filter('jet_SVmass>0')
 
 
-        hists.data_BDTAct = dfdata.Histo1D( hBDTAct(names.data), 'photon_mva', 'event_weight' )
-        hists.sigL_BDTAct = dfsigl.Histo1D( hBDTAct(names.sigL), 'photon_mva', 'event_weight' )
-        hists.sigC_BDTAct = dfsigc.Histo1D( hBDTAct(names.sigC), 'photon_mva', 'event_weight' )
-        hists.sigB_BDTAct = dfsigb.Histo1D( hBDTAct(names.sigB), 'photon_mva', 'event_weight' )
-        hists.fake_BDTAct = dffake.Histo1D( hBDTAct(names.fake), 'photon_mva', 'event_weight' )
-        hists.side_BDTAct = dfside.Histo1D( hBDTAct(names.side), 'photon_mva', 'event_weight' )
+            hists.data_BDTAct = dfdata.Histo1D( hBDTAct(names.data), 'photon_mva', 'event_weight' )
+            hists.sigL_BDTAct = dfsigl.Histo1D( hBDTAct(names.sigL), 'photon_mva', 'event_weight' )
+            hists.sigC_BDTAct = dfsigc.Histo1D( hBDTAct(names.sigC), 'photon_mva', 'event_weight' )
+            hists.sigB_BDTAct = dfsigb.Histo1D( hBDTAct(names.sigB), 'photon_mva', 'event_weight' )
+            hists.fake_BDTAct = dffake.Histo1D( hBDTAct(names.fake), 'photon_mva', 'event_weight' )
+            hists.side_BDTAct = dfside.Histo1D( hBDTAct(names.side), 'photon_mva', 'event_weight' )
 
-        hists.data_SVmAct = dfdata.Histo1D( hSVmAct(names.data), 'jet_SVmass', 'event_weight' )
-        hists.sigL_SVmAct = dfsigl.Histo1D( hSVmAct(names.sigL), 'jet_SVmass', 'event_weight' )
-        hists.sigC_SVmAct = dfsigc.Histo1D( hSVmAct(names.sigC), 'jet_SVmass', 'event_weight' )
-        hists.sigB_SVmAct = dfsigb.Histo1D( hSVmAct(names.sigB), 'jet_SVmass', 'event_weight' )
-        hists.fake_SVmAct = dffake.Histo1D( hSVmAct(names.fake), 'jet_SVmass', 'event_weight' )
-        hists.side_SVmAct = dfside.Histo1D( hSVmAct(names.side), 'jet_SVmass', 'event_weight' )
+            hists.data_SVmAct = dfdata.Histo1D( hSVmAct(names.data), 'jet_SVmass', 'event_weight' )
+            hists.sigL_SVmAct = dfsigl.Histo1D( hSVmAct(names.sigL), 'jet_SVmass', 'event_weight' )
+            hists.sigC_SVmAct = dfsigc.Histo1D( hSVmAct(names.sigC), 'jet_SVmass', 'event_weight' )
+            hists.sigB_SVmAct = dfsigb.Histo1D( hSVmAct(names.sigB), 'jet_SVmass', 'event_weight' )
+            hists.fake_SVmAct = dffake.Histo1D( hSVmAct(names.fake), 'jet_SVmass', 'event_weight' )
+            hists.side_SVmAct = dfside.Histo1D( hSVmAct(names.side), 'jet_SVmass', 'event_weight' )
 
         return hists
 
@@ -139,26 +204,35 @@ def main_content( usedDF: UsedDataFrames, outputFILE):
             the_fake,
             the_side
     )
-    h_WPbLoose = plot_all_vars(
-            'WPbLoose',
-            the_data.Filter('WPb_loose'),
-            the_sign.Filter('WPb_loose'),
-            the_fake.Filter('WPb_loose'),
-            the_side.Filter('WPb_loose'),
-    )
-    h_WPbMedium = plot_all_vars(
-            'WPbMedium',
-            the_data.Filter('WPb_medium'),
-            the_sign.Filter('WPb_medium'),
-            the_fake.Filter('WPb_medium'),
-            the_side.Filter('WPb_medium'),
-    )
-    h_WPbTight = plot_all_vars(
-            'WPbTight',
-            the_data.Filter('WPb_tight'),
-            the_sign.Filter('WPb_tight'),
-            the_fake.Filter('WPb_tight'),
-            the_side.Filter('WPb_tight'),
+
+    if frag.cutWPANDfitSVMass:
+        h_WPbLoose = plot_all_vars(
+                'WPbLoose',
+                the_data.Filter('WPb_loose'),
+                the_sign.Filter('WPb_loose'),
+                the_fake.Filter('WPb_loose'),
+                the_side.Filter('WPb_loose'),
+        )
+        h_WPbMedium = plot_all_vars(
+                'WPbMedium',
+                the_data.Filter('WPb_medium'),
+                the_sign.Filter('WPb_medium'),
+                the_fake.Filter('WPb_medium'),
+                the_side.Filter('WPb_medium'),
+        )
+        h_WPbTight = plot_all_vars(
+                'WPbTight',
+                the_data.Filter('WPb_tight'),
+                the_sign.Filter('WPb_tight'),
+                the_fake.Filter('WPb_tight'),
+                the_side.Filter('WPb_tight'),
+        )
+    h_WPcLoose = plot_all_vars(
+            'WPcLoose',
+            the_data.Filter('WPc_loose'),
+            the_sign.Filter('WPc_loose'),
+            the_fake.Filter('WPc_loose'),
+            the_side.Filter('WPc_loose'),
     )
     h_WPcMedium = plot_all_vars(
             'WPcMedium',
@@ -177,12 +251,14 @@ def main_content( usedDF: UsedDataFrames, outputFILE):
     ############ ploting ended ##########
 
     f_out = ROOT.TFile(outputFILE, 'recreate')
-    h_allgjets.WriteAllHists(f_out)
-    h_WPbLoose.WriteAllHists(f_out)
-    h_WPbMedium.WriteAllHists(f_out)
-    h_WPbTight.WriteAllHists(f_out)
-    h_WPcMedium.WriteAllHists(f_out)
-    h_WPcTight.WriteAllHists(f_out)
+    h_allgjets.WriteAllHists(f_out,writeOVERFLOWbin=writeOVERFLOWbin)
+    if frag.cutWPANDfitSVMass:
+        h_WPbLoose.WriteAllHists(f_out,writeOVERFLOWbin=writeOVERFLOWbin)
+        h_WPbMedium.WriteAllHists(f_out,writeOVERFLOWbin=writeOVERFLOWbin)
+        h_WPbTight.WriteAllHists(f_out,writeOVERFLOWbin=writeOVERFLOWbin)
+    h_WPcLoose.WriteAllHists(f_out,writeOVERFLOWbin=writeOVERFLOWbin)
+    h_WPcMedium.WriteAllHists(f_out,writeOVERFLOWbin=writeOVERFLOWbin)
+    h_WPcTight.WriteAllHists(f_out,writeOVERFLOWbin=writeOVERFLOWbin)
     f_out.Close()
 
 
@@ -272,7 +348,8 @@ def define_working_points(df):
 
 
 if __name__ == "__main__":
-    test_main_content()
+    testfunc_find_jet_pt_sf()
+    #test_main_content()
     #import sys
     #from collections import namedtuple
     #inARGs = namedtuple('inARGs', 'dataERA pETAbin jETAbin pPTlow pPThigh')

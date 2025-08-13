@@ -4,7 +4,7 @@ iYAMLbtag ?= test.btag_data_btag.yaml
 iYAMLcvsb ?= test.btag_data_cvsb.yaml
 iYAMLcvsl ?= test.btag_data_cvsl.yaml
 iYAMLBDT  ?= test.btag_data_BDTAll.yaml
-self=makefile.3fits_btagcut_psuedodata
+self=makefile.3fits_btagcut_data
 
 
 timeSTAMP := $$(date "+%Y%m%d_%H%M")
@@ -59,9 +59,6 @@ step10_prepare_histograms:  clean-odir $(oDIR) ## Create histograms for [oDIR=ou
 		combineCards.py  btag=datafit_datacard_btag.txt cvsl=datafit_datacard_cvsl.txt cvsb=datafit_datacard_cvsb.txt > $(_TMP_DATACARD)
 
 
-check1_makehisto_content: ## Create secondary rootfile for checking makehisto.root is correct or not
-	cd $(oDIR) && python3 ../secondary_plot_creation.py ../$(iYAMLBDT) ; echo ERROR!!!! iYAML is not a valid configuration in makefile
-	#cd $(oDIR) && DrawRatioPlotablesWithCMSFormat.py ../input.check.yaml
 
 
 _TMP_INIT_BASH_BDT       := datafit_datacard.BDT.defaultValue.sh
@@ -77,16 +74,16 @@ BDTfit1_text2workspace_BDT: ## create workspace for combine at BDT fit
     	--PO "map=.*/fake:numFAKE[$${nFAKE},0.,$${nDATA}]" \
     	--PO verbose || (echo "failed to create workspace from datacard"; exit 1)
 
-_TMP_MULTIDIMFITTEST_BDT  := datafit_multidimfitTest.BDT.root
-_TMP_HIGGSCOMBINETEST_BDT := datafit_higgsCombineTest.MultiDimFit.mH120.BDT.root
+_TMP_MULTIDIMFITTEST_BDT  := multidimfitBDTFit.root
+_TMP_HIGGSCOMBINETEST_BDT := higgsCombineBDTFit.MultiDimFit.mH120.root
 OUT_FITINFO_BDT           := datafit_fitinfo.BDT.yaml
 OUT_FITINFO_BASH_BDT      := datafit_fitinfo.BDT.sh
 POSTFIT_ROOT_BDT          := datafit_postfit.BDT.root
 
+
 BDTfit2_combine:
 	$(call check_dir_existed,$(oDIR))
-	cd $(oDIR) && combine --saveWorkspace -M MultiDimFit -d $(_TMP_INPUT_WORKSPACE_BDT) --saveFitResult --saveNLL --robustFit on || the_exit "failed to run combine @ data sideband"
-	cd $(oDIR) && mv multidimfitTest.root $(_TMP_MULTIDIMFITTEST_BDT) ; mv higgsCombineTest.MultiDimFit.mH120.root $(_TMP_HIGGSCOMBINETEST_BDT)
+	cd $(oDIR) && combine --saveWorkspace -M MultiDimFit -d $(_TMP_INPUT_WORKSPACE_BDT) --saveFitResult --saveNLL --robustFit on -n BDTFit || the_exit "failed to run combine @ data sideband"
 BDTfit3_postfit:
 	$(call check_dir_existed,$(oDIR))
 ### [post process] collect result to yaml file
@@ -94,7 +91,6 @@ BDTfit3_postfit:
 	   $(_TMP_HIGGSCOMBINETEST_BDT) \
 	   $(OUT_FITINFO_BDT) \
 	   numSIGN numFAKE # variables from fit
-	   #numL numC numB  numFAKE # variables from fit
 ### Use sideband fit to extract the initial value of the C/B/L fractions ended
 	cd $(oDIR) && PostFitShapesFromWorkspace -d $(_TMP_DATACARD_BDT) \
 		-w $(_TMP_HIGGSCOMBINETEST_BDT) \
@@ -105,13 +101,43 @@ BDTfit4_checkpostfit:
 	cd $(oDIR) && python3 ../secondary_plot_creation_postfit.py  $(POSTFIT_ROOT_BDT)
 	cd $(oDIR) && \
 		DrawRatioPlotablesWithCMSFormat.py ../input.check.postfit.BDTfit.yaml
-BDTfit5_modifyfakeintegrtionfromfit:
+
+OUT_FITINFO_BDT_BASHVAR := datafit_fitinfo_BDT_bashvar.sh
+BDTfit5_profiledLL:
 	$(call check_dir_existed,$(oDIR))
-	cd $(oDIR) && source ./$(OUT_FITINFO_BASH_BDT) && \
-		for datacardROOT in *_datacard_*.root; do tmpfile=_$$datacardROOT; mv $$datacardROOT $$tmpfile; python3 ../modify_fake_integration.py $$tmpfile $$datacardROOT $$numFAKE; done
+	cd $(oDIR) && python3 ../convert_yamlvar_to_bashval.py $(OUT_FITINFO_BDT) $(OUT_FITINFO_BDT_BASHVAR)
+	cd $(oDIR) && source ./$(OUT_FITINFO_BDT_BASHVAR) && \
+		 combine -M MultiDimFit $(_TMP_HIGGSCOMBINETEST_BDT) --robustFit 1 --algo grid --points 1000 --setParameterRanges numSIGN=$${numSIGN_rangeL},$${numSIGN_rangeR} -P numSIGN -n _scan_numSIGN && \
+		 combine -M MultiDimFit $(_TMP_HIGGSCOMBINETEST_BDT) --robustFit 1 --algo grid --points 1000 --setParameterRanges numFAKE=$${numFAKE_rangeL},$${numFAKE_rangeR} -P numFAKE -n _scan_numFAKE && \
+		 ../plot1DScan.py --POI numSIGN higgsCombine_scan_numSIGN.MultiDimFit.mH120.root -o scan.numSIGN && \
+		 ../plot1DScan.py --POI numFAKE higgsCombine_scan_numFAKE.MultiDimFit.mH120.root -o scan.numFAKE
 
+_TMP_MULTIDIMFITTEST_BDT_2nd  := multidimfit2ndBDTFit.root
+_TMP_HIGGSCOMBINETEST_BDT_2nd := higgsCombine2ndBDTFit.MultiDimFit.mH120.root
+BDTfit6_combinetwice: ## use previous combine result as initial value to fit again
+	$(call check_dir_existed,$(oDIR))
+	cd $(oDIR) && python3 ../convert_yamlvar_to_bashval.py scan.numSIGN.yaml scan.numSIGN.fitval.sh
+	cd $(oDIR) && python3 ../convert_yamlvar_to_bashval.py scan.numFAKE.yaml scan.numFAKE.fitval.sh
+	cd $(oDIR) && source ./scan.numSIGN.fitval.sh && source ./scan.numFAKE.fitval.sh && \
+		text2workspace.py $(_TMP_DATACARD_BDT) -o $(_TMP_INPUT_WORKSPACE_BDT) \
+    	-P HiggsAnalysis.CombinedLimit.PhysicsModel:multiSignalModel \
+    	--PO "map=.*/gjet:numSIGN[$${numSIGN_central},$${numSIGN_rangeL},$${numSIGN_rangeR}]" \
+    	--PO "map=.*/fake:numFAKE[$${numFAKE_central},$${numFAKE_rangeL},$${numFAKE_rangeR}]" \
+    	--PO verbose || (echo "failed to create workspace from datacard"; exit 1)
+	cd $(oDIR) && combine --saveWorkspace -M MultiDimFit -d $(_TMP_INPUT_WORKSPACE_BDT) --saveFitResult --saveNLL --robustFit on -n 2ndBDTFit || the_exit "failed to run combine @ data sideband"
+	cd $(oDIR) && source ./scan.numSIGN.fitval.sh && \
+		 combine -M MultiDimFit $(_TMP_HIGGSCOMBINETEST_BDT_2nd) --robustFit 1 --algo grid --points 1000 --setParameterRanges numSIGN=$${numSIGN_rangeL},$${numSIGN_rangeR} -P numSIGN -n _scan_numSIGN && \
+		 ../plot1DScan.py --POI numSIGN higgsCombine_scan_numSIGN.MultiDimFit.mH120.root -o scan.numSIGN2nd
+	cd $(oDIR) && source ./scan.numFAKE.fitval.sh && \
+		 combine -M MultiDimFit $(_TMP_HIGGSCOMBINETEST_BDT_2nd) --robustFit 1 --algo grid --points 1000 --setParameterRanges numFAKE=$${numFAKE_rangeL},$${numFAKE_rangeR} -P numFAKE -n _scan_numFAKE && \
+		 ../plot1DScan.py --POI numFAKE higgsCombine_scan_numFAKE.MultiDimFit.mH120.root -o scan.numFAKE2nd
 
-
+BDTfit9_modifyfakeintegrtionfromfit:
+	$(call check_dir_existed,$(oDIR))
+	cd $(oDIR) && python3 ../convert_yamlvar_to_bashval.py scan.numSIGN2nd.yaml scan.numSIGN2nd.fitval.sh
+	cd $(oDIR) && python3 ../convert_yamlvar_to_bashval.py scan.numFAKE2nd.yaml scan.numFAKE2nd.fitval.sh
+	cd $(oDIR) && source ./scan.numFAKE2nd.fitval.sh && \
+		for datacardROOT in *_datacard_*.root; do tmpfile=_$$datacardROOT; mv $$datacardROOT $$tmpfile; python3 ../modify_fake_integration.py $$tmpfile $$datacardROOT $${numFAKE_central}; done
 
 
 
@@ -129,15 +155,15 @@ step2_text2workspace: ## create workspace for combine
     	--PO "map=.*/Bjet:numB[$${nB},0.,$${nDATA}]" \
     	--PO verbose || (echo "failed to create workspace from datacard"; exit 1)
 
+
     	#--PO "map=.*/fake:numFAKE[$${nFAKE},0.,$${nDATA}]" \
 
 step3_combine: ## combine fitting result
 	$(call check_dir_existed,$(oDIR))
-	cd $(oDIR) && combine --saveWorkspace -M MultiDimFit -d $(_TMP_INPUT_WORKSPACE) --saveFitResult --saveNLL --robustFit on || the_exit "failed to run combine @ data sideband"
-	cd $(oDIR) && mv multidimfitTest.root $(_TMP_MULTIDIMFITTEST) ; mv higgsCombineTest.MultiDimFit.mH120.root $(_TMP_HIGGSCOMBINETEST)
+	cd $(oDIR) && combine --saveWorkspace -M MultiDimFit -d $(_TMP_INPUT_WORKSPACE) --saveFitResult --saveNLL --robustFit on -n SimulFit || the_exit "failed to run combine @ data sideband"
 
-_TMP_MULTIDIMFITTEST  := datafit_multidimfitTest.root
-_TMP_HIGGSCOMBINETEST := datafit_higgsCombineTest.MultiDimFit.mH120.root
+_TMP_MULTIDIMFITTEST  := multidimfitSimulFit.root
+_TMP_HIGGSCOMBINETEST := higgsCombineSimulFit.MultiDimFit.mH120.root
 OUT_FITINFO           := datafit_fitinfo.yaml
 POSTFIT_ROOT          := datafit_postfit.root
 step4_postfit: ## postfit for visualization
@@ -154,6 +180,8 @@ step4_postfit: ## postfit for visualization
 		-m 120 -f $(_TMP_MULTIDIMFITTEST):fit_mdf \
 		--postfit --print --output $(POSTFIT_ROOT)
 
+
+
 check4_postfit: ## check plot on postfit
 	$(call check_dir_existed,$(oDIR))
 	cd $(oDIR) && python3 ../secondary_plot_creation_postfit.py  $(POSTFIT_ROOT)
@@ -164,7 +192,42 @@ check4_postfit: ## check plot on postfit
 	#cd $(oDIR) && DrawRatioPlotablesWithCMSFormat.py ../input.check.postfit.psuedodata.btag.yaml && \
 	
 
+OUT_FITINFO_BASHVAR := datafit_fitinfo_bashvar.sh
+step5_profiledLL:
+	$(call check_dir_existed,$(oDIR))
+	cd $(oDIR) && python3 ../convert_yamlvar_to_bashval.py $(OUT_FITINFO) $(OUT_FITINFO_BASHVAR)
+	cd $(oDIR) && source ./$(OUT_FITINFO_BASHVAR) && \
+		 combine -M MultiDimFit $(_TMP_HIGGSCOMBINETEST) --robustFit 1 --algo grid --points 1000 --setParameterRanges numC=$${numC_rangeL},$${numC_rangeR} -P numC -n _scan_numC && \
+		 ../plot1DScan.py --POI numC higgsCombine_scan_numC.MultiDimFit.mH120.root -o scan.numC
+	cd $(oDIR) && source ./$(OUT_FITINFO_BASHVAR) && \
+		 combine -M MultiDimFit $(_TMP_HIGGSCOMBINETEST) --robustFit 1 --algo grid --points 1000 --setParameterRanges numB=$${numB_rangeL},$${numB_rangeR} -P numB -n _scan_numB && \
+		 ../plot1DScan.py --POI numB higgsCombine_scan_numB.MultiDimFit.mH120.root -o scan.numB
 
+OUT_FITINFO_BASHVAR_2nd := datafit_fitinfo_2ndSimulFit_bashvar.sh
+_TMP_INPUT_WORKSPACE_2nd := datafit_ws_2ndSimulFit.root
+_TMP_MULTIDIMFITTEST_2nd  := multidimfit2ndSimulFit.root
+_TMP_HIGGSCOMBINETEST_2nd := higgsCombine2ndSimulFit.MultiDimFit.mH120.root
+step6_combinetwice:
+	cd $(oDIR) && python3 ../convert_yamlvar_to_bashval.py scan.numC.yaml scan.numC.fitval.sh
+	cd $(oDIR) && python3 ../convert_yamlvar_to_bashval.py scan.numB.yaml scan.numB.fitval.sh
+	cd $(oDIR) && source ./$(OUT_FITINFO_BASHVAR) && \
+	    source ./scan.numC.fitval.sh && source ./scan.numB.fitval.sh && \
+		text2workspace.py $(_TMP_DATACARD) -o $(_TMP_INPUT_WORKSPACE_2nd) \
+    	-P HiggsAnalysis.CombinedLimit.PhysicsModel:multiSignalModel \
+    	--PO "map=.*/Ljet:numL[$${numL_central},$${numL_rangeL},$${numL_rangeR}]" \
+    	--PO "map=.*/Cjet:numC[$${numC_central},$${numC_rangeL},$${numC_rangeR}]" \
+    	--PO "map=.*/Bjet:numB[$${numB_central},$${numB_rangeL},$${numB_rangeR}]" \
+    	--PO verbose || (echo "failed to create workspace from datacard"; exit 1)
+	cd $(oDIR) && combine --saveWorkspace -M MultiDimFit -d $(_TMP_INPUT_WORKSPACE_2nd) --saveFitResult --saveNLL --robustFit on -n 2ndSimulFit || the_exit "failed to run combine @ data sideband"
+	cd $(oDIR) && source ./scan.numC.fitval.sh && \
+		 combine -M MultiDimFit $(_TMP_HIGGSCOMBINETEST_2nd) --robustFit 1 --algo grid --points 1000 --setParameterRanges numC=$${numC_rangeL},$${numC_rangeR} -P numC -n _scan_numC && \
+		 ../plot1DScan.py --POI numC higgsCombine_scan_numC.MultiDimFit.mH120.root -o scan.numC2nd
+	cd $(oDIR) && source ./scan.numB.fitval.sh && \
+		 combine -M MultiDimFit $(_TMP_HIGGSCOMBINETEST_2nd) --robustFit 1 --algo grid --points 1000 --setParameterRanges numB=$${numB_rangeL},$${numB_rangeR} -P numB -n _scan_numB && \
+		 ../plot1DScan.py --POI numB higgsCombine_scan_numB.MultiDimFit.mH120.root -o scan.numB2nd
+	cd $(oDIR) && source ./$(OUT_FITINFO_BASHVAR) && \
+		 combine -M MultiDimFit $(_TMP_HIGGSCOMBINETEST_2nd) --robustFit 1 --algo grid --points 1000 --setParameterRanges numL=$${numL_rangeL},$${numL_rangeR} -P numL -n _scan_numL && \
+		 ../plot1DScan.py --POI numL higgsCombine_scan_numL.MultiDimFit.mH120.root -o scan.numL2nd
 
 collect_datafit_result: ## collect all datafit result. Please put illustrations into note.md [outputFOLDER=output_hiii]
 	$(call check_defined,outputFOLDER)
@@ -195,24 +258,38 @@ clean:
 	@echo "[INFO] Removing directory: $(oDIR)"
 	@rm -rf "$(oDIR)"
 
-test: step10_prepare_histograms BDTfit1_text2workspace_BDT BDTfit2_combine BDTfit3_postfit BDTfit4_checkpostfit BDTfit5_modifyfakeintegrtionfromfit
-	echo ended test
+_test_: \
+	step10_prepare_histograms \
+	step2_text2workspace \
+	step3_combine \
+	step4_postfit \
+	check4_postfit \
+	step5_profiledLL \
+	step6_combinetwice
+#test:
+#	make -f $(self) _test_ rootMAKEHISTO=/afs/cern.ch/work/l/ltsai/Work/CMSSW/CMSSW_13_0_21/src/macros/step2bak.makehisto/makehisto_allgjets_binned_ctagfit/makehisto_binned_ctagfit_psuedodata__1_0_250_300.root iYAMLbtag=test.btag_psuedofit_btag.yaml iYAMLcvsb=test.btag_psuedofit_cvsb.yaml iYAMLcvsl=test.btag_psuedofit_cvsl.yaml
+
+test: \
+	step6_combinetwice
 
 
 all: \
 	step10_prepare_histograms \
-  BDTfit1_text2workspace_BDT \
+	BDTfit1_text2workspace_BDT \
 	BDTfit2_combine \
 	BDTfit3_postfit \
 	BDTfit4_checkpostfit \
-	BDTfit5_modifyfakeintegrtionfromfit \
+	BDTfit5_profiledLL \
+	BDTfit6_combinetwice \
+	BDTfit9_modifyfakeintegrtionfromfit \
 	step2_text2workspace \
 	step3_combine \
 	step4_postfit \
-	check4_postfit
+	check4_postfit \
+	step5_profiledLL \
+	step6_combinetwice
 
 
-	#check1_makehisto_content \
 
 IN_ARGS = [opts]
 

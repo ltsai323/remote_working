@@ -154,11 +154,12 @@ def export_composition_inclusive_photon(oYAMLfile:str, oBASHfile:str):
             'emptyFAKE': empty_fake,
             #'nFAKE': { 'composition': composition_sign, 'value': nsign },
             'nDATA': { 'value': ndata },
+            'nSIGN': { 'value': nsign },
     }
     with open(oYAMLfile, "w") as f_out:
         yaml.dump(v, f_out, default_flow_style=False)
     with open(oBASHfile, 'w') as f_out:
-        f_out.write(f'#!/usr/bin/env sh\nnL={nl:.2f}\nnC={nc:.2f}\nnB={nb:.2f}\nnDATA={ndata:.2f}\nnFAKE={nfake:.2f}\nemptyFAKE={empty_fake}')
+        f_out.write(f'#!/usr/bin/env sh\nnL={nl:.2f}\nnC={nc:.2f}\nnB={nb:.2f}\nnDATA={ndata:.2f}\nnSIGN={nsign:.2f}\nnFAKE={nfake:.2f}\nemptyFAKE={empty_fake}')
     info(f'[Output Files] yaml file "{ oYAMLfile }" and "{ oBASHfile }" generated for inclusive photon')
 
 def export_composition_LCBjets(oYAMLfile:str, oBASHfile:str):
@@ -189,13 +190,13 @@ def export_composition_LCBjets(oYAMLfile:str, oBASHfile:str):
             'nC': { 'composition': composition_c, 'value': nc },
             'nB': { 'composition': composition_b, 'value': nb },
             'nFAKE': { 'composition': composition_fake, 'value': nfake },
-            #'nSIGN': { 'composition': composition_sign, 'value': nsign },
+            'nSIGN': { 'composition': composition_sign, 'value': nsign },
             'nDATA': { 'value': ndata },
     }
     with open(oYAMLfile, "w") as f_out:
         yaml.dump(v, f_out, default_flow_style=False)
     with open(oBASHfile, 'w') as f_out:
-        f_out.write(f'#!/usr/bin/env sh\nnL={nl:.2f}\nnC={nc:.2f}\nnB={nb:.2f}\nnDATA={ndata:.2f}\nnFAKE={nfake:.2f}')
+        f_out.write(f'#!/usr/bin/env sh\nnL={nl:.2f}\nnC={nc:.2f}\nnB={nb:.2f}\nnDATA={ndata:.2f}\nnSIGN={nsign:.2f}\nnFAKE={nfake:.2f}')
     info(f'[Output Files] yaml file "{ oYAMLfile }" and "{ oBASHfile }" generated for LCB jets')
 
 def convert_input_dict(config:dict):

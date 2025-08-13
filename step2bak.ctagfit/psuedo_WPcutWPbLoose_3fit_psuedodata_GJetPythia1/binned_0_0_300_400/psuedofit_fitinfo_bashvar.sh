@@ -1,0 +1,9 @@
+numB_rangeL=932.0
+numB_rangeR=3728
+numB_central=1864
+numC_rangeL=2191.0
+numC_rangeR=8764
+numC_central=4382
+numL_rangeL=2031.5
+numL_rangeR=8126
+numL_central=4063

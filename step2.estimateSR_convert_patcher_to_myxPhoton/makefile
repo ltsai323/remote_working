@@ -15,7 +15,7 @@ SOURCE_Orig = origEstimateSR.C
 # Build and run targets
 .PHONY: all run clean
 
-all: $(TARGET_New) $(TARGET_Orig)
+all: $(TARGET_New)
 
 $(TARGET_New): $(SOURCE_New)
 	@echo "[Compiling] $(SOURCE_New)"
@@ -46,6 +46,7 @@ runDataFSB: $(TARGET_New)
 	./$(TARGET_New) DataFsideband    > log_DataFsideband 2>&1
 runDataGSB: $(TARGET_New) 
 	./$(TARGET_New) DataGsideband    > log_DataGsideband 2>&1
+
 
 
 runGJets: runGJets40 runGJets70 runGJets100 runGJets200 runGJets400 runGJets600 ## 6 channel
@@ -89,12 +90,15 @@ runQCD2000: $(TARGET_New)
 	./$(TARGET_New) QCD2000  > log_QCD2000 2>&1
 	
 test: $(TARGET_New)
-	#@echo "[QCD test sample]"
-	./$(TARGET_New) test1
-	#@echo "[sig test sample]"
-	./$(TARGET_New) test2
-	#@echo "[data test sample]"
-	./$(TARGET_New) test3
+	./$(TARGET_New) test1; echo gjet mdagraph tested
+	./$(TARGET_New) test2; echo QCD madgraph tested
+	#./$(TARGET_New) test3
+	##@echo "[QCD test sample]"
+	#./$(TARGET_New) test1
+	##@echo "[sig test sample]"
+	#./$(TARGET_New) test2
+	##@echo "[data test sample]"
+	#./$(TARGET_New) test3
 run: $(TARGET_New)
 	@echo "[DirectRun]"
 	time ./$(TARGET_New) $(runtype) | tee log_$(runtype)

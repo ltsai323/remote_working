@@ -135,7 +135,7 @@ $(oDIR):
 endif
 allbinning: $(oDIR) $(addprefix makebin_,$(BINNING_FILELIST)) ## run "make -f singleMAKEFILE all" for all histograms for psuedo data
 	make -f $(self) merge_binning_estimation binningDIR=./
-	make -f $(self) merge_binning binningDIR=./
+	make -f $(self) merge_binning_comparetruth_LCB binningDIR=./
 	mv merging_binning_result.* $(oDIR)/
 	mv binned_* $(oDIR)/
 allbinning_data: $(oDIR) $(addprefix makebin_,$(BINNING_FILELIST_DATA)) ## run "make -f singleMAKEFILE all" for all histograms for data
@@ -144,23 +144,38 @@ allbinning_data: $(oDIR) $(addprefix makebin_,$(BINNING_FILELIST_DATA)) ## run "
 	mv binned_* $(oDIR)/
 
 print-bins:
-	@echo "Loaded BINNING_LIST: $(BINNING_FILELIST)"
+	@echo "Loaded BINNING_LIST: "; for a in $(BINNING_FILELIST); do echo "  >> $$a"; done
 
 test: ## 
-	$(MAKE) -f $(self) merge_binning binningDIR=./
+	$(MAKE) -f $(self) merge_binning_datafit_LCB binningDIR=./
 	
-	#python3 merging_binning_result.py $(BINNING_FILELIST)
+	#python3 merging_binning.py $(BINNING_FILELIST)
 merge_binning: ## run commands after parallelly binning finished (psuedodata only) [binningDIR=./]
 	$(call check_defined,binningDIR)
 	work_dir=$$PWD ; cd $(binningDIR) && \
-		python3 $${work_dir}/merging_binning_result.py $(BINNING_FILELIST) && \
+		python3 $${work_dir}/merging_binning.py datafit_LCB $(BINNING_FILELIST) && \
 		DrawPlotablesWithCMSFormat.py $${work_dir}/input.check.mergebin.stack_ratio.yaml && \
 		DrawPlotablesWithCMSFormat.py $${work_dir}/input.check.mergebin.fit_significance.yaml
 
 merge_binning_estimation: ## run commands for merging estimation for all binning in pt spectrum  [binningDIR=./]
 	$(call check_defined,binningDIR)
 	work_dir=$$PWD ; cd $(binningDIR) && \
-					 echo hiiiii
+		python3 $${work_dir}/merging_binning.py datafit_LCB $(BINNING_FILELIST_DATA)
+merge_binning_datafit_LCB: ## run commands for merging estimation for all binning in pt spectrum  [binningDIR=./]
+	$(call check_defined,binningDIR)
+	work_dir=$$PWD ; cd $(binningDIR) && \
+		python3 $${work_dir}/merging_binning.py datafit_LCB $(BINNING_FILELIST_DATA) &&\
+		DrawPlotablesWithCMSFormat.py $${work_dir}/input.check.mergebin.fit00_composition.yaml &&\
+		DrawPlotablesWithCMSFormat.py $${work_dir}/input.check.mergebin.fit01_composition.yaml &&\
+		DrawPlotablesWithCMSFormat.py $${work_dir}/input.check.mergebin.fit10_composition.yaml &&\
+		DrawPlotablesWithCMSFormat.py $${work_dir}/input.check.mergebin.fit11_composition.yaml
+merge_binning_comparetruth_LCB: ## run commands for merging estimation for all binning in pt spectrum  [binningDIR=./]
+	$(call check_defined,binningDIR)
+	work_dir=$$PWD ; cd $(binningDIR) && \
+		python3 $${work_dir}/merging_binning.py comparetruth_LCB $(BINNING_FILELIST_DATA) && \
+		DrawPlotablesWithCMSFormat.py $${work_dir}/input.check.mergebin.stack_ratio.yaml && \
+		DrawPlotablesWithCMSFormat.py $${work_dir}/input.check.mergebin.stack_ratio_showunc.yaml && \
+		DrawPlotablesWithCMSFormat.py $${work_dir}/input.check.mergebin.fit_significance.yaml
 
 IN_ARGS = \n    [singleMAKEFILE=makefile_3fits_btagcut_psuedodata] \n    [binningFOLDER=/afs/cern.ch/work/l/ltsai/Work/CMSSW/CMSSW_13_0_21/src/macros/step2bak.makehisto/makehisto_allgjets_binned_ctagfit] \n    [oDIR=result_test] \n    [iYAMLcvsb=source.btag_psuedofit_cvsb.yaml] \n    [iYAMLcvsl=source.btag_psuedofit_cvsl.yaml] \n    [iYAMLbtag=source.btag_psuedofit_btag.yaml]\n    [forcerun=1]
 

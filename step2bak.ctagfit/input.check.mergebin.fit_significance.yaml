@@ -10,21 +10,15 @@ yRANGE:
 ySCALE: linear
 plotables:
   - type: TH1F
-    objname: fitsigLall
-    file: merging_binning_result.root
-    label: l-jet
-    plotstyle: hist1
-    legorder:  0
-  - type: TH1F
-    objname: fitsigCall
-    file: merging_binning_result.root
-    label: c-jet
+    objname: significanceC
+    file: merging_binning_result.comparetruth_LCB.root
+    label: '$\gamma$+c'
     plotstyle: hist2
     legorder:  1
   - type: TH1F
-    objname: fitsigBall
-    file: merging_binning_result.root
-    label: b-jet
+    objname: significanceB
+    file: merging_binning_result.comparetruth_LCB.root
+    label: '$\gamma$+b'
     plotstyle: hist3
     legorder:  2
   # the foramt is controlled in each DrawObj.py

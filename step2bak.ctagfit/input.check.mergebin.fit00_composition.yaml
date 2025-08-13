@@ -1,0 +1,25 @@
+figNAME: 'merging_binning_result.fit00_compositions.pdf'
+
+legNcolumn: 1
+legFONTsize: 'xx-small'
+legTITLE: '|$\eta^{\gamma}$|<1.4442  |$\eta^{jet}$|<1.5'
+xLABEL: '$p^{\gamma}_{T}$ (GeV)'
+yLABEL: 'HF jet fraction'
+yRANGE:
+  - 0.15
+  - 0.60
+ySCALE: linear
+plotables:
+  - type: TH1F
+    objname: bin00_compositionB
+    file: merging_binning_result.datafit_LCB.root
+    label: '$\gamma$+b'
+    plotstyle: square2
+    legorder:  0
+  - type: TH1F
+    objname: bin00_compositionC
+    file: merging_binning_result.datafit_LCB.root
+    label: '$\gamma$+c'
+    plotstyle: diamond3
+    legorder:  1
+  # the foramt is controlled in each DrawObj.py

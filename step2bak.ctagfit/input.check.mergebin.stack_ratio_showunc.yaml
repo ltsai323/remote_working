@@ -1,0 +1,24 @@
+figNAME: 'merging_binning_result.stack_ratio_showunc.pdf'
+
+legNcolumn: 1
+legFONTsize: 'xx-small'
+xLABEL: 'fit / truth'
+yLABEL: 'fitted result'
+yRANGE:
+  - 0.05
+  - 25.0
+ySCALE: linear
+plotables:
+  - type: TH1F
+    objname: stackratioC
+    file: merging_binning_result.comparetruth_LCB.root
+    label: '$\gamma$+c'
+    plotstyle: hist2
+    legorder:  1
+  - type: TH1F
+    objname: stackratioB
+    file: merging_binning_result.comparetruth_LCB.root
+    label: '$\gamma$+b'
+    plotstyle: hist3
+    legorder:  2
+  # the foramt is controlled in each DrawObj.py

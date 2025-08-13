@@ -24,7 +24,13 @@ define check_dir_existed
 	fi
 endef
 
+binned_hastruth_psuedodata: ## separate jet pt / jet eta binning [oNAME=hiiii.root]
+	$(call check_defined,oNAME)
+	python3 makehisto_GJetPythiaFlatPsuedodata_content_estimateSR.py $(oNAME)
 
+hastruth_psuedodata: ## separate jet pt / jet eta binning [oNAME=hiiii.root]
+	$(call check_defined,oNAME)
+	python3 makehisto_GJetPythiaFlatPsuedodata_content_estimateSR.py $(oNAME)
 
 psuedodata: ## make_histo for psuedo data from GJetPythiaFlat [oNAME=hiii.root]
 	$(call check_defined,oNAME)

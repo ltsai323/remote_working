@@ -42,7 +42,7 @@
 using correction::CorrectionSet;
 using namespace std;
 const bool SSCORR_ONLY_SIEIE = true; // because I found error from SS correction. So only use sieie correction
-//
+
 
 void BUG(const char* m) { printf("[DEBUG] %s\n", m); }
 double TotalGenWeight(const char* inFILE)
@@ -73,6 +73,131 @@ auto cset_smearing = cset_photon_scale_smearing_file->at("Prompt2022FG_SmearingJ
 const char* photon_smear_and_scale_file = "data/Photon_scale_smearing.json";
 Photon_EnergySmear* phoSmearMgr = new Photon_EnergySmear(photon_smear_and_scale_file, "Prompt2022FG_SmearingJSON"); // for MC
 Photon_EnergyScale* phoScaleMgr = new Photon_EnergyScale(photon_smear_and_scale_file, "Prompt2022FG_ScaleJSON"); // for data
+                                                                                                                 //
+// Apply b-tagging WP SF.
+auto cset_btag_wp_sf_file = CorrectionSet::from_file("/cvmfs/cms.cern.ch/rsync/cms-nanoAOD/jsonpog-integration/POG/BTV/2022_Summer22EE/btagging.json.gz");
+auto cset_WPbL_lightQ = cset_btag_wp_sf_file->at("robustParticleTransformer_light");
+//      For the working point correction multiple different uncertainty schemes are provided. If only
+//      one year is analyzed, the 'up' and 'down' systematics can be used. If multiple data taking eras
+//      are analyzed, 'up/down_correlated' and 'up/down_uncorrelated' systematics are provided to be
+//      used instead of the 'up/down' ones, which are supposed to be correlated/decorrelated between the
+//      different data years.
+//      Node counts: Category: 43, Binning: 70, Formula: 35
+//      ╭────────────────────────────────────────── ▶ input ───────────────────────────────────────────╮
+//      │ systematic (string)                                                                          │
+//      │ No description                                                                               │
+//      │ Values: central, down, down_correlated, down_uncorrelated, up, up_correlated,                │
+//      │ up_uncorrelated                                                                              │
+//      ╰──────────────────────────────────────────────────────────────────────────────────────────────╯
+//      ╭────────────────────────────────────────── ▶ input ───────────────────────────────────────────╮
+//      │ working_point (string)                                                                       │
+//      │ L/M/T/XT/XXT                                                                                 │
+//      │ Values: L, M, T, XT, XXT                                                                     │
+//      ╰──────────────────────────────────────────────────────────────────────────────────────────────╯
+//      ╭────────────────────────────────────────── ▶ input ───────────────────────────────────────────╮
+//      │ flavor (int)                                                                                 │
+//      │ hadron flavor definition: 5=b, 4=c, 0=udsg                                                   │
+//      │ Values: 0                                                                                    │
+//      ╰──────────────────────────────────────────────────────────────────────────────────────────────╯
+//      ╭────────────────────────────────────────── ▶ input ───────────────────────────────────────────╮
+//      │ abseta (real)                                                                                │
+//      │ No description                                                                               │
+//      │ Range: [0.0, 2.5)                                                                            │
+//      ╰──────────────────────────────────────────────────────────────────────────────────────────────╯
+//      ╭────────────────────────────────────────── ▶ input ───────────────────────────────────────────╮
+//      │ pt (real)                                                                                    │
+//      │ No description                                                                               │
+//      │ Range: [-inf, inf), overflow ok                                                              │
+//      ╰──────────────────────────────────────────────────────────────────────────────────────────────╯
+//      ╭─── ◀ output ───╮
+//      │ weight (real)  │
+//      │ No description │
+//      ╰────────────────╯
+auto cset_WPbL_heavyQ = cset_btag_wp_sf_file->at("robustParticleTransformer_mujets");
+//  │   For the working point correction multiple different uncertainty schemes are provided. If only
+//  │   one year is analyzed, the 'up' and 'down' systematics can be used. If multiple data taking eras
+//  │   are analyzed, 'up/down_correlated' and 'up/down_uncorrelated' systematics are provided to be
+//  │   used instead of the 'up/down' ones, which are supposed to be correlated/decorrelated between the
+//  │   different data years. If the impact of b-tagging in the analysis is dominant a further breakdown
+//  │   of uncertainties is provided. These broken-down sources consist of
+//  │   'up/down_bfragmentation/jes/pileup/type3/statistic'. All of the sources can be correlated
+//  │   between the years, except the 'statistic' source which is to be decorrelated between the years.
+//  │   Node counts: Category: 103, Binning: 340, FormulaRef: 1450, Formula: 4
+//  │   ╭────────────────────────────────────────── ▶ input ───────────────────────────────────────────╮
+//  │   │ systematic (string)                                                                          │
+//  │   │ No description                                                                               │
+//  │   │ Values: central, down, down_bfragmentation, down_correlated, down_jes, down_pileup,          │
+//  │   │ down_statistic, down_type3, down_uncorrelated, up, up_bfragmentation, up_correlated, up_jes, │
+//  │   │ up_pileup, up_statistic, up_type3, up_uncorrelated                                           │
+//  │   ╰──────────────────────────────────────────────────────────────────────────────────────────────╯
+//  │   ╭────────────────────────────────────────── ▶ input ───────────────────────────────────────────╮
+//  │   │ working_point (string)                                                                       │
+//  │   │ L/M/T/XT/XXT                                                                                 │
+//  │   │ Values: L, M, T, XT, XXT                                                                     │
+//  │   ╰──────────────────────────────────────────────────────────────────────────────────────────────╯
+//  │   ╭────────────────────────────────────────── ▶ input ───────────────────────────────────────────╮
+//  │   │ flavor (int)                                                                                 │
+//  │   │ hadron flavor definition: 5=b, 4=c, 0=udsg                                                   │
+//  │   │ Values: 4, 5                                                                                 │
+//  │   ╰──────────────────────────────────────────────────────────────────────────────────────────────╯
+//  │   ╭────────────────────────────────────────── ▶ input ───────────────────────────────────────────╮
+//  │   │ abseta (real)                                                                                │
+//  │   │ No description                                                                               │
+//  │   │ Range: [0.0, 2.5)                                                                            │
+//  │   ╰──────────────────────────────────────────────────────────────────────────────────────────────╯
+//  │   ╭────────────────────────────────────────── ▶ input ───────────────────────────────────────────╮
+//  │   │ pt (real)                                                                                    │
+//  │   │ No description                                                                               │
+//  │   │ Range: [-inf, inf), overflow ok                                                              │
+//  │   ╰──────────────────────────────────────────────────────────────────────────────────────────────╯
+//  │   ╭─── ◀ output ───╮
+//  │   │ weight (real)  │
+//  │   │ No description │
+//  │   ╰────────────────╯
+
+auto cset_WPbValue = cset_btag_wp_sf_file->at("robustParticleTransformer_wp_values"); // defined WP value
+const double WPbLValue(cset_WPbValue->evaluate({"L"}));
+const double WPbMValue(cset_WPbValue->evaluate({"M"}));
+const double WPbTValue(cset_WPbValue->evaluate({"T"}));
+
+auto cset_ctag_reshape_file = CorrectionSet::from_file("/cvmfs/cms.cern.ch/rsync/cms-nanoAOD/jsonpog-integration/POG/BTV/2018_UL/ctagging.json.gz"); // fake
+auto cset_ctag_reshape = cset_ctag_reshape_file->at("deepJet_shape");
+//  deepJet reshaping scale factors for UL 2018. The scale factors have 13 default uncertainty
+//  sources (Extrap, Interp, LHEScaleWeight_muF, LHEScaleWeight_muR, PSWeightFSR, PSWeightISR,
+//  PUWeight, Stat, XSec_BRUnc_DYJets_b, XSec_BRUnc_DYJets_c, XSec_BRUnc_WJets_c, jer, jesTotal).
+//  All uncertainty sources are to be correlated across jet flavors. All, except the 'Stat'
+//  uncertainty are to be correlated between years.
+//
+//      ╭────────────────────────────────────────── ▶ input ───────────────────────────────────────────╮
+//      │ systematic (string)                                                                          │
+//      │ No description                                                                               │
+//      │ Values: central, down_Extrap, down_Interp, down_LHEScaleWeight_muF, down_LHEScaleWeight_muR, │
+//      │ down_PSWeightFSR, down_PSWeightISR, down_PUWeight, down_Stat, down_XSec_BRUnc_DYJets_b,      │
+//      │ down_XSec_BRUnc_DYJets_c, down_XSec_BRUnc_WJets_c, down_jer, down_jesTotal, up_Extrap,       │
+//      │ up_Interp, up_LHEScaleWeight_muF, up_LHEScaleWeight_muR, up_PSWeightFSR, up_PSWeightISR,     │
+//      │ up_PUWeight, up_Stat, up_XSec_BRUnc_DYJets_b, up_XSec_BRUnc_DYJets_c, up_XSec_BRUnc_WJets_c, │
+//      │ up_jer, up_jesTotal                                                                          │
+//      ╰──────────────────────────────────────────────────────────────────────────────────────────────╯
+//      ╭────────────────────────────────────────── ▶ input ───────────────────────────────────────────╮
+//      │ flavor (int)                                                                                 │
+//      │ hadron flavor definition: 5=b, 4=c, 0=udsg                                                   │
+//      │ Values: 0, 4, 5                                                                              │
+//      ╰──────────────────────────────────────────────────────────────────────────────────────────────╯
+//      ╭────────────────────────────────────────── ▶ input ───────────────────────────────────────────╮
+//      │ CvL (real)                                                                                   │
+//      │ deepCSV CvL value                                                                            │
+//      │ Range: [0.0, 1.0), overflow ok                                                               │
+//      ╰──────────────────────────────────────────────────────────────────────────────────────────────╯
+//      ╭────────────────────────────────────────── ▶ input ───────────────────────────────────────────╮
+//      │ CvB (real)                                                                                   │
+//      │ deepCSV CvB value                                                                            │
+//      │ Range: [0.0, 1.0), overflow ok                                                               │
+//      ╰──────────────────────────────────────────────────────────────────────────────────────────────╯
+//      ╭─── ◀ output ───╮
+//      │ weight (real)  │
+//      │ No description │
+//      ╰────────────────╯
+                                                                                                                                                     //
 
 //Jet JEC-JER files
 auto cset_jet_jerc_file = CorrectionSet::from_file("data/jet_jerc.json");
@@ -536,7 +661,7 @@ int main(int argc, char** argv){
         isSignal = true;
     }
     else if (fileName=="test1") {
-        tr->Add("/eos/home-l/ltsai/eos_storage/condor_storage/2022EEGJet_G4JetMadgraph400to600/outfile_2022EEGJet_G4JetMadgraph400to600_10343533.8.root"); // lxplus
+        tr->Add("/eos/home-l/ltsai/eos_storage/condor_summary/2022EE_GJet/2022EEGJet_G4JetMadgraph200to400/outfile_2022EEGJet_G4JetMadgraph200to400_10418933.48.root");
         //tr->Add("/data4/ltsai/ReceivedFile/2022EE_NanoAODv12/G4JetsMadgraph_200to400.root"); // chip
         //tr->Add("/data4/ltsai/ReceivedFile/2022EE_NanoAODv12/QCD4JetsMadgraph_100to200.root"); // chip
 
@@ -547,7 +672,7 @@ int main(int argc, char** argv){
 
     }
     else if (fileName=="test2") {
-        tr->Add("/afs/cern.ch/user/l/ltsai/eos_storage/condor_storage/QCD4JetsMadgraph_400to600/outFile_QCD4JetsMadgraph_400to600_0.root"); // lxplus
+        tr->Add("/eos/home-l/ltsai/eos_storage/condor_summary/2022EE_GJet/2022EEGJet_QCDMadgraph_800to1000/outfile_2022EEGJet_QCDMadgraph_800to1000_10418940.0.root");
         //tr->Add("/data4/ltsai/ReceivedFile/2022EE_NanoAODv12/GJetPythia_20_MGG40to80.root"); // chip
 
         fout = new TFile("mytesting_qcdmadgraph.root", "RECREATE");
@@ -1066,6 +1191,12 @@ int main(int argc, char** argv){
     TH1D* eorig_esEffSigmaRR    = new TH1D( "eorig_esEffSigmaRR","", 100, 0., 15.);
 
     double photonPt, photonEta, photonPhi, photonMVA, wgt;
+    double o_wgt_WPbL_central;
+    bool passWPbL;
+    bool passWPbM;
+    bool passWPbT;
+    double o_wgt_WPcShape_central;
+
     double jetPt, jetEta, jetPhi;
     int jet_nSV; int njet;
     double jet_SVmass;
@@ -1114,6 +1245,11 @@ int main(int argc, char** argv){
         tree->Branch("GenPhoton_eta",&genPhotonEta);
         tree->Branch("GenPhoton_phi",&genPhotonPhi);
         tree->Branch("wgt", &wgt);
+        tree->Branch("renormREQUIRED_wgt_WPbL_central", &o_wgt_WPbL_central);
+        tree->Branch("passWPbL", &passWPbL);
+        tree->Branch("passWPbM", &passWPbM);
+        tree->Branch("passWPbT", &passWPbT);
+        tree->Branch("renormREQUIRED_wgt_WPcShape_central", &o_wgt_WPcShape_central);
         if ( isSignal)
             tree->Branch("photon_mva_orig", &photonMVAorig);
 
@@ -1628,6 +1764,24 @@ int main(int argc, char** argv){
             double trigSF = GetTriggerSF(SelPhoton[0].Pt(), SelPhoton[0].Eta(), "nom");
             wgt = genWeight*normWgt*puWgt*phoSF*trigSF;
             wgt_gen = genWeight * normWgt;
+
+            int jet_flav = int(Jet_hadronFlavour[SelJetIdx[0]]);
+            auto cset_WPbL = jet_flav == 0 ? cset_WPbL_lightQ : cset_WPbL_heavyQ;
+            o_wgt_WPbL_central = cset_WPbL->evaluate( {"central","L", jet_flav, fabs(SelJet[0].Eta()), SelJet[0].Pt()} );
+            // central, down, down_bfragmentation, down_correlated, down_jes, down_pileup,
+            // down_statistic, down_type3, down_uncorrelated, up, up_bfragmentation, up_correlated, up_jes,
+            // up_pileup, up_statistic, up_type3, up_uncorrelated
+
+            o_wgt_WPcShape_central = cset_ctag_reshape->evaluate( {"central",jet_flav, 
+                                      Jet_btagRobustParTAK4CvL[ SelJetIdx[0] ],
+                                      Jet_btagRobustParTAK4CvB[ SelJetIdx[0] ]} );
+//      │ Values: central, down_Extrap, down_Interp, down_LHEScaleWeight_muF, down_LHEScaleWeight_muR, │
+//      │ down_PSWeightFSR, down_PSWeightISR, down_PUWeight, down_Stat, down_XSec_BRUnc_DYJets_b,      │
+//      │ down_XSec_BRUnc_DYJets_c, down_XSec_BRUnc_WJets_c, down_jer, down_jesTotal, up_Extrap,       │
+//      │ up_Interp, up_LHEScaleWeight_muF, up_LHEScaleWeight_muR, up_PSWeightFSR, up_PSWeightISR,     │
+//      │ up_PUWeight, up_Stat, up_XSec_BRUnc_DYJets_b, up_XSec_BRUnc_DYJets_c, up_XSec_BRUnc_WJets_c, │
+//      │ up_jer, up_jesTotal                                                                          │
+
         }
 
 
@@ -1691,9 +1845,12 @@ int main(int argc, char** argv){
             has_gen_get = Jet_genJetIdx[SelJetIdx[0]] >= 0 ? true : false; 
 
         selected_jet_idx = SelJetIdx[0];
-        isHadFlvr_C = has_gen_get ? int(GenJet_hadronFlavour[ Jet_genJetIdx[SelJetIdx[0]] ])==4 : false;
-        isHadFlvr_B = has_gen_get ? int(GenJet_hadronFlavour[ Jet_genJetIdx[SelJetIdx[0]] ])==5 : false;
-        isHadFlvr_L = has_gen_get ? int(GenJet_hadronFlavour[ Jet_genJetIdx[SelJetIdx[0]] ])==0 : false;
+        //isHadFlvr_C = has_gen_get ? int(GenJet_hadronFlavour[ Jet_genJetIdx[SelJetIdx[0]] ])==4 : false;
+        //isHadFlvr_B = has_gen_get ? int(GenJet_hadronFlavour[ Jet_genJetIdx[SelJetIdx[0]] ])==5 : false;
+        //isHadFlvr_L = has_gen_get ? int(GenJet_hadronFlavour[ Jet_genJetIdx[SelJetIdx[0]] ])==0 : false;
+        isHadFlvr_C = int(Jet_hadronFlavour[ SelJetIdx[0] ])==4;
+        isHadFlvr_B = int(Jet_hadronFlavour[ SelJetIdx[0] ])==5;
+        isHadFlvr_L = int(Jet_hadronFlavour[ SelJetIdx[0] ])==0;
         jetHadFlvr = isData ? -1 : int(Jet_hadronFlavour[SelJetIdx[0]]);
         jetPrtFlvr = isData ? -1 : int(Jet_partonFlavour[SelJetIdx[0]]);
         genjetHadFlvr = has_gen_get ? int(GenJet_hadronFlavour[ Jet_genJetIdx[SelJetIdx[0]] ]) : -1;
@@ -1711,6 +1868,10 @@ int main(int argc, char** argv){
         DeepFlavourCvsB     = Jet_btagDeepFlavCvB[ SelJetIdx[0] ];
         DeepFlavourCvsL     = Jet_btagDeepFlavCvL[ SelJetIdx[0] ];
         DeepFlavourQvsG     = Jet_btagDeepFlavQG[ SelJetIdx[0] ];
+
+        passWPbL = ParTB > WPbLValue;
+        passWPbM = ParTB > WPbMValue;
+        passWPbT = ParTB > WPbTValue;
 
         tree->Fill();
 
