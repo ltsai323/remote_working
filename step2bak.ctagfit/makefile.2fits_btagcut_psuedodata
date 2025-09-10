@@ -45,7 +45,6 @@ put_yamlfile: $(oDIR)
 
 step10_prepare_histograms:  clean-odir $(oDIR) ## Create histograms for [oDIR=output_dir_name][rootMAKEHISTO=makehisto_used_file.root][iYAML=test.btag_psuedofit.yaml]
 	$(call check_defined,rootMAKEHISTO)
-	#make put_yamlfile yaml=$(iYAMLbtag) oDIR=$(oDIR)
 	make -f $(self) put_yamlfile yaml=$(iYAMLcvsl) oDIR=$(oDIR)
 	make -f $(self) put_yamlfile yaml=$(iYAMLcvsb) oDIR=$(oDIR)
 	#make put_yamlfile yaml=$(iYAMLBDT)  oDIR=$(oDIR)
@@ -53,41 +52,31 @@ step10_prepare_histograms:  clean-odir $(oDIR) ## Create histograms for [oDIR=ou
 		python3 ../make_hist_source_and_datacard.py $(iYAMLcvsb) && \
 		python3 ../make_hist_source_and_datacard.py $(iYAMLcvsl) && \
 		combineCards.py  cvsl=psuedofit_datacard_cvsl.txt cvsb=psuedofit_datacard_cvsb.txt > $(_TMP_DATACARD)
-		#combineCards.py  btag=psuedofit_datacard_btag.txt cvsl=psuedofit_datacard_cvsl.txt cvsb=psuedofit_datacard_cvsb.txt > $(_TMP_DATACARD)
-		#python3 ../make_hist_source_and_datacard.py $(iYAMLbtag) && \
-		#python3 ../make_hist_source_and_datacard.py $(iYAMLBDT) && \
-		#combineCards.py btag=psuedofit_datacard_btag.txt cvsl=psuedofit_datacard_cvsl.txt cvsb=psuedofit_datacard_cvsb.txt BDTAll=psuedofit_datacard_BDTAll.txt> $(_TMP_DATACARD)
 
 
-check1_makehisto_content: ## Create secondary rootfile for checking makehisto.root is correct or not
-	$(call check_dir_existed,$(oDIR))
-	cd $(oDIR) && python3 ../secondary_plot_creation.py ../$(iYAML) ; echo ERROR!!!! iYAML is not a valid configuration in makefile
-	#cd $(oDIR) && DrawRatioPlotablesWithCMSFormat.py ../input.check.yaml
 
 
 _TMP_DATACARD        := psuedofit_datacard.txt
 _TMP_INPUT_WORKSPACE := psuedofit_ws.root
-_TMP_INIT_BASH			 := psuedofit_datacard.defaultValue.sh
+_TMP_INIT_BASH		 := psuedofit_datacard.defaultValue.sh
 
 step2_text2workspace: ## create workspace for combine
 	$(call check_dir_existed,$(oDIR))
 	cd $(oDIR) && source ./$(_TMP_INIT_BASH) && \
-		text2workspace.py $(_TMP_DATACARD) -o $(_TMP_INPUT_WORKSPACE) \
-    	-P HiggsAnalysis.CombinedLimit.PhysicsModel:multiSignalModel \
-    	--PO "map=.*/Ljet:numL[$${nL},0.,$${nDATA}]" \
-    	--PO "map=.*/Cjet:numC[$${nC},0.,$${nDATA}]" \
-    	--PO "map=.*/Bjet:numB[$${nB},0.,$${nDATA}]" \
-    	--PO verbose || (echo "failed to create workspace from datacard"; exit 1)
-
-    	#--PO "map=.*/fake:numFAKE[$${nFAKE},0.,$${nDATA}]" \
+		text2workspace.py $(_TMP_DATACARD) -o $(_TMP_INPUT_WORKSPACE)
 
 step3_combine: ## combine fitting result
 	$(call check_dir_existed,$(oDIR))
-	cd $(oDIR) && combine --saveWorkspace -M MultiDimFit -d $(_TMP_INPUT_WORKSPACE) --saveFitResult --saveNLL --robustFit on || the_exit "failed to run combine @ data sideband"
-	cd $(oDIR) && mv multidimfitTest.root $(_TMP_MULTIDIMFITTEST) ; mv higgsCombineTest.MultiDimFit.mH120.root $(_TMP_HIGGSCOMBINETEST)
+	cd $(oDIR) && combine --saveWorkspace -M MultiDimFit \
+		 -d $(_TMP_INPUT_WORKSPACE) --saveFitResult --saveNLL --robustFit on -n SimulFit  \
+		 --freezeParameters r,scaleF \
+		 --setParameters r=1,scaleF=1 \
+		 --redefineSignalPOIs numC,numB
 
-_TMP_MULTIDIMFITTEST  := psuedofit_multidimfitTest.root
-_TMP_HIGGSCOMBINETEST := psuedofit_higgsCombineTest.MultiDimFit.mH120.root
+_TMP_MULTIDIMFITTEST  := multidimfitSimulFit.root
+_TMP_HIGGSCOMBINETEST := higgsCombineSimulFit.MultiDimFit.mH120.root
+#_TMP_MULTIDIMFITTEST  := psuedofit_multidimfitTest.root
+#_TMP_HIGGSCOMBINETEST := psuedofit_higgsCombineTest.MultiDimFit.mH120.root
 OUT_FITINFO           := psuedofit_fitinfo.yaml
 POSTFIT_ROOT          := psuedofit_postfit.root
 step4_postfit: ## postfit for visualization
@@ -96,7 +85,7 @@ step4_postfit: ## postfit for visualization
 	cd $(oDIR) && python3 ../extract_fit_value.py \
 	   $(_TMP_HIGGSCOMBINETEST) \
 	   $(OUT_FITINFO) \
-	   numL numC numB  # variables from fit
+	   numC numB  # variables from fit
 	   #numL numC numB  numFAKE # variables from fit
 ### Use sideband fit to extract the initial value of the C/B/L fractions ended
 	cd $(oDIR) && PostFitShapesFromWorkspace -d $(_TMP_DATACARD) \
@@ -108,23 +97,138 @@ check4_postfit: ## check plot on postfit
 	$(call check_dir_existed,$(oDIR))
 	cd $(oDIR) && python3 ../secondary_plot_creation_postfit.py  $(POSTFIT_ROOT)
 	cd $(oDIR) && \
-		DrawRatioPlotablesWithCMSFormat.py ../input.check.postfit.psuedodata.cvsl.yaml && \
-		DrawRatioPlotablesWithCMSFormat.py ../input.check.postfit.psuedodata.cvsb.yaml
+		DrawRatioPlotablesWithCMSFormat.py ../input.check.postfit.psuedodata.cvsl.yaml ./psuedofit_postfit.cvsl_postfit.root && \
+		DrawRatioPlotablesWithCMSFormat.py ../input.check.postfit.psuedodata.cvsb.yaml ./psuedofit_postfit.cvsb_postfit.root && \
+		for plot in fitres.*.pdf; do mv $$plot SimulFit_$$plot;done
 	
-
-check5_checktruth: ## check truth value
+OUT_FITINFO_BASHVAR := psuedofit_fitinfo_bashvar.sh
+step5_profiledLL:
 	$(call check_dir_existed,$(oDIR))
-	cd $(oDIR) && python3 ../compare_truth_and_fit_value.py $(iYAMLcvsb) $(_TMP_HIGGSCOMBINETEST) numL numC numB # The result for iYAMLbtag / iYAMLcvsb / iYAMLcvsl are the same
-	cd $(oDIR) && DrawRatioPlotablesWithCMSFormat.py ../input.check.psuedofit_truth.yaml
+	cd $(oDIR) && python3 ../convert_yamlvar_to_bashval.py $(OUT_FITINFO) $(OUT_FITINFO_BASHVAR)
+	cd $(oDIR) && source ./$(OUT_FITINFO_BASHVAR) && \
+		combine -M MultiDimFit $(_TMP_HIGGSCOMBINETEST) --robustFit 1 --algo grid --points 300 --freezeParameters r,scaleF --setParameters r=1,scaleF=1 --floatOtherPOIs 1 --setParameterRanges numC=$${numC_rangeL},$${numC_rangeR} -P numC -n _scan_numC && \
+		 ../plot1DScan.py --POI numC higgsCombine_scan_numC.MultiDimFit.mH120.root -o scan.numC
+	cd $(oDIR) && source ./$(OUT_FITINFO_BASHVAR) && \
+		combine -M MultiDimFit $(_TMP_HIGGSCOMBINETEST) --robustFit 1 --algo grid --points 300 --freezeParameters r,scaleF --setParameters r=1,scaleF=1 --floatOtherPOIs 1 --setParameterRanges numB=$${numB_rangeL},$${numB_rangeR} -P numB -n _scan_numB && \
+		 ../plot1DScan.py --POI numB higgsCombine_scan_numB.MultiDimFit.mH120.root -o scan.numB
+
+OUT_FITINFO_BASHVAR_2nd := psuedofit_fitinfo_2ndSimulFit_bashvar.sh
+_TMP_INPUT_WORKSPACE_2nd := psuedofit_ws_2ndSimulFit.root
+_TMP_MULTIDIMFITTEST_2nd  := multidimfit2ndSimulFit.root
+_TMP_HIGGSCOMBINETEST_2nd := higgsCombine2ndSimulFit.MultiDimFit.mH120.root
+_TMP_INPUT_WORKSPACE_3rd := psuedofit_ws_3rdSimulFit.root
+_TMP_HIGGSCOMBINETEST_3rd := higgsCombine3rdSimulFit.MultiDimFit.mH120.root
+_TMP_INPUT_WORKSPACE_4th := psuedofit_ws_4thSimulFit.root
+_TMP_HIGGSCOMBINETEST_4th := higgsCombine4thSimulFit.MultiDimFit.mH120.root
 
 
-collect_psuedofit_result: ## collect all psuedofit result. Please put illustrations into note.md [outputFOLDER=output_hiii]
-	$(call check_defined,outputFOLDER)
-	$(call check_file_existed,note.md)
-	touch $(outputFOLDER); /bin/rm -rf $(outputFOLDER); mkdir $(outputFOLDER); mv psuedodata_* $(outputFOLDER); mv note.md $(outputFOLDER); mv log_* $(outputFOLDER)
-collect_psuedofit_result_nonote: ## collect all psuedofit result. Please put illustrations into note.md [outputFOLDER=output_hiii]
-	$(call check_defined,outputFOLDER)
-	touch $(outputFOLDER); /bin/rm -rf $(outputFOLDER); mkdir $(outputFOLDER); mv psuedodata_* $(outputFOLDER); mv log_* $(outputFOLDER)
+
+
+step6_combinetwice:
+	cd $(oDIR) && python3 ../convert_yamlvar_to_bashval.py scan.numC.yaml scan.numC.fitval.sh
+	cd $(oDIR) && python3 ../convert_yamlvar_to_bashval.py scan.numB.yaml scan.numB.fitval.sh
+	cd $(oDIR) && source ./scan.numC.fitval.sh && source ./scan.numB.fitval.sh && \
+		echo "numC: $${numC_central},$${numC_rangeL},$${numC_rangeR}" && \
+		echo "numB: $${numB_central},$${numB_rangeL},$${numB_rangeR}" && \
+		combine --saveWorkspace -M MultiDimFit \
+			-d $(_TMP_INPUT_WORKSPACE) --saveFitResult --saveNLL --robustFit on -n 2ndSimulFit  \
+			 --freezeParameters r,scaleF \
+			--redefineSignalPOIs numC,numB \
+			--setParameters numC=$${numC_central},numB=$${numB_central},r=1,scaleF=1 \
+			--setParameterRanges numC=$${numC_rangeL},$${numC_rangeR}:numB=$${numB_rangeL},$${numB_rangeR}
+	cd $(oDIR) && source ./scan.numC.fitval.sh && source ./scan.numB.fitval.sh && \
+		combine -M MultiDimFit higgsCombine2ndSimulFit.MultiDimFit.mH120.root --robustFit 1 --algo grid --points 1000 --freezeParameters r,scaleF --setParameters r=1,scaleF=1  --setParameterRanges numC=$${numC_rangeL},$${numC_rangeR}:numB=$${numB_rangeL},$${numB_rangeR}  -P numC -n _scan_numC_2nd  --floatOtherPOIs 1 > log_step6_scanC_2nd.txt && \
+		 ../plot1DScan.py --POI numC higgsCombine_scan_numC_2nd.MultiDimFit.mH120.root -o scan.numC2nd
+	cd $(oDIR) && source ./scan.numC.fitval.sh && source ./scan.numB.fitval.sh && \
+		combine -M MultiDimFit higgsCombine2ndSimulFit.MultiDimFit.mH120.root --robustFit 1 --algo grid --points 1000 --freezeParameters r,scaleF --setParameters r=1,scaleF=1  --setParameterRanges numC=$${numC_rangeL},$${numC_rangeR}:numB=$${numB_rangeL},$${numB_rangeR}  -P numB -n _scan_numB_2nd  --floatOtherPOIs 1 > log_step6_scanB_2nd.txt && \
+		 ../plot1DScan.py --POI numB higgsCombine_scan_numB_2nd.MultiDimFit.mH120.root -o scan.numB2nd
+	cd $(oDIR) && \
+		python3 ../get_valRange_from_ProfileNLL.py numC higgsCombine_scan_numC_2nd.MultiDimFit.mH120.root && \
+		python3 ../get_valRange_from_ProfileNLL.py numB higgsCombine_scan_numB_2nd.MultiDimFit.mH120.root
+	cd $(oDIR) && \
+    source ./valRange_numC.sh && source ./valRange_numB.sh && \
+		echo "numC: $${numC_central},$${numC_rangeL},$${numC_rangeR}" && \
+		echo "numB: $${numB_central},$${numB_rangeL},$${numB_rangeR}" && \
+		combine --saveWorkspace -M MultiDimFit \
+			-d $(_TMP_INPUT_WORKSPACE) --saveFitResult --saveNLL --robustFit on -n 3rdSimulFit  \
+			 --freezeParameters r,scaleF \
+			--redefineSignalPOIs numC,numB \
+			--setParameters numC=$${numC_central},numB=$${numB_central},r=1,scaleF=1 \
+			--setParameterRanges numC=$${numC_rangeL},$${numC_rangeR}:numB=$${numB_rangeL},$${numB_rangeR}
+	cd $(oDIR) && source ./valRange_numC.sh && source ./valRange_numB.sh && \
+		 echo numB_rangeL $${numB_rangeL} and numB_rangeR $${numB_rangeR} && cat ./valRange_numB.sh && \
+		 combine -M MultiDimFit $(_TMP_HIGGSCOMBINETEST_3rd) --robustFit 1 --algo grid --points 1000 --freezeParameters r,scaleF --setParameters r=1,scaleF=1  --setParameterRanges numC=$${numC_rangeL},$${numC_rangeR}:numB=$${numB_rangeL},$${numB_rangeR} -P numC -n _scan_numC_3rd   --floatOtherPOIs 1 > log_step6_scanC_3rd.txt && \
+		 ../plot1DScan.py --POI numC higgsCombine_scan_numC_3rd.MultiDimFit.mH120.root -o scan.numC3rd && \
+		 combine -M MultiDimFit $(_TMP_HIGGSCOMBINETEST_3rd) --robustFit 1 --algo grid --points 1000 --freezeParameters r,scaleF --setParameters r=1,scaleF=1  --setParameterRanges numC=$${numC_rangeL},$${numC_rangeR}:numB=$${numB_rangeL},$${numB_rangeR} -P numB -n _scan_numB_3rd   --floatOtherPOIs 1 > log_step6_scanB_3rd.txt && \
+		 ../plot1DScan.py --POI numB higgsCombine_scan_numB_3rd.MultiDimFit.mH120.root -o scan.numB3rd
+	cd $(oDIR) && \
+		python3 ../get_valRange_from_ProfileNLL.py numC higgsCombine_scan_numC_3rd.MultiDimFit.mH120.root 5 && \
+		python3 ../get_valRange_from_ProfileNLL.py numB higgsCombine_scan_numB_3rd.MultiDimFit.mH120.root 5
+
+step6a_simultaneousfit:
+	cd $(oDIR) && \
+	source ./valRange_numC.sh && source ./valRange_numB.sh && \
+	echo "numC_val=$${numC_central} rangeL=$${numC_rangeL} rangeR=$${numC_rangeR}"  && \
+	echo "numB_val=$${numB_central} rangeL=$${numB_rangeL} rangeR=$${numB_rangeR}"  && \
+	combine --saveWorkspace -M MultiDimFit \
+			-d $(_TMP_INPUT_WORKSPACE) --saveFitResult --saveNLL --robustFit on -n 4thSimulFit  \
+			--freezeParameters r,scaleF \
+			--redefineSignalPOIs numC,numB \
+			--setParameters numC=$${numC_central},numB=$${numB_central},r=1,scaleF=1 \
+			--setParameterRanges numC=$${numC_rangeL},$${numC_rangeR}:numB=$${numB_rangeL},$${numB_rangeR} && \
+	PostFitShapesFromWorkspace -d psuedofit_datacard.txt \
+				-w  higgsCombine4thSimulFit.MultiDimFit.mH120.root \
+				-m 120 -f multidimfit4thSimulFit.root:fit_mdf \
+				--skip-prefit --postfit --print --output psuedofit_postfit.root
+	cd $(oDIR) && python3 ../secondary_plot_creation_postfit.py  psuedofit_postfit.root
+	cd $(oDIR) && \
+		DrawRatioPlotablesWithCMSFormat.py ../input.check.postfit.psuedodata.cvsl.yaml ./psuedofit_postfit.cvsl_postfit.root && \
+		DrawRatioPlotablesWithCMSFormat.py ../input.check.postfit.psuedodata.cvsb.yaml ./psuedofit_postfit.cvsb_postfit.root && \
+		for plot in fitres.*.pdf; do mv $$plot 4thSimulFit_$$plot;done
+step6b_NLLscan2D:
+	cd $(oDIR) && \
+	source ./valRange_numC.sh && source ./valRange_numB.sh && \
+	combine -M MultiDimFit higgsCombine4thSimulFit.MultiDimFit.mH120.root \
+		--robustFit 1 --cminDefaultMinimizerStrategy 0 --algo grid --freezeParameters r,scaleF --setParameters r=1,scaleF=1 --floatOtherPOIs 1 -n _scan2D_4th \
+	  --points 1000	-P numC -P numB --setParameterRanges numC=$${numC_rangeL},$${numC_rangeR}:numB=$${numB_rangeL},$${numB_rangeR} && \
+	python3 ../plot_2D_scan.py scan2D_4th.pdf higgsCombine_scan2D_4th.MultiDimFit.mH120.root numC=$${numC_rangeL},$${numC_rangeR} numB=$${numB_rangeL},$${numB_rangeR}
+
+
+step6c_generate_toy:
+	cd $(oDIR) && \
+	  source ./scan2D_4th.sh && \
+	  echo "numC=$${numC_value} and numB=$${numB_value}" && \
+	  combine --saveWorkspace -M MultiDimFit  \
+	  	 -d $(_TMP_INPUT_WORKSPACE) --saveFitResult --saveNLL --robustFit on -n 4thSimulFitToy \
+	  	 --redefineSignalPOIs numC,numB \
+	  	 --toys=1000 --saveToys --setParameters numC=$${numC_value},numB=$${numB_value},r=1,scaleF=1  > log.step6c_generate_toy.GenToy 2>&1 && \
+	  python3 ../draw_pull.py ./higgsCombine4thSimulFitToy.MultiDimFit.mH120.123456.root numC scan2D_4th.yaml && \
+	  python3 ../draw_pull.py ./higgsCombine4thSimulFitToy.MultiDimFit.mH120.123456.root numB scan2D_4th.yaml
+
+check9_checktruth: _check9_checktruth_use_simultaneousfit ## check truth value. Load simultaneous result instead of profiled LL result
+_check9_checktruth_use_simultaneousfit: ## check truth value. Load simultaneous result instead of profiled LL result
+	$(call check_dir_existed,$(oDIR))
+	cd $(oDIR) && python3 ../_compare_truth_and_fit_value.py $(iYAMLcvsb) $(_TMP_HIGGSCOMBINETEST_4th) numC numB # The result for iYAMLbtag / iYAMLcvsb / iYAMLcvsl are the same
+	cd $(oDIR) && DrawRatioPlotablesWithCMSFormat.py ../input.check.psuedofit_truth_sigONLY.yaml
+_check9_checktruth_use_profileLLscan: ## check truth value. Load simultaneous result instead of profiled LL result
+	$(call check_dir_existed,$(oDIR))
+	cd $(oDIR) && python3 ../_compare_truth_and_fit_value.py $(iYAMLcvsb) scan.numL2nd.yaml scan.numC2nd.yaml scan.numB2nd.yaml # The result for iYAMLbtag / iYAMLcvsb / iYAMLcvsl are the same
+	cd $(oDIR) && DrawRatioPlotablesWithCMSFormat.py ../input.check.psuedofit_truth_sigONLY.yaml
+
+_runagain_: step6_combinetwice check9_checktruth
+
+runagain:  ## run combine twice again, please modify content of scan.numB.yaml and scan.numC.yaml [targetDIR=myprocess/binning_0_0_210_230/]
+	$(call check_defined,targetDIR)
+	oDIR=`basename $(targetDIR)`; \
+		 /bin/rm -rf $$oDIR; cp -r $(targetDIR)  $$oDIR; \
+		 make -f $(self) _runagain_ oDIR=$$oDIR iYAMLcvsb=source.btag_psuedofit_cvsb.yaml 2>&1 > log_$$oDIR  ; \
+		 grep valid_lo log_$$oDIR; mv log_$$oDIR $$oDIR/
+
+	#oDIR=`basename $(targetDIR)`; /bin/rm -rf $(targetDIR); mv  $$oDIR $(targetDIR)
+
+put_runagain_res: # put rerun results to output folder [sourceDIR=hiii/]
+	$(call check_defined,sourceDIR)
+	for a in binned*; do /bin/rm -rf $(sourceDIR)/$$a ; mv $$a $(sourceDIR)/; done
 
 
 # Create output directory
@@ -147,20 +251,24 @@ clean:
 	@echo "[INFO] Removing directory: $(oDIR)"
 	@rm -rf "$(oDIR)"
 
-test: $(oDIR)
-	echo goto new dir
-	cd $(oDIR)
-	pwd
 
 
-all: \
+
+new: \
 	step10_prepare_histograms \
-	check1_makehisto_content \
 	step2_text2workspace \
 	step3_combine \
 	step4_postfit \
 	check4_postfit \
-	check5_checktruth
+	step5_profiledLL \
+	step6_combinetwice \
+	step6a_simultaneousfit \
+	step6b_NLLscan2D \
+	step6c_generate_toy \
+	check9_checktruth
+all: new
+
+	
 
 
 IN_ARGS = [opts]
@@ -170,3 +278,13 @@ help:  ## Display this help
 
 .DEFAULT_GOAL := help
 
+
+desc1_runall: ## run all
+	@echo "run command by command 'make -f $(self) all  oDIR=some_dir rootMAKEHISTO=path/to/root'"
+desc2_adjust_fitrange_and_rerun: ## note for manual rerun
+	@echo "check fit result at folder 'my_all_process' by command 'grep valid_lo binned_*/log* | grep False'"
+	@echo "check fit plot by command 'icat bin*/scan.numB2nd.pdf' ' icat bin*/scan.numC2nd.pdf' 'icat bin*/scan.numL2nd.pdf' "
+	@echo "modify values in yaml file by  command 'vi bin_some/scan.numB.yaml' 'vi bin_some/scan.numC.yaml' 'vi bin_some/psuedofit_fitinfo_bashvar.sh' "
+	@echo "go to root dir and run command 'make -f $(self) runagain targetDIR=my_all_process/binning_0_0_210_230'"
+	@echo "after every fit finished and good. put everything back using 'make -f $(self) put_runagain_res sourceDIR=my_all_process'"
+	@echo "and update merging*.pdf by command 'make -f makefile.runbinned merge_binning_comparetruth_LCB binningDIR=my_all_process/'"

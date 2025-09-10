@@ -1,0 +1,58 @@
+# Compiler and flags
+CXX = $(shell root-config --ld)
+ROOT_FLAGS = $(shell root-config --cflags --libs)
+LD_FLAGS = $(shell root-config --ldflags)
+EXTRA_LIBS = -lXMLIO -lTMVA
+#MYLIB = -I./extlib/ -L./extlib/ -lcorrectionlib
+MYLIB = 
+
+# Targets and source files
+TARGET_1 = stage1_ForTrigSF_DYZjet.exe
+SOURCE_1 = ForTrigSF_DYZjet.C
+
+TARGET_2 = stage2_mytest.exe
+SOURCE_2 = mytest.cc
+
+# Build and run targets
+.PHONY: all run clean
+
+all: $(TARGET_1) $(TARGET_2)
+
+$(TARGET_1): $(SOURCE_1)
+	@echo "[Compiling] $(SOURCE_1)"
+	$(CXX) $(LD_FLAGS) $(ROOT_FLAGS) $(EXTRA_LIBS) $(SOURCE_1) $(MYLIB) -o $(TARGET_1)
+	@echo "[usage] ./$(TARGET_1) in.root out.root 2022EE"
+
+$(TARGET_2): $(SOURCE_2)
+	@echo "[Compiling] $(SOURCE_2)"
+	$(CXX) $(LD_FLAGS) $(ROOT_FLAGS) $(EXTRA_LIBS) $(SOURCE_2) $(MYLIB) -o $(TARGET_2)
+	@echo "[usage] ./$(TARGET_2) in.root out.root 2022EE"
+
+massiverun: $(TARGET_1)
+	@if [ -z "$(filelist)" ]; then \
+		echo "Error: Set 'filelist' variable to provide the input file list."; \
+		exit 1; \
+	fi
+
+	@idx=0; \
+	for infilename in `cat $(filelist)`; do \
+	  oFILE=out_$${idx}.root; \
+	  echo "./$(TARGET_1) $$infilename $$oFILE 2022EE"; \
+	  ./$(TARGET_1) $$infilename $$oFILE 2022EE > log_$${idx} 2>&1; \
+	  sh bkgjob_submitN.sh 5; \
+	  idx=$$((idx+1)); \
+	done; \
+	echo "[AllJobSubmitted]"; \
+	wait; \
+	echo "[AllJobFinished]"
+
+### usage : make run iFILE=hi.root oFILE=jj.root
+run1:  $(TARGET_1) 
+	./$(TARGET_1) $(iFILE) $(oFILE) 2022EE
+run2:  $(TARGET_2)
+	./$(TARGET_2) $(iFILE)
+test: clean $(TARGET_2)
+	./$(TARGET_2) /Users/noises/Downloads/outFile_ZJetMC_DYto2L2Jets_MLL50_PTLL200to400_1J_2.root
+
+clean:
+	rm -f $(TARGET_1) $(TARGET_2) out_*.root log_*

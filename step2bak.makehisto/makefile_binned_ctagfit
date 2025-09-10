@@ -1,0 +1,128 @@
+oDIR ?= makehisto_output
+
+
+timeSTAMP := $$(date "+%Y%m%d_%H%M")
+
+check_defined = \
+    $(strip $(foreach 1,$1, \
+    $(call __check_defined,$1,$(strip $(value 2)))))
+__check_defined = \
+    $(if $(value $1),, \
+    $(error Undefined $1$(if $2, ($2))))
+
+check_shell_var_defined = \
+  	$(if $(shell [ -z "$${$1}" ] && echo undefined), \
+	$(error Shell variable $1 is undefined), \
+	$(info Shell variable $1 is set))
+# Check if directory exists and print info or abort
+define check_dir_existed
+	@if [ ! -d "$(1)" ]; then \
+		echo "[ERROR] Directory '$(1)' does not exist. Please execute step1 again. Aborting..."; \
+		exit 1; \
+	else \
+		echo "[INFO] Shell program running in folder: $(1)"; \
+	fi
+endef
+
+BINNING_STRS := \
+	9_9_0_9999    \
+	0_0_1000_1500 \
+	0_0_210_230 \
+	0_0_230_250 \
+	0_0_250_300 \
+	0_0_300_400 \
+	0_0_400_500 \
+	0_0_500_600 \
+	0_0_600_800 \
+	0_0_800_1000 \
+	0_1_1000_1500 \
+	0_1_210_230 \
+	0_1_230_250 \
+	0_1_250_300 \
+	0_1_300_400 \
+	0_1_400_500 \
+	0_1_500_600 \
+	0_1_600_800 \
+	0_1_800_1000 \
+	1_0_1000_1500 \
+	1_0_210_230 \
+	1_0_230_250 \
+	1_0_250_300 \
+	1_0_300_400 \
+	1_0_400_500 \
+	1_0_500_600 \
+	1_0_600_800 \
+	1_0_800_1000 \
+	1_1_1000_1500 \
+	1_1_210_230 \
+	1_1_230_250 \
+	1_1_250_300 \
+	1_1_300_400 \
+	1_1_400_500 \
+	1_1_500_600 \
+	1_1_600_800 \
+	1_1_800_1000
+
+
+step2_binned_hastruth_psuedodata: # separate jet pt / jet eta binning
+	python3 makehisto_binned_ctagfit_GJetPythiaFlatPsuedodata_estimateSR.py makehisto_binned_ctagfit_psuedodata.root
+
+$(oDIR):
+	@echo "[INFO] Creating directory: $(oDIR)"
+	mkdir $@
+
+step3_collect_binned_hists: $(oDIR) # collecting root files generated from binned_hastruth_psuedodata [oDIR=makehisto_output]
+	[ "`ls -A $(oDIR)`" ] &&  read -p "Folder '$(oDIR)' existed, do you want to clean up this folder?" && /bin/rm -r $(oDIR)/* || echo Directly put file in folder $(oDIR)
+	mv makehisto_binned*.root $(oDIR)/
+	mv sfhist_jetpt*.root $(oDIR)/
+
+step1_hastruth_psuedodata: # separate jet pt / jet eta binning [oNAME=hiiii.root]
+	$(call check_defined,oNAME)
+	python3 makehisto_GJetPythiaFlatPsuedodata_ctagfit_estimateSR.py $(oNAME)
+
+step0_makehist: ## make_histo for psuedo data from GJetPythiaFlat [oNAME=hiii.root]
+	$(call check_defined,oNAME)
+	python3 makehisto_ctagfit_estimateSR.py $(oNAME)
+	make linkpsuedodata root=$(oNAME)
+
+singlebin_psuedodata_%:
+	binningSTR="$*"; python3 makehisto_singlebin_ctagfit_GJetPythiaFlatPsuedodata_estimateSR.py makehisto_binned_ctagfit_psuedodata__$${binningSTR}.root $${binningSTR}
+singlebin_data_%:
+	binningSTR="$*"; python3 makehisto_singlebin_ctagfit_data_estimateSR.py makehisto_binned_ctagfit_data__$${binningSTR}.root $${binningSTR}
+
+
+
+cut ?= 1
+stepX_binned_data: # make_histo fro data [cut=1]
+	python3 makehisto_binned_ctagfit_data_estimateSR.py makehisto_binned_ctagfit_data.root $(cut)
+_rundata: stepX_binned_data step3_collect_binned_hists ## default execution creating binned histograms from data [cut=WPb_loose][oDIR=makehisto_WPbLoose_binned_ctagfit_data]
+	echo "[FolderGenerated] All data generated binned histograms moved to folder $(oDIR)"
+_runpsuedodata: step2_binned_hastruth_psuedodata step3_collect_binned_hists ## default execution creating binned histograms from psuedodata [oDIR=makehisto_WPbLoose_binned_ctagfit]
+	echo "[FolderGenerated] All psuedo data generated binned histograms moved to folder $(oDIR)"
+
+self := makefile_binned_ctagfit
+runpsuedodata: $(addprefix singlebin_psuedodata_,$(BINNING_STRS)) ## use -jN to run at background [-jN][oDIR=makehisto_hiii]
+	make -f $(self) step3_collect_binned_hists oDIR=$(oDIR)
+rundata: $(addprefix singlebin_data_,$(BINNING_STRS)) ## use -jN to run at background [-jN][oDIR=makehisto_hiii]
+	make -f $(self) step3_collect_binned_hists oDIR=$(oDIR)
+	
+
+linkedfile=makehisto_ctagfit_psuedodata_mergefake.root
+linkpsuedodata: ## link another file to makehisto_psuedodata_rescaled.root [root=hi.root]
+	$(call check_defined,root)
+	/bin/rm -f $(linkedfile) ;  ln -s $(root) $(linkedfile)
+
+test_nobinning_psuedodata: singlebin_psuedodata_9_9_0_99999
+test_data: singlebin_data_0_0_600_800
+test: test_nobinning_psuedodata
+
+
+
+
+IN_ARGS = [opts]
+
+help:  ## Display this help
+	@awk 'BEGIN {FS = ":.*##"; printf "Usage: make \033[32m<command>\033[0m $(IN_ARGS)\n\nCommands:\n\033[36m\033[0m\n"} /^[0-9a-zA-Z_-]+:.*?##/ { printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2 } /^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } ' $(MAKEFILE_LIST)
+
+.DEFAULT_GOAL := help
+

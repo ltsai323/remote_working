@@ -14,6 +14,8 @@ make -j8 -f makefile.runbinned  allbinning  \
     oDIR=${out_dir} \
     iYAMLcvsb=source.btag_psuedofit_cvsb.yaml \
     iYAMLcvsl=source.btag_psuedofit_cvsl.yaml
+    #iYAMLcvsb=test.fixedfake_psuedofit_cvsb.yaml \
+    #iYAMLcvsl=test.fixedfake_psuedofit_cvsl.yaml
 }
 function runBinnedData() {
     outTAG=$1
@@ -39,4 +41,8 @@ make -j8 -f makefile.runbinned  allbinning_data  \
 #runAllWPcut WPcutWPbMedium /afs/cern.ch/work/l/ltsai/Work/CMSSW/CMSSW_13_0_21/src/macros/step2bak.makehisto/makehisto_WPbMedium_binned_ctagfit
 #runAllWPcut WPcutWPbLoose  /afs/cern.ch/work/l/ltsai/Work/CMSSW/CMSSW_13_0_21/src/macros/step2bak.makehisto/makehisto_WPbLoose_binned_ctagfit
 
-runBinnedData WPcutWPbMedium /afs/cern.ch/work/l/ltsai/Work/CMSSW/CMSSW_13_0_21/src/macros/step2bak.makehisto/makehisto_WPbMedium_binned_ctagfit_data/
+#runBinnedData WPcutWPbMedium /afs/cern.ch/work/l/ltsai/Work/CMSSW/CMSSW_13_0_21/src/macros/step2bak.makehisto/makehisto_WPbMedium_binned_ctagfit_data/
+#runBinnedData WPcutWPbLoose  /afs/cern.ch/work/l/ltsai/Work/CMSSW/CMSSW_13_0_21/src/macros/step2bak.makehisto/makehisto_WPbLoose_binned_ctagfit_data/
+
+#runAllWPcut WPcutWPbLoose_pull0  /afs/cern.ch/work/l/ltsai/Work/CMSSW/CMSSW_13_0_21/src/macros/step2bak.makehisto/makehisto_WPbLoose_bin10_binned_ctagfit_generate_pull
+runAllWPcut WPcutWPbLoose_40bins_numLconstraint  /afs/cern.ch/work/l/ltsai/Work/CMSSW/CMSSW_13_0_21/src/macros/step2bak.makehisto/makehisto_WPbLoose_binned_ctagfit___

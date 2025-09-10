@@ -3,6 +3,9 @@ import ROOT
 from uncertainties import ufloat
 from extract_fit_value import GetSnapshotAtMultiDimFit, make_hist, info, Info
 import yaml
+import logging
+
+log = logging.getLogger(__name__)
 
 class LoadedValue:
     def __init__(self, lVAL, cVAL, bVAL, fakeVAL = None):
@@ -20,10 +23,18 @@ def loadedvalue_adapter(loadedVALUE:LoadedValue) -> dict:
     try:
         o = {}
         o['numL'] = Info(value=loadedVALUE.lval.nominal_value, error=loadedVALUE.lval.std_dev)
-        o['numC'] = Info(value=loadedVALUE.cval.nominal_value, error=loadedVALUE.lval.std_dev)
-        o['numB'] = Info(value=loadedVALUE.bval.nominal_value, error=loadedVALUE.lval.std_dev)
+        o['numC'] = Info(value=loadedVALUE.cval.nominal_value, error=loadedVALUE.cval.std_dev)
+        o['numB'] = Info(value=loadedVALUE.bval.nominal_value, error=loadedVALUE.bval.std_dev)
         if hasattr(loadedVALUE, 'fake'):
             o['numFAKE'] = Info(value=loadedVALUE.fake.nominal_value, error=loadedVALUE.fake.std_dev)
+        return o
+    except Exception as e:
+        raise Exception('[Error] loadedvalue_adapter() got erroes') from e
+def loadedvalue_adapter_CandBonly(loadedVALUE:LoadedValue) -> dict:
+    try:
+        o = {}
+        o['numC'] = Info(value=loadedVALUE.cval.nominal_value, error=loadedVALUE.cval.std_dev)
+        o['numB'] = Info(value=loadedVALUE.bval.nominal_value, error=loadedVALUE.bval.std_dev)
         return o
     except Exception as e:
         raise Exception('[Error] loadedvalue_adapter() got erroes') from e
@@ -37,6 +48,7 @@ def get_integral_from_hist(h) -> ufloat:
     
 
 def load_truth(iFILEname, Ljet, Cjet, Bjet, fake=None) -> LoadedValue:
+    ### disable uncertainties in truth histogram
     tfile = ROOT.TFile.Open(iFILEname)
 
     hL = tfile.Get(Ljet)
@@ -45,15 +57,17 @@ def load_truth(iFILEname, Ljet, Cjet, Bjet, fake=None) -> LoadedValue:
     
     integralFAKE = None
     
+    valF = None
     if fake and fake in tfile.GetListOfKeys():
         hFAKE = tfile.Get(fake)
         integralFAKE = get_integral_from_hist(hFAKE)
+        valF = ufloat(integralFAKE.nominal_value,1e-3)
 
-    return LoadedValue(
-            get_integral_from_hist(hL),
-            get_integral_from_hist(hC),
-            get_integral_from_hist(hB),
-            integralFAKE)
+    valL = ufloat(get_integral_from_hist(hL).nominal_value,1e-3)
+    valC = ufloat(get_integral_from_hist(hC).nominal_value,1e-3)
+    valB = ufloat(get_integral_from_hist(hB).nominal_value,1e-3)
+
+    return LoadedValue( valL, valC, valB, valF )
 
 def get_fitinfo_from_postfit_yamls(inYAMLs):
     loaded_vars = {}
@@ -84,13 +98,28 @@ def getinfo_from_workspace(inputFILEname:str, loadedVARs:list) -> dict:
     output = {}
     for loadedVAR in loadedVARs:
         v = snapshot.find(loadedVAR)
-        output[loadedVAR] = Info(
-                value = v.getVal(),
-                error = v.getError(),
-                errUp = v.getErrorHi(),
-                errDn = v.getErrorLo(),
-                )
-    return output
+        if isinstance(v,ROOT.RooRealVar):
+            output[loadedVAR] = Info(
+                    value = v.getVal(),
+                    error = v.getError(),
+                    errUp = v.getErrorHi(),
+                    errDn = v.getErrorLo(),
+                    )
+    inFILE.Close()
+    #return output
+    log.debug(f'''[GetInfoFromWS] file {inputFILEname} got
+            numL {ufloat( output['numL'].value, output['numL'].error ) if 'numL' in output else ufloat(1e-3,1e-3)}
+            numC {ufloat( output['numC'].value, output['numC'].error )}
+            numB {ufloat( output['numB'].value, output['numB'].error )}
+            numF {ufloat( output['numFAKE'].value, output['numFAKE'].error ) if 'numFAKE' in output else None}
+            ''')
+
+    return LoadedValue(
+            ufloat( output['numL'].value, output['numL'].error ) if 'numL' in output else ufloat(1e-3,1e-3),
+            ufloat( output['numC'].value, output['numC'].error ),
+            ufloat( output['numB'].value, output['numB'].error ),
+            ufloat( output['numFAKE'].value, output['numFAKE'].error ) if 'numFAKE' in output else None
+            )
 
 
 
@@ -134,22 +163,39 @@ def tgrapherror_to_yaml_rec(hist, labels):
 
     raise ValueError(f'[InvalidInput] tgrapherror_to_yaml_rec() only accepts tgraph, input parameter "{ type(hist) }" is invalid.')
 
+def disable_truth_uncertainties(truthINFOdict:dict) -> dict:
+    return { varNAME:Info(recINFO.value, 0) for varNAME,recINFO in truthINFOdict.items() } # only record the value and ignore all errors
+
 def mainfunc_extractfitandmakecomparison(fitVALUE, truthVALUE):
     info_truth = loadedvalue_adapter(truthVALUE)
+    #info_truth = disable_truth_uncertainties(info_truth_)
     info_fit   = loadedvalue_adapter(fitVALUE)
+    write_SigOnly = True
+    if write_SigOnly:
+        siginfo_truth = loadedvalue_adapter_CandBonly(truthVALUE)
+        #siginfo_truth = disable_truth_uncertainties(siginfo_truth_)
+        siginfo_fit   = loadedvalue_adapter_CandBonly(fitVALUE)
 
     if len(info_truth.keys()) != len(info_fit.keys()):
         raise KeyError(f'[InvalidInformation] infomation read from truth "{info_truth}" and fit "{info_fit}" does not has the same length')
+    log.debug(f'[FitInfo] Get info_fit = {info_fit}')
 
     outROOTfilename = 'compare_truth_and_fit_value.root'
     file_out = ROOT.TFile(outROOTfilename, 'recreate')
     file_out.cd()
     hTruth = make_hist('truthinfo',info_truth)
     hFit = make_hist('fitinfo', info_fit)
+    if write_SigOnly:
+        hSigTruth = make_hist('truthinfo_sigONLY',siginfo_truth)
+        hSigFit = make_hist('fitinfo_sigONLY', siginfo_fit)
 
     ratio = ROOT.TGraphAsymmErrors()
     ratio.SetName('ratioinfo')
     ratio.Divide(hFit,hTruth,'pois')
+    if write_SigOnly:
+        sigratio = ROOT.TGraphAsymmErrors()
+        sigratio.SetName('ratioinfo_sigONLY')
+        sigratio.Divide(hSigFit,hSigTruth,'pois')
 
     outYAMLfilename = outROOTfilename.replace('.root','.yaml')
     with open(outYAMLfilename, 'w') as yamlOUT:
@@ -166,12 +212,19 @@ def mainfunc_extractfitandmakecomparison(fitVALUE, truthVALUE):
     hTruth.Write()
     hFit.Write()
     ratio.Write()
+    if write_SigOnly:
+        hSigTruth.Write()
+        hSigFit.Write()
+        sigratio.Write()
 
 
     file_out.Close()
 
 
 if __name__ == "__main__":
+    logging.basicConfig(level=logging.DEBUG,
+                        format='[basicCONFIG] %(levelname)s - %(message)s',
+                        datefmt='%H:%M:%S')
     import sys
     import yaml
 
@@ -187,8 +240,14 @@ if __name__ == "__main__":
 
 
 
-    profiledNLL_yamls = sys.argv[2:]
-    fit_value = get_fitinfo_from_postfit_yamls(profiledNLL_yamls)
+    if '.yaml' in sys.argv[2]:
+        profiledNLL_yamls = sys.argv[2:]
+        fit_value = get_fitinfo_from_postfit_yamls(profiledNLL_yamls)
+    if '.root' in sys.argv[2]:
+        combineRESULT = sys.argv[2]
+        fitVARs = sys.argv[3:]
+        fit_value = getinfo_from_workspace(combineRESULT, fitVARs)
+
 
 
 

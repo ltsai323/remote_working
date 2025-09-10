@@ -44,7 +44,7 @@ using namespace std;
 const bool SSCORR_ONLY_SIEIE = true; // because I found error from SS correction. So only use sieie correction
 
 
-void BUG(const char* m) { printf("[DEBUG] %s\n", m); }
+void BUG(const char* m) { return; printf("[DEBUG] %s\n", m); }
 double TotalGenWeight(const char* inFILE)
 {
     auto tFILE = TFile::Open(inFILE);
@@ -73,7 +73,59 @@ auto cset_smearing = cset_photon_scale_smearing_file->at("Prompt2022FG_SmearingJ
 const char* photon_smear_and_scale_file = "data/Photon_scale_smearing.json";
 Photon_EnergySmear* phoSmearMgr = new Photon_EnergySmear(photon_smear_and_scale_file, "Prompt2022FG_SmearingJSON"); // for MC
 Photon_EnergyScale* phoScaleMgr = new Photon_EnergyScale(photon_smear_and_scale_file, "Prompt2022FG_ScaleJSON"); // for data
-                                                                                                                 //
+// Apply c-tagging WP SF. TEST
+// https://gitlab.cern.ch/cms-btv/btv-scale-factors/-/blob/master/2022_Summer22EE/json/ctagging_v0.json at commit a3c1f2b5
+auto cset_ctag_wp_sf_file = CorrectionSet::from_file("data/ctagging_v0.json");
+auto cset_ctag_wp_value = cset_ctag_wp_sf_file->at("robustParticleTransformer_wp_values");
+const double WPcL_CvL(cset_ctag_wp_value->evaluate({"L","CvL"}));
+const double WPcL_CvB(cset_ctag_wp_value->evaluate({"L","CvB"}));
+const double WPcM_CvL(cset_ctag_wp_value->evaluate({"M","CvL"}));
+const double WPcM_CvB(cset_ctag_wp_value->evaluate({"M","CvB"}));
+const double WPcT_CvL(cset_ctag_wp_value->evaluate({"T","CvL"}));
+const double WPcT_CvB(cset_ctag_wp_value->evaluate({"T","CvB"}));
+auto cset_WPcL_bjet = cset_ctag_wp_sf_file->at("robustParticleTransformer_tnp"); // only for bjet
+//    Working point based c-tagging scale factors for b jets from emu ttbar events. Uncertainties are
+//    split into multiple components. These sources consist of
+//    'up/down_mescales/tune/hdamp/bdecay/jes/psscale/bkg/colorreconnection/jer/topmass/pileup/statist
+//    ic/pdf'. All of the sources can be correlated between the years, except the 'statistic' source
+//    which is to be decorrelated between the years. If only one year is analyzed and the tagging
+//    uncertainty impact is small the simplified 'up' and 'down' systematics can be used, but is
+//    generally not recommended.
+//    Node counts: Category: 117, Binning: 174
+//    ╭────────────────────────────────────────── ▶ input ───────────────────────────────────────────╮
+//    │ systematic (string)                                                                          │
+//    │ 'central' for nominal SF. 'up/down' for total SF variation. Other 'up/down_X' for additional │
+//    │ uncertainty breakdown.                                                                       │
+//    │ Values: central, down, down_bdecay, down_bkg, down_colorreconnection, down_hdamp, down_jer,  │
+//    │ down_jes, down_mescales, down_pdf, down_pileup, down_psscale, down_statistic, down_topmass,  │
+//    │ down_tune, up, up_bdecay, up_bkg, up_colorreconnection, up_hdamp, up_jer, up_jes,            │
+//    │ up_mescales, up_pdf, up_pileup, up_psscale, up_statistic, up_topmass, up_tune                │
+//    ╰──────────────────────────────────────────────────────────────────────────────────────────────╯
+auto cset_WPcL_cjet = cset_ctag_wp_sf_file->at("robustParticleTransformer_wc"); // only for cjet
+//│   Working point based c-tagging scale factors for light jets from inclusive QCD events.
+//│   Node counts: Category: 21, Binning: 30
+//│   ╭──────────────────────────────── ▶ input ─────────────────────────────────╮
+//│   │ systematic (string)                                                      │
+//│   │ 'central' for nominal SF. 'up/down_syst/stat' for syst/stat uncertainty. │
+//│   │ Values: central, down_stat, down_syst, up_stat, up_syst                  │
+//│   ╰──────────────────────────────────────────────────────────────────────────╯
+auto cset_WPcL_ljet = cset_ctag_wp_sf_file->at("robustParticleTransformer_negtag"); // only for ljet
+// │   For the working point correction multiple different uncertainty schemes are provided.
+// │   'up/down_correlated' (systematic uncertainty) and 'up/down_uncorrelated' (statistical
+// │   uncertainty) scale factor variations are provided, which are supposed to be
+// │   correlated/decorrelated between the different data years. If only one year is analyzed and the
+// │   tagging uncertainty impact is small the simplified 'up' and 'down' systematics can be used, but
+// │   is generally not recommended.
+// │   Node counts: Category: 29, Binning: 42, Formula: 21
+// │   ╭────────────────────────────────────────── ▶ input ───────────────────────────────────────────╮
+// │   │ systematic (string)                                                                          │
+// │   │ 'central' for nominal SF. 'up/down' for total SF variation.                                  │
+// │   │ 'up/down_correlated/uncorrelated' for syst/stat uncertainty.                                 │
+// │   │ Values: central, down, down_correlated, down_uncorrelated, up, up_correlated,                │
+// │   │ up_uncorrelated                                                                              │
+// │   ╰──────────────────────────────────────────────────────────────────────────────────────────────╯
+
+
 // Apply b-tagging WP SF.
 auto cset_btag_wp_sf_file = CorrectionSet::from_file("/cvmfs/cms.cern.ch/rsync/cms-nanoAOD/jsonpog-integration/POG/BTV/2022_Summer22EE/btagging.json.gz");
 auto cset_WPbL_lightQ = cset_btag_wp_sf_file->at("robustParticleTransformer_light");
@@ -260,6 +312,7 @@ int main(int argc, char** argv){
     bool isEraG = false;
     bool isDataSideband = false;
     bool TEST_MODE = false;
+    bool TEST_ALL_QCD_WITHOUT_SIGPHOMATCH = true;
 
 
     const std::vector<std::string> lxplus_files({
@@ -1192,9 +1245,22 @@ int main(int argc, char** argv){
 
     double photonPt, photonEta, photonPhi, photonMVA, wgt;
     double o_wgt_WPbL_central;
+    double o_wgt_WPbL_bUp, o_wgt_WPbL_bDown;
+    double o_wgt_WPbL_bJESUp, o_wgt_WPbL_bJESDown;
+    double o_wgt_WPbL_bFragUp, o_wgt_WPbL_bFragDown;
+    double o_wgt_WPbL_bPUUp, o_wgt_WPbL_bPUDown;
+    double o_wgt_WPbL_bType3Up, o_wgt_WPbL_bType3Down;
+    double o_wgt_WPbL_bStatUp, o_wgt_WPbL_bStatDown;
+
+    double o_wgt_WPcL_central;
+
+    double o_wgt_WPbL_lUp, o_wgt_WPbL_lDown;
     bool passWPbL;
     bool passWPbM;
     bool passWPbT;
+    bool passWPcL;
+    bool passWPcM;
+    bool passWPcT;
     double o_wgt_WPcShape_central;
 
     double jetPt, jetEta, jetPhi;
@@ -1245,10 +1311,30 @@ int main(int argc, char** argv){
         tree->Branch("GenPhoton_eta",&genPhotonEta);
         tree->Branch("GenPhoton_phi",&genPhotonPhi);
         tree->Branch("wgt", &wgt);
-        tree->Branch("renormREQUIRED_wgt_WPbL_central", &o_wgt_WPbL_central);
         tree->Branch("passWPbL", &passWPbL);
         tree->Branch("passWPbM", &passWPbM);
         tree->Branch("passWPbT", &passWPbT);
+        tree->Branch("renormREQUIRED_wgt_WPbL_central", &o_wgt_WPbL_central);
+        tree->Branch("renormREQUIRED_wgt_WPbL_bUp"             , &o_wgt_WPbL_bUp);
+        tree->Branch("renormREQUIRED_wgt_WPbL_bDown"           , &o_wgt_WPbL_bDown);
+        tree->Branch("renormREQUIRED_wgt_WPbL_bJESUp"          , &o_wgt_WPbL_bJESUp);
+        tree->Branch("renormREQUIRED_wgt_WPbL_bJESDown"        , &o_wgt_WPbL_bJESDown);
+        tree->Branch("renormREQUIRED_wgt_WPbL_bFragUp"         , &o_wgt_WPbL_bFragUp);
+        tree->Branch("renormREQUIRED_wgt_WPbL_bFragDown"       , &o_wgt_WPbL_bFragDown);
+        tree->Branch("renormREQUIRED_wgt_WPbL_bPUUp"           , &o_wgt_WPbL_bPUUp);
+        tree->Branch("renormREQUIRED_wgt_WPbL_bPUDown"         , &o_wgt_WPbL_bPUDown);
+        tree->Branch("renormREQUIRED_wgt_WPbL_bType3Up"        , &o_wgt_WPbL_bType3Up);
+        tree->Branch("renormREQUIRED_wgt_WPbL_bType3Down"      , &o_wgt_WPbL_bType3Down);
+        tree->Branch("renormREQUIRED_wgt_WPbL_bStatUp"         , &o_wgt_WPbL_bStatUp);
+        tree->Branch("renormREQUIRED_wgt_WPbL_bStatDown"       , &o_wgt_WPbL_bStatDown);
+        tree->Branch("renormREQUIRED_wgt_WPbL_lStatUp"         , &o_wgt_WPbL_lUp);
+        tree->Branch("renormREQUIRED_wgt_WPbL_lStatDown"       , &o_wgt_WPbL_lDown);
+
+        tree->Branch("passWPcL", &passWPcL);
+        tree->Branch("passWPcM", &passWPcM);
+        tree->Branch("passWPcT", &passWPcT);
+        tree->Branch("renormREQUIRED_wgt_WPcL_central", &o_wgt_WPcL_central);
+
         tree->Branch("renormREQUIRED_wgt_WPcShape_central", &o_wgt_WPcShape_central);
         if ( isSignal)
             tree->Branch("photon_mva_orig", &photonMVAorig);
@@ -1410,6 +1496,8 @@ int main(int argc, char** argv){
             if(abs(Photon_eta[ij])>1.5&&Photon_sieie[ij]>0.04 ) continue;
 
             bool reco_photon_in_signalregion_or_datasideband = false;
+            if ( isQCD && TEST_ALL_QCD_WITHOUT_SIGPHOMATCH ) reco_photon_in_signalregion_or_datasideband = true; // if option activated, ignore signal region selections
+
             if (!isDataSideband ) // is signal region
             {
                 if(abs(Photon_eta[ij])<1.5 && Photon_pfChargedIsoPFPV[ij]<1.7 && Photon_pfChargedIsoWorstVtx[ij]<10) reco_photon_in_signalregion_or_datasideband = true;
@@ -1665,7 +1753,7 @@ int main(int argc, char** argv){
 
             //std::cout << "calibrated jet pt is " << jet_corr4v.Pt() << " and orig jet pt is " << jet_raw4v.Pt() << std::endl;
             if ( jet_corr4v.Pt()<25 ) continue;
-            if ( abs(jet_corr4v.Eta())>2.5 ) continue;
+            if ( abs(jet_corr4v.Eta())>2.4 ) continue;
             if ( int(Jet_jetId[ij])!=6 ) continue; // tight jet ID
 
             if ( SelPhoton.size()>0 )
@@ -1749,10 +1837,12 @@ int main(int argc, char** argv){
 
         // sel photon is filtered by reco_photon_in_signalregion_or_datasideband
 
+        BUG("test1");
         //std::cout << "SelPhoton size " << SelPhoton.size() << ", Seljet size " << SelJet.size() << std::endl;
         if ( event_containing_jet_failing_vetomap ) continue; // totally skip this event
         if(SelPhoton.size() == 0) continue;
         if(SelJet.size() == 0) continue;
+        BUG("test2");
 
         double wgt_gen = 1;
         if ( isData )
@@ -1765,12 +1855,44 @@ int main(int argc, char** argv){
             wgt = genWeight*normWgt*puWgt*phoSF*trigSF;
             wgt_gen = genWeight * normWgt;
 
+        BUG("test2.1");
             int jet_flav = int(Jet_hadronFlavour[SelJetIdx[0]]);
             auto cset_WPbL = jet_flav == 0 ? cset_WPbL_lightQ : cset_WPbL_heavyQ;
+        BUG("test2.2");
+
             o_wgt_WPbL_central = cset_WPbL->evaluate( {"central","L", jet_flav, fabs(SelJet[0].Eta()), SelJet[0].Pt()} );
-            // central, down, down_bfragmentation, down_correlated, down_jes, down_pileup,
-            // down_statistic, down_type3, down_uncorrelated, up, up_bfragmentation, up_correlated, up_jes,
-            // up_pileup, up_statistic, up_type3, up_uncorrelated
+            // b or c jet
+            o_wgt_WPbL_bUp        = jet_flav != 0 ? cset_WPbL->evaluate( {"up"                  ,"L", jet_flav, fabs(SelJet[0].Eta()), SelJet[0].Pt()} ) : 0;
+            o_wgt_WPbL_bDown      = jet_flav != 0 ? cset_WPbL->evaluate( {"down"                ,"L", jet_flav, fabs(SelJet[0].Eta()), SelJet[0].Pt()} ) : 0;
+            o_wgt_WPbL_bJESUp     = jet_flav != 0 ? cset_WPbL->evaluate( {"up_jes"              ,"L", jet_flav, fabs(SelJet[0].Eta()), SelJet[0].Pt()} ) : 0;
+            o_wgt_WPbL_bJESDown   = jet_flav != 0 ? cset_WPbL->evaluate( {"down_jes"            ,"L", jet_flav, fabs(SelJet[0].Eta()), SelJet[0].Pt()} ) : 0;
+            o_wgt_WPbL_bFragUp    = jet_flav != 0 ? cset_WPbL->evaluate( {"up_bfragmentation"   ,"L", jet_flav, fabs(SelJet[0].Eta()), SelJet[0].Pt()} ) : 0;
+            o_wgt_WPbL_bFragDown  = jet_flav != 0 ? cset_WPbL->evaluate( {"down_bfragmentation" ,"L", jet_flav, fabs(SelJet[0].Eta()), SelJet[0].Pt()} ) : 0;
+            o_wgt_WPbL_bPUUp      = jet_flav != 0 ? cset_WPbL->evaluate( {"up_pileup"           ,"L", jet_flav, fabs(SelJet[0].Eta()), SelJet[0].Pt()} ) : 0;
+            o_wgt_WPbL_bPUDown    = jet_flav != 0 ? cset_WPbL->evaluate( {"down_pileup"         ,"L", jet_flav, fabs(SelJet[0].Eta()), SelJet[0].Pt()} ) : 0;
+            o_wgt_WPbL_bType3Up   = jet_flav != 0 ? cset_WPbL->evaluate( {"up_type3"            ,"L", jet_flav, fabs(SelJet[0].Eta()), SelJet[0].Pt()} ) : 0;
+            o_wgt_WPbL_bType3Down = jet_flav != 0 ? cset_WPbL->evaluate( {"down_type3"          ,"L", jet_flav, fabs(SelJet[0].Eta()), SelJet[0].Pt()} ) : 0;
+            o_wgt_WPbL_bStatUp    = jet_flav != 0 ? cset_WPbL->evaluate( {"up_statistic"        ,"L", jet_flav, fabs(SelJet[0].Eta()), SelJet[0].Pt()} ) : 0;
+            o_wgt_WPbL_bStatDown  = jet_flav != 0 ? cset_WPbL->evaluate( {"down_statistic"      ,"L", jet_flav, fabs(SelJet[0].Eta()), SelJet[0].Pt()} ) : 0;
+
+            // light jet
+            o_wgt_WPbL_lUp        = jet_flav == 0 ? cset_WPbL->evaluate( {"up"                  ,"L", jet_flav, fabs(SelJet[0].Eta()), SelJet[0].Pt()} ) : 0;
+            o_wgt_WPbL_lDown      = jet_flav == 0 ? cset_WPbL->evaluate( {"down"                ,"L", jet_flav, fabs(SelJet[0].Eta()), SelJet[0].Pt()} ) : 0;
+        BUG("test2.3");
+
+            auto cset_WPcL = cset_WPcL_ljet;
+            if ( jet_flav == 0 ) cset_WPcL = cset_WPcL_ljet;
+            if ( jet_flav == 4 ) cset_WPcL = cset_WPcL_cjet;
+            if ( jet_flav == 5 ) cset_WPcL = cset_WPcL_bjet;
+        BUG("test2.31");
+            o_wgt_WPcL_central = cset_WPcL->evaluate( {"central","L", jet_flav, fabs(SelJet[0].Eta()), SelJet[0].Pt()} );
+
+        //BUG( Form("pt %f, eta %f. jet flav %d", SelJet[0].Pt(), SelJet[0].Eta(), jet_flav) );
+        //BUG( Form("WPcL CvsB %f and CvsL %f", WPcL_CvB, WPcL_CvL) );
+        //    o_wgt_WPcL_central = cset_WPcL_lightQ->evaluate( {"central","L", 5, fabs(SelJet[0].Eta()), SelJet[0].Pt()} );
+        //BUG("test2.32");
+        //    o_wgt_WPcL_central = cset_WPcL_heavyQ->evaluate( {"central","L", 5, fabs(SelJet[0].Eta()), SelJet[0].Pt()} );
+        BUG("test2.4");
 
             o_wgt_WPcShape_central = cset_ctag_reshape->evaluate( {"central",jet_flav, 
                                       Jet_btagRobustParTAK4CvL[ SelJetIdx[0] ],
@@ -1782,7 +1904,9 @@ int main(int argc, char** argv){
 //      │ up_PUWeight, up_Stat, up_XSec_BRUnc_DYJets_b, up_XSec_BRUnc_DYJets_c, up_XSec_BRUnc_WJets_c, │
 //      │ up_jer, up_jesTotal                                                                          │
 
+        BUG("test2.9");
         }
+        BUG("test3");
 
 
         photonPt = SelPhoton[0].Pt();
@@ -1873,6 +1997,11 @@ int main(int argc, char** argv){
         passWPbM = ParTB > WPbMValue;
         passWPbT = ParTB > WPbTValue;
 
+        passWPcL = ParTCvsB > WPcL_CvB && ParTCvsL > WPcL_CvL;
+        passWPcM = ParTCvsB > WPcM_CvB && ParTCvsL > WPcM_CvL;
+        passWPcT = ParTCvsB > WPcT_CvB && ParTCvsL > WPcT_CvL;
+
+        BUG("test9");
         tree->Fill();
 
         // fill shower shape distribution, only in signal region or data sideband

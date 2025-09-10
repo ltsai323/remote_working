@@ -1,14 +1,1 @@
-imax    1
-jmax    *
-kmax    *
---------------------------------------------------------------------------------
-shapes * {channel} {iFILE} $CHANNEL/$PROCESS
---------------------------------------------------------------------------------
-bin          {channel}
-observation  -1
---------------------------------------------------------------------------------
-bin                     {channel}           {channel}          {channel}         {channel}
-process                 fake                Ljet               Cjet              Bjet
-process                 2                    1                 -1                -2
-rate                    -1                   1                  1                 1
---------------------------------------------------------------------------------
+datacard_btag_psuedofit_numLconstraint.template.txt

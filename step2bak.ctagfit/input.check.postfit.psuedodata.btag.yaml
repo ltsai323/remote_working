@@ -1,12 +1,12 @@
-figNAME: 'postfit.psuedodata.btag.pdf'
+figNAME: 'fitres.btag.pdf'
 upperpad:
   legNcolumn: 2
   legFONTsize: 'xx-small'
   xLABEL: ''
   yLABEL: 'Entries'
-  yRANGE:
-    - 1e-1
-    - 1e8
+ #yRANGE:
+ #  - 1e-1
+ #  - 1e8
   ySCALE: log
   plotables:
     - type: TH1F
@@ -31,7 +31,7 @@ upperpad:
     - type: TH1F
       objname: TotalProcs
       file: postfit.btag_postfit.root
-      label: l-jet
+      label: l-jet + fake
       plotstyle: histBKG
       legorder: 2
 

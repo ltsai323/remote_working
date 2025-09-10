@@ -1,13 +1,13 @@
 figNAME: 'merging_binning_result.fit01_compositions.pdf'
 
-legNcolumn: 1
+legNcolumn: 2
 legFONTsize: 'xx-small'
-legTITLE: '|$\eta^{\gamma}$|<1.4442  |$\eta^{jet}$|<1.5'
+legTITLE: '|$\eta^{\gamma}$|<1.4442  1.5<|$\eta^{jet}$|<2.4'
 xLABEL: '$p^{\gamma}_{T}$ (GeV)'
 yLABEL: 'HF jet fraction'
 yRANGE:
-  - 0.15
-  - 0.60
+  - 0.0
+  - 0.50
 ySCALE: linear
 plotables:
   - type: TH1F

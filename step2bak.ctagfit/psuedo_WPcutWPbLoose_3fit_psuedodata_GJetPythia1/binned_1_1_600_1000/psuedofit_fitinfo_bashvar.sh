@@ -1,9 +1,0 @@
-numB_rangeL=0
-numB_rangeR=2
-numB_central=1
-numC_rangeL=0
-numC_rangeR=10
-numC_central=2
-numL_rangeL=0
-numL_rangeR=36
-numL_central=18

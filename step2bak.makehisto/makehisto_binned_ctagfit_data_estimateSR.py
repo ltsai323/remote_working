@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 import makehisto_ctagfit_estimateSR as content
 import makehisto_usefulfunc as frag
+frag.hbtag = lambda tag: ( f'{tag}_btag', 'b tag score', 40, 0.,1.)
+frag.hcvsb = lambda tag: ( f'{tag}_cvsb', 'c vs b', 40, 0,1.)
+frag.hcvsl = lambda tag: ( f'{tag}_cvsl', 'c vs l', 40, 0.,1.)
 from makehisto_usefulfunc import CreateJetPtSF_toTH1, UpdateEvtWeight_ReweightJetPtFromGJetandQCD, UpdateEvtWeight_ReweightJetPtFromGJet, LoadAdditionalFunc
 import ROOT
 DATA_LUMINOSITY = 26.81
@@ -30,6 +33,7 @@ def mainfunc(
     #CreateJetPtSF_toTH1(used_df, createINTERMEDIATEhist=False) ## comment out because we calculate the PtSF before binning
 
     if reweightJETpt:
+        print(f'[ReweightJetPt] Analyze jet pt distribution of data and reweight sign MC')
         ddd = UpdateEvtWeight_ReweightJetPtFromGJet(used_df.dfsign, makehistoADDITIONALfunctions_LOADED = True) ## update event_weight with jetPtSF, used histogram should be created beforehand
         used_df.dfsign = ddd
 
@@ -55,20 +59,28 @@ def mainfunc_gjet_binning( outFILEname, additionalCUT='1' ):
         # use previous 2 bin as sideband increasing statisticcs
         if pPTlow > 600:
             print(f'[RedefineSideband] Bin({pETAbin},{jETAbin},{pPTlow},{pPThigh}) use additional sideband Bin({pETAbin},{jETAbin},600,1000)')
-        return the_binning(pETAbin,jETAbin,pPTlow,pPThigh,additionalCUT) if pPTlow < 600 else the_binning(pETAbin,jETAbin,600,1000,additionalCUT)
+        #return the_binning(pETAbin,jETAbin,pPTlow,pPThigh,additionalCUT) if pPTlow < 600 else the_binning(pETAbin,jETAbin,500,600,additionalCUT)
+        return the_binning(pETAbin,jETAbin,pPTlow,pPThigh,additionalCUT) if pPTlow < 300 else the_binning(pETAbin,jETAbin,300,400,additionalCUT)
 
 
-    ptbinsL = [ 210,230,250,300,400,500,600,1000      ]
-    ptbinsR = [     230,250,300,400,500,600,1000,1500 ]
+    #ptbinsL = [ 210,230,250,300,400,500,600,1000      ]
+    #ptbinsR = [     230,250,300,400,500,600,1000,1500 ]
+    ## test
+    #ptbinsL = [ 210,230,250,300,400,500,800,          ]
+    #ptbinsR = [     230,250,300,400,500,800,1500      ]
+    # original photon + jet binning
+    ptbinsL = [ 210,230,250,300,400,500,600,800,1000      ]
+    ptbinsR = [     230,250,300,400,500,600,800,1000,1500 ]
 
     for pEta in range(2):
         for jEta in range(2):
-            for ptL, ptR in zip(ptbinsL,ptbinsR):
+            for ptL, ptR in zip( reversed(ptbinsL),reversed(ptbinsR) ):
+            #for ptL, ptR in zip(ptbinsL,ptbinsR):
                 used_data_frames = frag.UsedDataFrames(
                         sidebandFILE = '/afs/cern.ch/user/l/ltsai/eos_storage/condor_summary/2022EE_GJet/stage2/stage2_GJetDataDataSideband.root',
                         dataFILE     =' /afs/cern.ch/user/l/ltsai/eos_storage/condor_summary/2022EE_GJet/stage2/stage2_GJetDataSignalRegion.root',
-                        signFILE     = '/afs/cern.ch/user/l/ltsai/eos_storage/condor_summary/2022EE_GJet/stage2/stage2_GJetMCGJetMadgraph.root',
-                       #dataFILE     = '/afs/cern.ch/user/l/ltsai/eos_storage/condor_summary/2022EE_GJet/stage2/stage2_GJetMCGJeyPythiaFlat.root',
+                       #signFILE     = '/afs/cern.ch/user/l/ltsai/eos_storage/condor_summary/2022EE_GJet/stage2/stage2_GJetMCGJetMadgraph.root',
+                        signFILE     = '/afs/cern.ch/user/l/ltsai/eos_storage/condor_summary/2022EE_GJet/stage2/stage2_GJetMCGJeyPythiaFlat.root',
                         fakeFILE     = '/afs/cern.ch/user/l/ltsai/eos_storage/condor_summary/2022EE_GJet/stage2/stage2_QCDMadgraph.root',
                 )
 

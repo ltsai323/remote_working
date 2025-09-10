@@ -7,7 +7,7 @@ import ROOT
 
 iFILEname = 'aaa.root'
 
-def modify_hist(iFILEname:str, oFILEname:str, histMODIFYfunc):
+def _modify_hist(iFILEname:str, oFILEname:str, histMODIFYfunc):
     log.debug(f'[LoadROOTFile] Load {iFILEname}')
     iFILE = ROOT.TFile.Open(iFILEname)
 
@@ -28,6 +28,24 @@ def modify_hist(iFILEname:str, oFILEname:str, histMODIFYfunc):
         oFILE.cd()
     oFILE.Close()
     log.info(f'[ROOTGenerated] output file {oFILEname} generated')
+def modify_hist(iFILEname:str, oFILEname:str, histMODIFYfunc, histNAMEs:list):
+    log.debug(f'[LoadROOTFile] Load {iFILEname}')
+    iFILE = ROOT.TFile.Open(iFILEname)
+
+
+    oFILE = ROOT.TFile(oFILEname, 'recreate')
+    oFILE.cd()
+    for histkey in iFILE.GetListOfKeys():
+        loadH = iFILE.Get(histkey.GetName())
+        if not isinstance(loadH, ROOT.TH1): continue
+        if histkey.GetName() in histNAMEs:
+            loadH = histMODIFYfunc(loadH)
+
+        loadH.Write()
+    oFILE.Close()
+    iFILE.Close()
+
+    log.info(f'[ROOTGenerated] output file {oFILEname} generated')
 
 
 if __name__ == '__main__':
@@ -39,16 +57,23 @@ if __name__ == '__main__':
     ifilename = sys.argv[1]
     ofilename = sys.argv[2]
     fakeINTEGRAL = float(sys.argv[3])
+    fakeHISTnames = sys.argv[4:]
+
+
+    from itertools import chain
+    fake_hist_names = list( chain(*[ s.split(' ') for s in fakeHISTnames ]) ) # accept "aa bb cc" dd ee ff.
+    log.info(f'[AcceptedFakeHists] accept "{fake_hist_names}" for modifing')
 
 
     def modifyFUNC(inHIST):
-        if inHIST.GetName() != 'fake': return inHIST
-        log.info(f'[ModifyContent] hist:{inHIST.GetName()} modify integration from {inHIST.Integral()} to {fakeINTEGRAL}')
+        #if inHIST.GetName() != 'fake': return inHIST
+        log.info(f'[ModifyContent] hist:{inHIST.GetName()} modify integration from {inHIST.Integral():.2f} to {fakeINTEGRAL:.2f}')
 
         inHIST.Scale( fakeINTEGRAL/inHIST.Integral() )
         return inHIST
     modify_hist(
             ifilename,
             ofilename,
-            modifyFUNC
+            modifyFUNC,
+            fake_hist_names
             )

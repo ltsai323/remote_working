@@ -12,7 +12,7 @@ load_data:
         normalize: -1
     hFAKE:
         name: fake
-        histSOURCE: fake_gjet_cvsb_0
+        histSOURCE: truthfake_cvsb
         normalize: -1
     hLjet:
         name: Ljet

@@ -1,6 +1,0 @@
-    text2workspace.py myDatacard.txt \
-    	-P HiggsAnalysis.CombinedLimit.PhysicsModel:multiSignalModel \
-    	--PO "map=.*/Ljet:numL[900,0.,1000]" \
-    	--PO "map=.*/Cjet:numC[ 50,0.,1000]" \
-    	--PO "map=.*/Bjet:numB[ 50,0.,1000]" \
-    	--PO "map=.*/fake:numFAKE[1]"

@@ -3,6 +3,12 @@ import ROOT
 from uncertainties import ufloat
 from extract_fit_value import GetSnapshotAtMultiDimFit, make_hist, info, Info
 import yaml
+#!/usr/bin/env python3
+import logging
+
+log = logging.getLogger(__name__)
+
+
 
 class LoadedValue:
     def __init__(self, lVAL, cVAL, bVAL, fakeVAL = None):
@@ -96,6 +102,7 @@ def getinfo_from_workspace(inputFILEname:str, loadedVARs:list) -> dict:
                 errUp = v.getErrorHi(),
                 errDn = v.getErrorLo(),
                 )
+    log.debug(f'[LoadedVars] file {inputFILEname} got {output}')
     return output
 
 
@@ -178,6 +185,9 @@ def mainfunc_extractfitandmakecomparison(higgsbineFITTEDresult, fitVARs, truthVA
 
 
 if __name__ == "__main__":
+    logging.basicConfig(level=logging.DEBUG,
+                        format='[basicCONFIG] %(levelname)s - %(message)s',
+                        datefmt='%H:%M:%S')
     import sys
     import yaml
 

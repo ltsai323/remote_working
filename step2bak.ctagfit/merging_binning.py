@@ -85,6 +85,7 @@ def get_var_from(yamlREC:YamlRecords, varNAME) -> uncertainties.ufloat:
 def is_empty_ufloat(uFLOAT:uncertainties.ufloat) -> bool:
     if uFLOAT == EMPTY_UFLOAT: return True
     if uFLOAT.nominal_value == YAMLREC_EMPTY_VAL and uFLOAT.std_dev == YAMLREC_EMPTY_ERR: return True
+
     return False
 
 import os
@@ -396,10 +397,12 @@ def make_ratio(uVAR:uncertainties.ufloat,dVAR:uncertainties.ufloat) -> uncertain
 class mainfunc_datafit_LCB:
     name = 'datafit_LCB'
     load_file = 'datafit_fitinfo.yaml'
-    load_vars = ['numL','numC','numB']
+   #load_vars = ['numL','numC','numB']
+    load_vars = ['numC','numB']
 
     load_file_BDT = 'datafit_fitinfo.BDT.yaml'
-    load_vars_BDT = ['numSIGN','numFAKE']
+   #load_vars_BDT = ['numSIGN','numFAKE']
+    load_vars_BDT = ['numSIGN']
     ofile = 'merging_binning_result.datafit_LCB.root'
     def __init__(self, inARGs:list):
         self.args = inARGs
@@ -440,15 +443,15 @@ numL:
         bin11 = [ (idx,inbin) for idx,inbin in enumerate(inBINNINGs) if inbin.pEtaBin==1 and inbin.jEtaBin==1 ]
 
         ### load_fitinfo[idx] is a YamlRecords. So it needs a functioin to access ufloat
-        varL = lambda dictENTRY: get_var_from(dictENTRY,'numL') ## method to access dictionary entry of load_fitinfo[idx]
+       #varL = lambda dictENTRY: get_var_from(dictENTRY,'numL') ## method to access dictionary entry of load_fitinfo[idx]
         varC = lambda dictENTRY: get_var_from(dictENTRY,'numC')
         varB = lambda dictENTRY: get_var_from(dictENTRY,'numB')
         ofile = ROOT.TFile( self.ofile, 'recreate')
         hists = histCollection()
-        hists.bin00_numL = makehist( 'bin00_numL', { inbin:load_fitinfo[idx] for idx,inbin in bin00 }, varL )
-        hists.bin01_numL = makehist( 'bin01_numL', { inbin:load_fitinfo[idx] for idx,inbin in bin01 }, varL )
-        hists.bin10_numL = makehist( 'bin10_numL', { inbin:load_fitinfo[idx] for idx,inbin in bin10 }, varL )
-        hists.bin11_numL = makehist( 'bin11_numL', { inbin:load_fitinfo[idx] for idx,inbin in bin11 }, varL )
+       #hists.bin00_numL = makehist( 'bin00_numL', { inbin:load_fitinfo[idx] for idx,inbin in bin00 }, varL )
+       #hists.bin01_numL = makehist( 'bin01_numL', { inbin:load_fitinfo[idx] for idx,inbin in bin01 }, varL )
+       #hists.bin10_numL = makehist( 'bin10_numL', { inbin:load_fitinfo[idx] for idx,inbin in bin10 }, varL )
+       #hists.bin11_numL = makehist( 'bin11_numL', { inbin:load_fitinfo[idx] for idx,inbin in bin11 }, varL )
 
         hists.bin00_numC = makehist( 'bin00_numC', { inbin:load_fitinfo[idx] for idx,inbin in bin00 }, varC )
         hists.bin01_numC = makehist( 'bin01_numC', { inbin:load_fitinfo[idx] for idx,inbin in bin01 }, varC )
@@ -460,13 +463,37 @@ numL:
         hists.bin10_numB = makehist( 'bin10_numB', { inbin:load_fitinfo[idx] for idx,inbin in bin10 }, varB )
         hists.bin11_numB = makehist( 'bin11_numB', { inbin:load_fitinfo[idx] for idx,inbin in bin11 }, varB )
 
-        compositionL = lambda fitINFO, fitINFObdt: make_ratio( get_var_from(fitINFO,'numL'), get_var_from(fitINFObdt, 'numSIGN') )
+        def modify_hist_from_binWidths( origHIST, newHISTname, pETAbin, jETAbin):
+            hnew = origHIST.Clone(newHISTname)
+            if pETAbin == 0 or pETAbin == 1:
+                pho_eta_width = 2*1.4442 if pETAbin == 0 else 2*(2.5-1.566)
+            else: raise IOError(f'[InvalidEta] modify_hist_from_binWidths() got pETAbin({pETAbin})')
+            if jETAbin == 0 or jETAbin == 1:
+                jet_eta_width = 2*.15    if jETAbin == 0 else 2*(2.4-1.5)
+            else: raise IOError(f'[InvalidEta] modify_hist_from_binWidths() got jETAbin({jETAbin})')
+            for ibin in range(1, hnew.GetNbinsX()+1):
+                hnew.SetBinContent(ibin, hnew.GetBinContent(ibin) / hnew.GetBinWidth(ibin) / pho_eta_width / jet_eta_width)
+                hnew.SetBinError  (ibin, hnew.GetBinError  (ibin) / hnew.GetBinWidth(ibin) / pho_eta_width / jet_eta_width)
+            return hnew
+
+
+        hists.bin00_xsC = modify_hist_from_binWidths( hists.bin00_numC, 'bin00_xsC', 0,0)
+        hists.bin01_xsC = modify_hist_from_binWidths( hists.bin01_numC, 'bin01_xsC', 0,1)
+        hists.bin10_xsC = modify_hist_from_binWidths( hists.bin10_numC, 'bin10_xsC', 1,0)
+        hists.bin11_xsC = modify_hist_from_binWidths( hists.bin11_numC, 'bin11_xsC', 1,1)
+
+        hists.bin00_xsB = modify_hist_from_binWidths( hists.bin00_numB, 'bin00_xsB', 0,0)
+        hists.bin01_xsB = modify_hist_from_binWidths( hists.bin01_numB, 'bin01_xsB', 0,1)
+        hists.bin10_xsB = modify_hist_from_binWidths( hists.bin10_numB, 'bin10_xsB', 1,0)
+        hists.bin11_xsB = modify_hist_from_binWidths( hists.bin11_numB, 'bin11_xsB', 1,1)
+
+       #compositionL = lambda fitINFO, fitINFObdt: make_ratio( get_var_from(fitINFO,'numL'), get_var_from(fitINFObdt, 'numSIGN') )
         compositionC = lambda fitINFO, fitINFObdt: make_ratio( get_var_from(fitINFO,'numC'), get_var_from(fitINFObdt, 'numSIGN') )
         compositionB = lambda fitINFO, fitINFObdt: make_ratio( get_var_from(fitINFO,'numB'), get_var_from(fitINFObdt, 'numSIGN') )
-        hists.bin00_compositionL = makehist( 'bin00_compositionL', { inbin:compositionL(load_fitinfo[idx],load_fitinfoBDT[idx]) for idx,inbin in bin00 } )
-        hists.bin01_compositionL = makehist( 'bin01_compositionL', { inbin:compositionL(load_fitinfo[idx],load_fitinfoBDT[idx]) for idx,inbin in bin01 } )
-        hists.bin10_compositionL = makehist( 'bin10_compositionL', { inbin:compositionL(load_fitinfo[idx],load_fitinfoBDT[idx]) for idx,inbin in bin10 } )
-        hists.bin11_compositionL = makehist( 'bin11_compositionL', { inbin:compositionL(load_fitinfo[idx],load_fitinfoBDT[idx]) for idx,inbin in bin11 } )
+       #hists.bin00_compositionL = makehist( 'bin00_compositionL', { inbin:compositionL(load_fitinfo[idx],load_fitinfoBDT[idx]) for idx,inbin in bin00 } )
+       #hists.bin01_compositionL = makehist( 'bin01_compositionL', { inbin:compositionL(load_fitinfo[idx],load_fitinfoBDT[idx]) for idx,inbin in bin01 } )
+       #hists.bin10_compositionL = makehist( 'bin10_compositionL', { inbin:compositionL(load_fitinfo[idx],load_fitinfoBDT[idx]) for idx,inbin in bin10 } )
+       #hists.bin11_compositionL = makehist( 'bin11_compositionL', { inbin:compositionL(load_fitinfo[idx],load_fitinfoBDT[idx]) for idx,inbin in bin11 } )
 
         hists.bin00_compositionC = makehist( 'bin00_compositionC', { inbin:compositionC(load_fitinfo[idx],load_fitinfoBDT[idx]) for idx,inbin in bin00 } )
         hists.bin01_compositionC = makehist( 'bin01_compositionC', { inbin:compositionC(load_fitinfo[idx],load_fitinfoBDT[idx]) for idx,inbin in bin01 } )
@@ -625,15 +652,16 @@ truthinfo:
         hists.ratio_bin11_numB = makehist( 'ratio_bin11_numB', { inbin:load_ratio[idx] for idx,inbin in bin11 }, varB )
 
 
-        
+
         def significance_calc(fitINFO,truthINFO, varNAME) -> float:
             ff = get_var_from(fitINFO,varNAME)
             tt = get_var_from(truthINFO,varNAME)
 
             if is_empty_ufloat(ff): return -1
             if is_empty_ufloat(tt): return -1
+            log.debug(f'[CalculateSignificance - {varNAME}] abs({ff.nominal_value:.2f}-{tt.nominal_value:.2f}) / {ff.std_dev:.2f}')
             return abs(ff.nominal_value-tt.nominal_value) / ff.std_dev
-            
+
         calc_significanceL = [ significance_calc(fitinfo,truthinfo,'numL') for fitinfo,truthinfo in zip(load_fitinfo,load_truthinfo) ]
         calc_significanceC = [ significance_calc(fitinfo,truthinfo,'numC') for fitinfo,truthinfo in zip(load_fitinfo,load_truthinfo) ]
         calc_significanceB = [ significance_calc(fitinfo,truthinfo,'numB') for fitinfo,truthinfo in zip(load_fitinfo,load_truthinfo) ]
@@ -663,13 +691,14 @@ truthinfo:
 
         rnd = ROOT.TRandom3(2398)
         def makehist_stackratio_generate_1000evt(histNAME, ratios):
-            h = ROOT.TH1F(histNAME, 'Use Randome number representing uncertainties', 35, 0.8, 1.5)
-            horig = ROOT.TH1F(histNAME+'orig', 'Direct fill fit/truth', 35, 0.8, 1.5)
+            h = ROOT.TH1F(histNAME, 'Use Randome number representing uncertainties', 45, 0.6, 1.5)
+            horig = ROOT.TH1F(histNAME+'orig', 'Direct fill fit/truth', 45, 0.6, 1.5)
 
             N_PSUEDODATA_GENERATED = 1000
             evt_weight = 1. / N_PSUEDODATA_GENERATED
             for ratio in ratios:
                 if is_empty_ufloat(ratio): continue
+                if ratio.nominal_value < 0: continue
                 horig.Fill(ratio.nominal_value)
                 for iGen in range(N_PSUEDODATA_GENERATED):
                     h.Fill( rnd.Gaus(ratio.nominal_value,ratio.std_dev), evt_weight )
@@ -706,7 +735,7 @@ truthinfo:
 
 
 
-    
+
 
 
 

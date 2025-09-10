@@ -1,6 +1,0 @@
-#!/usr/bin/env sh
-nL=1214.63
-nC=347.04
-nB=173.52
-nDATA=2168.98
-nFAKE=433.80

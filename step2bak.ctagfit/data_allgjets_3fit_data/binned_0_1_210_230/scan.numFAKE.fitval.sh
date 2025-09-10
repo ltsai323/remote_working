@@ -1,3 +1,0 @@
-numFAKE_rangeL=0
-numFAKE_rangeR=10582
-numFAKE_central=5291

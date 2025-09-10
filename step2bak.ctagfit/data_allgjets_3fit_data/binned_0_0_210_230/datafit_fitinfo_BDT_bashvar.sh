@@ -1,6 +1,0 @@
-numFAKE_rangeL=0
-numFAKE_rangeR=28410
-numFAKE_central=14205
-numSIGN_rangeL=0
-numSIGN_rangeR=383142
-numSIGN_central=191571

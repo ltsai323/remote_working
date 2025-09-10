@@ -2,6 +2,13 @@
 
 import ROOT
 from collections import namedtuple
+#!/usr/bin/env python3
+import logging
+
+log = logging.getLogger(__name__)
+
+
+
 def info(mesg):
     print(f'i@ {mesg}')
 
@@ -35,6 +42,10 @@ class Info:
         if hasattr(self, 'errUp'): o['errUp'] = self.errUp
         if hasattr(self, 'errDn'): o['errDn'] = self.errDn
         return o
+    def __str__(self):
+        return f'Info(val={self.value:.2f},err={self.error})'
+    def __repr__(self):
+        return self.__str__()
 
 
 
@@ -248,12 +259,15 @@ def make_hist(histNAME, outputVARs:dict) -> ROOT.TH1F:
     NBIN = len(BIN_LABEL)
     hist = ROOT.TH1F(histNAME, 'info', NBIN, 0, NBIN)
 
+    log.debug(f'[make_hist] hist {histNAME}')
     for idx,var_name in enumerate(BIN_LABEL):
         var = outputVARs[var_name]
         binIdx = idx+1
         hist.SetBinContent(binIdx, var.value)
         hist.SetBinError  (binIdx, var.error)
         hist.GetXaxis().SetBinLabel(binIdx,var_name)
+
+        log.debug(f'[make_hist] bin {idx+1} {var_name} got content {var.value} +- {var.error}')
     return hist
 
 
@@ -275,6 +289,9 @@ if __name__ == "__main__":
     '''
     args: 1.inROOT 2.outYAML 3~N: variables recorded into yaml file and read from root file
     '''
+    logging.basicConfig(level=logging.DEBUG,
+                        format='[basicCONFIG] %(levelname)s - %(message)s',
+                        datefmt='%H:%M:%S')
     import sys
     in_root = sys.argv[1]
     out_yaml = sys.argv[2]

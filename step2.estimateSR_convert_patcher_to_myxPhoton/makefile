@@ -30,7 +30,7 @@ hi: HI.C
 	$(CXX) $(LD_FLAGS) $(ROOT_FLAGS) $(EXTRA_LIBS) HI.C $(MYLIB) -o a.exe
 
 
-massiverun: runData runGJets runQCD runGJetsPythiaFlat ## Data and gjet
+massiverun: runGJetsPythiaFlat runData runGJets runQCD ## Data and gjet
 #massiverun: runData runGJets runQCD
 
 runData: runDataE runDataF runDataG runDataESB runDataFSB runDataGSB ## 6 channel

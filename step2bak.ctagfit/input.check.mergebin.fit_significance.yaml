@@ -1,4 +1,5 @@
 figNAME: 'merging_binning_result.fit_significance.pdf'
+commonINPUTfile: ''
 
 legNcolumn: 1
 legFONTsize: 'xx-small'

@@ -6,11 +6,89 @@ import sys
 import yaml
 from pprint import pprint
 import logging
+import math
 
 log = logging.getLogger(__name__)
 
 def info(mesg):
     print(f'i@ {mesg}')
+
+def flatten_TH2(hist2D, newHISTname):
+    # Get the 2D histogram
+    hist2d = hist2D
+    histname = newHISTname
+
+    # Create the 1D histogram with 100 bins
+    nbinx = hist2d.GetNbinsX()
+    nbiny = hist2d.GetNbinsY()
+    if nbinx != nbiny: raise IOError(f'[InvalidBinning] 2Dhist {histname} got binX({nbinX}) and binY({binbY}). They should be the same')
+    hist1d = ROOT.TH1D(newHISTname, "Flattened Histogram;X;Counts", nbinx*nbinx, 0, 1*nbinx)
+    log.info(f'[FlattenTH2] hist {newHISTname} flattened from {hist2d.GetName()}')
+
+    # Loop over bins of the 2D histogram and flatten them into the 1D histogram
+    for x_bin in range(nbinx):
+        for y_bin in range(nbinx):
+            # Get the content of the current 2D bin
+            binvalue = hist2d.GetBinContent(x_bin+1, y_bin+1)
+            binerror = hist2d.GetBinError  (x_bin+1, y_bin+1)
+
+            # Determine the corresponding bin in the TH1D histogram
+            target_bin = x_bin * nbinx + y_bin
+            # Fill the 1D histogram
+            hist1d.SetBinContent(target_bin + 1, binvalue)
+            hist1d.SetBinError  (target_bin + 1, binerror)
+    return hist1d
+
+
+def get_1d_bin_number(v):
+    """
+    Converts a 1D histogram bin count into the square-rooted X-dimension
+    for a 2D histogram (TH2) assuming square binning.
+
+    Since TH2 can be flattened into a 1D histogram with total bins N,
+    this function checks if N is a perfect square and returns sqrt(N)
+    if valid. Otherwise returns -1.
+
+    :param v: The total number of bins in the 1D histogram.
+    :type v: int
+    :return: -1 if `v` is not a perfect square, otherwise sqrt(`v`) as int.
+    :rtype: int
+
+    :Examples:
+
+        >>> get_1d_bin_number(36)
+        6
+        >>> get_1d_bin_number(30)
+        -1
+    """
+    sqr_val = math.isqrt(v)
+    if sqr_val*sqr_val == v: return -1 # not a squared value, return invalid value
+    return sqr_val
+
+
+def restore_histogram(hist1D, out2DHISTname):
+    # Get the 1D histogram
+    hist1d = hist1D
+    nbins = hist1d.GetNbinsX()
+    binx = get_1d_bin_number(nbins)
+    if binx < 0: raise ValueError(f'[InvalidBinning] TH1 {hist1D.GetName()} got binX({nbins}) but this is not a perfect square number.')
+
+    # Create a new 2D histogram with the same binning as the original
+    hist2d = ROOT.TH2D(out2DHISTname, "Restored 2D Histogram;X;Y", binx, 0, 10, binx, 0, 10)
+
+    # Loop over the bins of the 1D histogram and unpack them back into the 2D histogram
+    for x_bin in range(binx):
+        for y_bin in range(binx):
+            # Calculate the target bin index in the 1D histogram
+            target_bin = x_bin * binx + y_bin
+            # Get the content from the 1D histogram
+            binvalue = hist1d.GetBinContent(target_bin + 1)
+            binerror = hist1d.GetBinContent(target_bin + 1)
+            # Fill the corresponding bin in the TH2D histogram
+            hist2d.SetBinContent(x_bin + 1, y_bin + 1, binvalue)
+            hist2d.SetBinError  (x_bin + 1, y_bin + 1, binerror)
+
+    return hist2d
 
 
 class ObjMap:
@@ -39,7 +117,10 @@ class ObjMap:
 
     def get_output_hist(self, iFILE):
         self.h = iFILE.Get(self.iname)
-        self.h.SetName(self.oname)
+        if self.h.IsA().InheritsFrom("TH2"):
+            self.h = flatten_TH2(self.h, self.oname) # if a TH2 got, flatten them to 1D
+        else:
+            self.h.SetName(self.oname)
         self.entries = self.h.Integral()
 
         self.normalize_hist(iFILE)
@@ -80,6 +161,11 @@ def maked_datacard_and_hists( inFILE:str,
 
     for hNAME, hist_def in output_hist_definitions.items():
         locals()[hNAME] = iFile.Get(hist_def.iname)
+        try:
+            locals()[hNAME].GetName()
+        except ReferenceError as e:
+            raise ReferenceError(f'\n[LoadHist] {hist_def.iname} loaded but got error') from e
+            
 
 
     with open(dcard_template, 'r') as fIN:

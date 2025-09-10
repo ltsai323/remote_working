@@ -13,7 +13,7 @@ load_data:
     hFAKE:
         name: fake
         histSOURCE: side_gjet_cvsb
-        normalize: 1
+        normalize: -1
     hLjet:
         name: Ljet
         histSOURCE: sigL_gjet_cvsb

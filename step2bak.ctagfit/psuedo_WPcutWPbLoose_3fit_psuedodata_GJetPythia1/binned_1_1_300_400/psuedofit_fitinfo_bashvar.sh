@@ -1,9 +1,0 @@
-numB_rangeL=0
-numB_rangeR=198
-numB_central=99
-numC_rangeL=0
-numC_rangeR=592
-numC_central=296
-numL_rangeL=503.5
-numL_rangeR=2014
-numL_central=1007

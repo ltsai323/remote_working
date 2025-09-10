@@ -15,15 +15,24 @@ make -j8 -f makefile.runbinned  allbinning  \
     singleMAKEFILE=makefile.3fits_btagcut_psuedodata \
     binningFOLDER=$folder \
     oDIR=$out_dir \
-    iYAMLcvsb=source.btag_psuedofit_cvsb.yaml \
-    iYAMLcvsl=source.btag_psuedofit_cvsl.yaml \
-    iYAMLbtag=source.btag_psuedofit_btag.yaml
+    iYAMLcvsb=test.cvsb.yaml \
+    iYAMLcvsl=test.cvsl.yaml \
+    iYAMLbtag=test.btag.yaml
+    #iYAMLcvsb=source.btag_psuedofit_cvsb.yaml \
+    #iYAMLcvsl=source.btag_psuedofit_cvsl.yaml \
+    #iYAMLbtag=source.btag_psuedofit_btag.yaml
 }
 
 #runBinnedPsuedodata WPcutallgjets  /afs/cern.ch/work/l/ltsai/Work/CMSSW/CMSSW_13_0_21/src/macros/step2bak.makehisto/makehisto_allgjets_binned_ctagfit
-runBinnedPsuedodata psuedo_WPcutWPbLoose   /afs/cern.ch/work/l/ltsai/Work/CMSSW/CMSSW_13_0_21/src/macros/step2bak.makehisto/makehisto_WPbLoose_binned_ctagfit
-runBinnedPsuedodata psuedo_WPcutWPbMedium  /afs/cern.ch/work/l/ltsai/Work/CMSSW/CMSSW_13_0_21/src/macros/step2bak.makehisto/makehisto_WPbMedium_binned_ctagfit
+#runBinnedPsuedodata psuedo_WPcutWPbLoose   /afs/cern.ch/work/l/ltsai/Work/CMSSW/CMSSW_13_0_21/src/macros/step2bak.makehisto/makehisto_WPbLoose_binned_ctagfit
+#runBinnedPsuedodata psuedo_WPcutWPbMedium  /afs/cern.ch/work/l/ltsai/Work/CMSSW/CMSSW_13_0_21/src/macros/step2bak.makehisto/makehisto_WPbMedium_binned_ctagfit
+#runBinnedPsuedodata psuedo_WPcutWPcLoose   /afs/cern.ch/work/l/ltsai/Work/CMSSW/CMSSW_13_0_21/src/macros/step2bak.makehisto/makehisto_WPcLoose_binned_ctagfit
+#runBinnedPsuedodata psuedo_WPcutWPcMedium  /afs/cern.ch/work/l/ltsai/Work/CMSSW/CMSSW_13_0_21/src/macros/step2bak.makehisto/makehisto_WPcMedium_binned_ctagfit
 #runBinnedPsuedodata psuedo_allgjets  /afs/cern.ch/work/l/ltsai/Work/CMSSW/CMSSW_13_0_21/src/macros/step2bak.makehisto/makehisto_allgjets_binned_ctagfit
+
+#runBinnedPsuedodata psuedo_WPcutWPbLoose_10bins   /afs/cern.ch/work/l/ltsai/Work/CMSSW/CMSSW_13_0_21/src/macros/step2bak.makehisto/makehisto_WPbLoose_bin10_binned_ctagfit
+#runBinnedPsuedodata psuedo_allgjets_10bins  /afs/cern.ch/work/l/ltsai/Work/CMSSW/CMSSW_13_0_21/src/macros/step2bak.makehisto/makehisto_allgjetd_bin10_binned_ctagfit
+runBinnedPsuedodata psuedo_allgjets_40bins_numLconstraint  /afs/cern.ch/work/l/ltsai/Work/CMSSW/CMSSW_13_0_21/src/macros/step2bak.makehisto/makehisto_allgjet_bin40_ctagfit_psuedodata
 
 
 

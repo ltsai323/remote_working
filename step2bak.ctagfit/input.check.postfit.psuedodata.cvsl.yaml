@@ -1,12 +1,12 @@
-figNAME: 'postfit.psuedodata.cvsl.pdf'
+figNAME: 'fitres.cvsl.pdf'
 upperpad:
   legNcolumn: 2
   legFONTsize: 'xx-small'
   xLABEL: ''
   yLABEL: 'Entries'
-  yRANGE:
-    - 1e-1
-    - 1e8
+ #yRANGE:
+ #  - 1e-1
+ #  - 1e8
   ySCALE: log
   plotables:
     - type: TH1F

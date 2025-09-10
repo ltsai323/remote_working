@@ -1,0 +1,30 @@
+figNAME: 'check_kinematics.phophi.pdf'
+
+legNcolumn: 1
+legFONTsize: 'xx-small'
+legTITLE: 'process and norm factor'
+xLABEL: 'pho phi'
+yLABEL: 'Yields normalized to 1'
+  #yRANGE:
+  #  - 0.0
+  #  - 1.0
+ySCALE: linear
+plotables:
+  - type: TH1F
+    objname: kine_data_phophi
+    file: check_kinematics.root
+    plotstyle: data0
+    legorder:  0
+    label: ''
+  - type: TH1F
+    objname: kine_gjet_phophi
+    file: check_kinematics.root
+    plotstyle: square1
+    legorder:  1
+    label: ''
+  - type: TH1F
+    objname: kine_side_phophi
+    file: check_kinematics.root
+    plotstyle: diamond2
+    legorder:  2
+    label: ''

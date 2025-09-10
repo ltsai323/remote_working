@@ -1,0 +1,40 @@
+# direct run 
+make -f makefile.runbinned merge_binning_comparetruth_LCB binningDIR=WPcutWPbLoose_pull0_2fit_psuedodata_GJetPythia1_new
+
+make -f makefile.runbinned merge_binning_datafit_LCB binningDIR=data_allgjets_40bins_saikatGJetBinging_sigGJetPythiaFlat_numLconstraint_3fit_data BINNING_FILELIST_DATA="
+makehisto_binned_ctagfit_data__0_0_1000_1500.root \
+makehisto_binned_ctagfit_data__0_0_210_230.root \
+makehisto_binned_ctagfit_data__0_0_230_250.root \
+makehisto_binned_ctagfit_data__0_0_250_300.root \
+makehisto_binned_ctagfit_data__0_0_300_400.root \
+makehisto_binned_ctagfit_data__0_0_400_500.root \
+makehisto_binned_ctagfit_data__0_0_500_600.root \
+makehisto_binned_ctagfit_data__0_0_600_800.root \
+makehisto_binned_ctagfit_data__0_0_800_1000.root \
+makehisto_binned_ctagfit_data__0_1_1000_1500.root \
+makehisto_binned_ctagfit_data__0_1_210_230.root \
+makehisto_binned_ctagfit_data__0_1_230_250.root \
+makehisto_binned_ctagfit_data__0_1_250_300.root \
+makehisto_binned_ctagfit_data__0_1_300_400.root \
+makehisto_binned_ctagfit_data__0_1_400_500.root \
+makehisto_binned_ctagfit_data__0_1_500_600.root \
+makehisto_binned_ctagfit_data__0_1_600_800.root \
+makehisto_binned_ctagfit_data__0_1_800_1000.root \
+makehisto_binned_ctagfit_data__1_0_1000_1500.root \
+makehisto_binned_ctagfit_data__1_0_210_230.root \
+makehisto_binned_ctagfit_data__1_0_230_250.root \
+makehisto_binned_ctagfit_data__1_0_250_300.root \
+makehisto_binned_ctagfit_data__1_0_300_400.root \
+makehisto_binned_ctagfit_data__1_0_400_500.root \
+makehisto_binned_ctagfit_data__1_0_500_600.root \
+makehisto_binned_ctagfit_data__1_0_600_800.root \
+makehisto_binned_ctagfit_data__1_0_800_1000.root \
+makehisto_binned_ctagfit_data__1_1_1000_1500.root \
+makehisto_binned_ctagfit_data__1_1_210_230.root \
+makehisto_binned_ctagfit_data__1_1_230_250.root \
+makehisto_binned_ctagfit_data__1_1_250_300.root \
+makehisto_binned_ctagfit_data__1_1_300_400.root \
+makehisto_binned_ctagfit_data__1_1_400_500.root \
+makehisto_binned_ctagfit_data__1_1_500_600.root \
+makehisto_binned_ctagfit_data__1_1_600_800.root \
+makehisto_binned_ctagfit_data__1_1_800_1000.root"

@@ -3,17 +3,22 @@ import ROOT
 from makehisto_usefulfunc import CreateJetPtSF_toTH1, UpdateEvtWeight_ReweightJetPtFromGJetandQCD, UpdateEvtWeight_ReweightJetPtFromGJet, LoadAdditionalFunc, Define_NormalizeBTagSF
 import makehisto_usefulfunc as extfunc
 ### used for miniAOD v12
-DEBUG_MODE = True
+import logging
+import sys
+DEBUG_MODE = False
+
+log = logging.getLogger(__name__)
+
 
 import ExternalFileMgr
-def info(mesg):
-    print(f'i@ {mesg}')
 
 #from makehisto_usefulfunc import UsedDataFrames, histCollection
 #from makehisto_usefulfunc import hBDTAll, hBDTAct, hSVmAll, hSVmAct
 import makehisto_usefulfunc as frag
 
-DATA_LUMINOSITY = 26.81 # 2022EE
+#DATA_LUMINOSITY = 26.81 # 2022EE
+DATA_LUMINOSITY = 27.01 # 2022EE
+
 
 def define_and_filter(usedDF: frag.UsedDataFrames, dfCUTfuncs:dict, dfDEFfuncs:dict, rescaleSIGN=False):
     the_data0 = usedDF.dfSR
@@ -72,14 +77,14 @@ def main_content_WPbL( usedDF: frag.UsedDataFrames, outputFILE):
 
 
     class NameSet:
-        def __init__(self, varNAME):
-            self.data = f'data_{varNAME}'
-            self.gjet = f'gjet_{varNAME}'
-            self.sigL = f'sigL_{varNAME}'
-            self.sigC = f'sigC_{varNAME}'
-            self.sigB = f'sigB_{varNAME}'
-            self.fake = f'fake_{varNAME}'
-            self.side = f'side_{varNAME}' # data sideband
+        def __init__(self, oTAG):
+            self.data = f'data_{oTAG}'
+            self.gjet = f'gjet_{oTAG}'
+            self.sigL = f'sigL_{oTAG}'
+            self.sigC = f'sigC_{oTAG}'
+            self.sigB = f'sigB_{oTAG}'
+            self.fake = f'fake_{oTAG}'
+            self.side = f'side_{oTAG}' # data sideband
 
             #print(f'[NameSet] Generating histograms: {self.data} {self.sign} {self.fake} {self.stak} {self.diff}')
 
@@ -157,14 +162,20 @@ def main_content( usedDF: frag.UsedDataFrames, outputFILE):
 
 
     class NameSet:
-        def __init__(self, varNAME):
-            self.data = f'data_{varNAME}'
-            self.gjet = f'gjet_{varNAME}'
-            self.sigL = f'sigL_{varNAME}'
-            self.sigC = f'sigC_{varNAME}'
-            self.sigB = f'sigB_{varNAME}'
-            self.fake = f'fake_{varNAME}'
-            self.side = f'side_{varNAME}' # data sideband
+        def __init__(self, oTAG):
+            self.data = f'data_{oTAG}'
+            self.gjet = f'gjet_{oTAG}'
+            self.sigL = f'sigL_{oTAG}'
+            self.sigC = f'sigC_{oTAG}'
+            self.sigB = f'sigB_{oTAG}'
+            self.fake = f'fake_{oTAG}'
+            self.side = f'side_{oTAG}' # data sideband
+            self.sigl = f'sigL_{oTAG}_noweight'
+            self.sigc = f'sigC_{oTAG}_noweight'
+            self.sigb = f'sigB_{oTAG}_noweight'
+            self.osigl = f'sigL_{oTAG}_origweight'
+            self.osigc = f'sigC_{oTAG}_origweight'
+            self.osigb = f'sigB_{oTAG}_origweight'
 
             #print(f'[NameSet] Generating histograms: {self.data} {self.sign} {self.fake} {self.stak} {self.diff}')
 
@@ -177,6 +188,37 @@ def main_content( usedDF: frag.UsedDataFrames, outputFILE):
 
         names = NameSet(oTAG)
         hists = frag.histCollection()
+        def KinematicPlotsORIG(dataFRAME, tag):
+            draw_orig_hist = True if 'event_weight_orig' in dfSIGN.GetColumnNames() else False
+            if draw_orig_hist:
+                setattr(hists, f'kine_{tag}_phopt' , dataFRAME.Histo1D( frag.kPhoPt (tag),'photon_pt' , 'event_weight_orig') )
+                setattr(hists, f'kine_{tag}_phoeta', dataFRAME.Histo1D( frag.kPhoEta(tag),'photon_eta', 'event_weight_orig') )
+                setattr(hists, f'kine_{tag}_phophi', dataFRAME.Histo1D( frag.kPhoPhi(tag),'photon_phi', 'event_weight_orig') )
+                setattr(hists, f'kine_{tag}_jetpt' , dataFRAME.Histo1D( frag.kJetPt (tag),'jet_pt'    , 'event_weight_orig') )
+                setattr(hists, f'kine_{tag}_jeteta', dataFRAME.Histo1D( frag.kJetEta(tag),'jet_eta'   , 'event_weight_orig') )
+                setattr(hists, f'kine_{tag}_jetphi', dataFRAME.Histo1D( frag.kJetPhi(tag),'jet_phi'   , 'event_weight_orig') )
+                setattr(hists, f'kine_{tag}_nJet'  , dataFRAME.Histo1D( frag.kNJet  (tag),'jet_multiplicity', 'event_weight_orig') )
+        def KinematicPlots(dataFRAME, tag):
+            setattr(hists, f'kine_{tag}_phopt' , dataFRAME.Histo1D( frag.kPhoPt (tag),'photon_pt' , 'event_weight') )
+            setattr(hists, f'kine_{tag}_phoeta', dataFRAME.Histo1D( frag.kPhoEta(tag),'photon_eta', 'event_weight') )
+            setattr(hists, f'kine_{tag}_phophi', dataFRAME.Histo1D( frag.kPhoPhi(tag),'photon_phi', 'event_weight') )
+            setattr(hists, f'kine_{tag}_jetpt' , dataFRAME.Histo1D( frag.kJetPt (tag),'jet_pt'    , 'event_weight') )
+            setattr(hists, f'kine_{tag}_jeteta', dataFRAME.Histo1D( frag.kJetEta(tag),'jet_eta'   , 'event_weight') )
+            setattr(hists, f'kine_{tag}_jetphi', dataFRAME.Histo1D( frag.kJetPhi(tag),'jet_phi'   , 'event_weight') )
+            setattr(hists, f'kine_{tag}_nJet'  , dataFRAME.Histo1D( frag.kNJet  (tag),'jet_multiplicity', 'event_weight') )
+        KinematicPlots(dfDATA, 'data')
+        KinematicPlots(dfSIGN, 'gjet')
+        KinematicPlots(dfSIGN, 'sigL')
+        KinematicPlots(dfSIGN, 'sigC')
+        KinematicPlots(dfSIGN, 'sigB')
+        KinematicPlots(dfFAKE, 'fake')
+        KinematicPlots(dfSIDE, 'side')
+        draw_orig_hist = True if 'event_weight_orig' in dfSIGN.GetColumnNames() else False
+        if draw_orig_hist:
+            KinematicPlotsORIG(dfSIGN, 'gjet_origweight')
+            KinematicPlotsORIG(dfSigL, 'sigL_origweight')
+            KinematicPlotsORIG(dfSigC, 'sigC_origweight')
+            KinematicPlotsORIG(dfSigB, 'sigB_origweight')
 
         ### all entries
         hists.data_BDTAll = dfDATA.Histo1D( frag.hBDTAll(names.data), 'photon_mva', 'event_weight' )
@@ -186,6 +228,9 @@ def main_content( usedDF: frag.UsedDataFrames, outputFILE):
         hists.sigB_BDTAll = dfSigB.Histo1D( frag.hBDTAll(names.sigB), 'photon_mva', 'event_weight' )
         hists.fake_BDTAll = dfFAKE.Histo1D( frag.hBDTAll(names.fake), 'photon_mva', 'event_weight' )
         hists.side_BDTAll = dfSIDE.Histo1D( frag.hBDTAll(names.side), 'photon_mva', 'event_weight' )
+        hists.sigl_BDTAll = dfSigL.Histo1D( frag.hBDTAll(names.sigl), 'photon_mva')
+        hists.sigc_BDTAll = dfSigC.Histo1D( frag.hBDTAll(names.sigc), 'photon_mva')
+        hists.sigb_BDTAll = dfSigB.Histo1D( frag.hBDTAll(names.sigb), 'photon_mva')
 
         hists.data_btag = dfDATA.Histo1D( frag.hbtag(names.data), 'ParTB', 'event_weight' )
         hists.sigL_btag = dfSigL.Histo1D( frag.hbtag(names.sigL), 'ParTB', 'event_weight' )
@@ -193,6 +238,9 @@ def main_content( usedDF: frag.UsedDataFrames, outputFILE):
         hists.sigB_btag = dfSigB.Histo1D( frag.hbtag(names.sigB), 'ParTB', 'event_weight' )
         hists.fake_btag = dfFAKE.Histo1D( frag.hbtag(names.fake), 'ParTB', 'event_weight' )
         hists.side_btag = dfSIDE.Histo1D( frag.hbtag(names.side), 'ParTB', 'event_weight' )
+        hists.sigl_btag = dfSigL.Histo1D( frag.hbtag(names.sigl), 'ParTB')
+        hists.sigc_btag = dfSigC.Histo1D( frag.hbtag(names.sigc), 'ParTB')
+        hists.sigb_btag = dfSigB.Histo1D( frag.hbtag(names.sigb), 'ParTB')
 
         hists.data_cvsb = dfDATA.Histo1D( frag.hcvsb(names.data), 'ParTCvsB', 'event_weight' )
         hists.sigL_cvsb = dfSigL.Histo1D( frag.hcvsb(names.sigL), 'ParTCvsB', 'event_weight' )
@@ -200,6 +248,9 @@ def main_content( usedDF: frag.UsedDataFrames, outputFILE):
         hists.sigB_cvsb = dfSigB.Histo1D( frag.hcvsb(names.sigB), 'ParTCvsB', 'event_weight' )
         hists.fake_cvsb = dfFAKE.Histo1D( frag.hcvsb(names.fake), 'ParTCvsB', 'event_weight' )
         hists.side_cvsb = dfSIDE.Histo1D( frag.hcvsb(names.side), 'ParTCvsB', 'event_weight' )
+        hists.sigl_cvsb = dfSigL.Histo1D( frag.hcvsb(names.sigl), 'ParTCvsB')
+        hists.sigc_cvsb = dfSigC.Histo1D( frag.hcvsb(names.sigc), 'ParTCvsB')
+        hists.sigb_cvsb = dfSigB.Histo1D( frag.hcvsb(names.sigb), 'ParTCvsB')
 
         hists.data_cvsl = dfDATA.Histo1D( frag.hcvsl(names.data), 'ParTCvsL', 'event_weight' )
         hists.sigL_cvsl = dfSigL.Histo1D( frag.hcvsl(names.sigL), 'ParTCvsL', 'event_weight' )
@@ -207,8 +258,42 @@ def main_content( usedDF: frag.UsedDataFrames, outputFILE):
         hists.sigB_cvsl = dfSigB.Histo1D( frag.hcvsl(names.sigB), 'ParTCvsL', 'event_weight' )
         hists.fake_cvsl = dfFAKE.Histo1D( frag.hcvsl(names.fake), 'ParTCvsL', 'event_weight' )
         hists.side_cvsl = dfSIDE.Histo1D( frag.hcvsl(names.side), 'ParTCvsL', 'event_weight' )
+        hists.sigl_cvsl = dfSigL.Histo1D( frag.hcvsl(names.sigl), 'ParTCvsL')
+        hists.sigc_cvsl = dfSigC.Histo1D( frag.hcvsl(names.sigc), 'ParTCvsL')
+        hists.sigb_cvsl = dfSigB.Histo1D( frag.hcvsl(names.sigb), 'ParTCvsL')
 
 
+        hists.data2D_ctag = dfDATA.Histo2D( frag.h2DcvsbANDcvsl(names.data), 'ParTCvsB', 'ParTCvsL', 'event_weight' )
+        hists.sigL2D_ctag = dfSigL.Histo2D( frag.h2DcvsbANDcvsl(names.sigL), 'ParTCvsB', 'ParTCvsL', 'event_weight' )
+        hists.sigC2D_ctag = dfSigC.Histo2D( frag.h2DcvsbANDcvsl(names.sigC), 'ParTCvsB', 'ParTCvsL', 'event_weight' )
+        hists.sigB2D_ctag = dfSigB.Histo2D( frag.h2DcvsbANDcvsl(names.sigB), 'ParTCvsB', 'ParTCvsL', 'event_weight' )
+        hists.fake2D_ctag = dfFAKE.Histo2D( frag.h2DcvsbANDcvsl(names.fake), 'ParTCvsB', 'ParTCvsL', 'event_weight' )
+        hists.side2D_ctag = dfSIDE.Histo2D( frag.h2DcvsbANDcvsl(names.side), 'ParTCvsB', 'ParTCvsL', 'event_weight' )
+        hists.sigl2D_ctag = dfSigL.Histo2D( frag.h2DcvsbANDcvsl(names.sigl), 'ParTCvsB', 'ParTCvsL')
+        hists.sigc2D_ctag = dfSigC.Histo2D( frag.h2DcvsbANDcvsl(names.sigc), 'ParTCvsB', 'ParTCvsL')
+        hists.sigb2D_ctag = dfSigB.Histo2D( frag.h2DcvsbANDcvsl(names.sigb), 'ParTCvsB', 'ParTCvsL')
+
+        if draw_orig_hist:
+            hists.osigl_BDTAll = dfSigL.Histo1D( frag.hBDTAll(names.osigl), 'photon_mva', 'event_weight_orig')
+            hists.osigc_BDTAll = dfSigC.Histo1D( frag.hBDTAll(names.osigc), 'photon_mva', 'event_weight_orig')
+            hists.osigb_BDTAll = dfSigB.Histo1D( frag.hBDTAll(names.osigb), 'photon_mva', 'event_weight_orig')
+
+            hists.osigl_btag = dfSigL.Histo1D( frag.hbtag(names.osigl), 'ParTB', 'event_weight_orig')
+            hists.osigc_btag = dfSigC.Histo1D( frag.hbtag(names.osigc), 'ParTB', 'event_weight_orig')
+            hists.osigb_btag = dfSigB.Histo1D( frag.hbtag(names.osigb), 'ParTB', 'event_weight_orig')
+
+            hists.osigl_cvsb = dfSigL.Histo1D( frag.hcvsb(names.osigl), 'ParTCvsB', 'event_weight_orig')
+            hists.osigc_cvsb = dfSigC.Histo1D( frag.hcvsb(names.osigc), 'ParTCvsB', 'event_weight_orig')
+            hists.osigb_cvsb = dfSigB.Histo1D( frag.hcvsb(names.osigb), 'ParTCvsB', 'event_weight_orig')
+
+            hists.osigl_cvsl = dfSigL.Histo1D( frag.hcvsl(names.osigl), 'ParTCvsL', 'event_weight_orig')
+            hists.osigc_cvsl = dfSigC.Histo1D( frag.hcvsl(names.osigc), 'ParTCvsL', 'event_weight_orig')
+            hists.osigb_cvsl = dfSigB.Histo1D( frag.hcvsl(names.osigb), 'ParTCvsL', 'event_weight_orig')
+
+
+            hists.osigl2D_ctag = dfSigL.Histo2D( frag.h2DcvsbANDcvsl(names.osigl), 'ParTCvsB', 'ParTCvsL', 'event_weight_orig')
+            hists.osigc2D_ctag = dfSigC.Histo2D( frag.h2DcvsbANDcvsl(names.osigc), 'ParTCvsB', 'ParTCvsL', 'event_weight_orig')
+            hists.osigb2D_ctag = dfSigB.Histo2D( frag.h2DcvsbANDcvsl(names.osigb), 'ParTCvsB', 'ParTCvsL', 'event_weight_orig')
 
         return hists
 
@@ -367,6 +452,14 @@ def testfunc_add_btagSF():
 
 
 if __name__ == "__main__":
+    import os
+    loglevel = os.environ.get('LOG_LEVEL', 'INFO') # DEBUG, INFO, WARNING
+    DEBUG_MODE = True if loglevel == 'DEBUG' else False
+    logLEVEL = getattr(logging, loglevel)
+    logging.basicConfig(stream=sys.stdout,level=logLEVEL,
+            format='[makehisto_ctagfit_estimateSR] %(levelname)s - %(message)s',
+            datefmt='%H:%M:%S')
+
     testfunc_add_btagSF()
     import sys
     outHISTname = sys.argv[1]

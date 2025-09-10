@@ -1,0 +1,36 @@
+figNAME: 'merging_binning_result.gammaCspectrum.pdf'
+
+legNcolumn: 1
+legFONTsize: 'xx-small'
+legTITLE: '$\gamma$+c spectrum'
+xLABEL: '$p^{\gamma}_{T}$ (GeV)'
+yLABEL: '$\gamma$+c yields / bin width'
+yRANGE:
+  - 1e-4
+  - 1e7
+ySCALE: log
+plotables:
+  - type: TH1F
+    objname: bin00_xsC
+    file: merging_binning_result.datafit_LCB.root
+    label: 'barrel $\gamma$ barrel jet'
+    plotstyle: square2
+    legorder:  0
+  - type: TH1F
+    objname: bin10_xsC
+    file: merging_binning_result.datafit_LCB.root
+    label: 'endcap $\gamma$ barrel jet'
+    plotstyle: square3
+    legorder:  9
+  - type: TH1F
+    objname: bin01_xsC
+    file: merging_binning_result.datafit_LCB.root
+    label: 'barrel $\gamma$ endcap jet'
+    plotstyle: diamond2
+    legorder:  2
+  - type: TH1F
+    objname: bin11_xsC
+    file: merging_binning_result.datafit_LCB.root
+    label: 'endcap $\gamma$ endcap jet'
+    plotstyle: diamond3
+    legorder:  3

@@ -93,16 +93,12 @@ test1mc:
 	make run1 iFILE=root://cmsxrootd.fnal.gov///store/mc/Run3Summer22EENanoAODv12/G-4Jets_HT-100to200_TuneCP5_13p6TeV_madgraphMLM-pythia8/NANOAODSIM/130X_mcRun3_2022_realistic_postEE_v6-v2/2520000/0e2f021e-c9b5-4d73-a9d7-289f57f29506.root oFILE=out1_mctest.root
 
 
-run2: $(TARGET_2) # run EstimateSR.C executable. [tag=QCD2000]
+run2: $(TARGET_2) ## run EstimateSR.C executable. [tag=QCD2000]
 	$(call check_defined, tag)
-	echo this feature moved to another functio. Please not to use this executable.
-	exit
 	./$(TARGET_2) $(tag)
 
 
-test: $(TARGET_2) # test
-	echo this feature moved to another functio. Please not to use this executable.
-	exit
+test: $(TARGET_2) ## test
 	./$(TARGET_2) /Users/noises/Downloads/outFile_ZJetMC_DYto2L2Jets_MLL50_PTLL200to400_1J_2.root
 
 clean:
@@ -111,7 +107,8 @@ clean:
 
 IN_ARGS = [opts]
 
-
+helpOLD:  ## Display this help
+	@awk 'BEGIN {FS = ":.*##"; printf "Usage: make \033[32m<command>\033[0m $(IN_ARGS)\n\nCommands:\n\033[36m\033[0m\n"} /^[0-9a-zA-Z_-]+:.*?##/ { printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2 } /^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } ' $(MAKEFILE_LIST)
 help:  ## Display this help
 	@awk 'BEGIN {FS = ":.*##"; printf "Usage: make \033[32m<command>\033[0m $(IN_ARGS)\n\nCommands:\n\033[36m\033[0m\n"} \
 	/^[0-9a-zA-Z_-]+:.*?##/ { gsub(/\\n/, "\n                   "); printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2 } \

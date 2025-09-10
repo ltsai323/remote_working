@@ -1,0 +1,34 @@
+figNAME: 'h_psuedofit_truth_sigONLY.pdf'
+upperpad:
+  xLABEL: ''
+  yLABEL: 'Entries'
+ #yRANGE:
+ #  - 1e-1
+ #  - 1e8
+  ySCALE: linear
+  plotables:
+    # the foramt is controlled in each DrawObj.py
+    - type: TextLabelTH1F
+      objname: truthinfo_sigONLY
+      file: compare_truth_and_fit_value.root
+      label: truth
+      plotstyle: nostackb0
+    - type: TextLabelTH1F
+      objname: fitinfo_sigONLY
+      file: compare_truth_and_fit_value.root
+      label: fit
+      plotstyle: nostackb1
+
+lowerpad:
+  xLABEL: 'fit info'
+  yLABEL: 'Fit / Truth'
+  yRANGE:
+    - 0.6
+    - 1.4
+  # the foramt is controlled in each DrawObj.py
+  plotables:
+    - type: TextLabelTGraphAsymmError
+      objname: ratioinfo_sigONLY
+      file: compare_truth_and_fit_value.root
+      label: 'ratio'
+      plotstyle: data

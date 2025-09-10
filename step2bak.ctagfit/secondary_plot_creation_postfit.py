@@ -28,7 +28,8 @@ def save_histograms_from_folder(input_file_name):
         # Check if the object is a directory (folder)
         if isinstance(obj, ROOT.TDirectory):
             folder_name = obj.GetName()
-            output_file_name = f"postfit.{folder_name}.root"
+            #output_file_name = f"postfit.{folder_name}.root"
+            output_file_name = input_file_name.replace(".root", f".{folder_name}.root")
 
             # Create a new ROOT file for the current folder's histograms
             output_file = ROOT.TFile.Open(output_file_name, "RECREATE")

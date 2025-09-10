@@ -1,0 +1,16 @@
+imax    1
+jmax    *
+kmax    *
+--------------------------------------------------------------------------------
+shapes * {channel} {iFILE} $CHANNEL/$PROCESS
+--------------------------------------------------------------------------------
+bin          {channel}
+observation  {hDATA.Integral()}
+--------------------------------------------------------------------------------
+bin        {channel}    {channel}
+process    fake         gjet
+process     1           -1
+rate        1            1
+--------------------------------------------------------------------------------
+numSIGN rateParam * gjet {0.8*hDATA.Integral():.0f} [{0.2*hDATA.Integral():.1f},{hDATA.Integral():.1f}]
+numFAKE rateParam * fake ({hDATA.Integral():.1f}-@0) numSIGN

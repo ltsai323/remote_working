@@ -8,11 +8,12 @@ outputBASH:       psuedofit_datacard.defaultValue.sh
 load_data:
     hDATA:
         name: data_obs
-        histSOURCE: data_gjet_cvsl_0
+        histSOURCE: data_gjet_cvsl
         normalize: -1
     hFAKE:
         name: fake
-        histSOURCE: fake_gjet_cvsl_0
+       #histSOURCE: fake_gjet_cvsl_1
+        histSOURCE: truthfake_cvsl
         normalize: -1
     hLjet:
         name: Ljet
@@ -26,11 +27,28 @@ load_data:
         name: Bjet
         histSOURCE: sigB_gjet_cvsl
         normalize: 1
+    hTruthL:
+        name: truthL
+        histSOURCE: truthL_gjet_cvsl
+        normalize: -1
+    hTruthC:
+        name: truthC
+        histSOURCE: truthC_gjet_cvsl
+        normalize: -1
+    hTruthB:
+        name: truthB
+        histSOURCE: truthB_gjet_cvsl
+        normalize: -1
+    hTruthFAKE:
+        name: truthF
+        histSOURCE: truthfake_cvsl
+       #histSOURCE: fake_gjet_cvsl_1
+        normalize: -1
 
 truth_info:
   Ljet: truthL_gjet_cvsl
   Cjet: truthC_gjet_cvsl
   Bjet: truthB_gjet_cvsl
- #fake: fake_gjet_cvsl_0
+ #fake: fake_gjet_cvsl_1
 fit_info:
   file: postfit.cvsl_postfit.root # postfit.{channel}_postfit.root

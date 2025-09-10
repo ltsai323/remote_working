@@ -7,13 +7,16 @@ def get_range_blah(varNAME, values):
     val_value = int(values['value'])
     val_error = int(values['error'])
 
-    valL1 = val_value / 2 if val_value > 500 else 0
+    valL1 = val_value / 2
     valL2 = abs(val_value - val_error * 4)
     valL = valL1 if valL1 < valL2 else valL2
+
     valR1 = val_value * 2
     valR2 = val_value + val_error * 4
     valR = valR1 if valR1 > valR2 else valR2
 
+    if valL < 500: valL = 0
+    if valR < 500: valR = 500
     return { f'{varNAME}_rangeL': valL,  f'{varNAME}_rangeR': valR, f'{varNAME}_central': val_value }
 def get_range_plusminus3sigma(varNAME, values):
     val_value = int(values['value'])
