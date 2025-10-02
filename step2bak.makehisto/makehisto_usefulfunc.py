@@ -8,6 +8,7 @@
 #    return df.Filter( '&&'.join([phoEtaCut,jetEtaCut, phoPtCut]) )
 
 import ROOT
+from array import array
 
 
 class UsedDataFrames:
@@ -17,10 +18,10 @@ class UsedDataFrames:
                  fakeFILE,
                  sidebandFILE,
                  ):
-        self.dfSR = ROOT.RDataFrame('tree',dataFILE)
-        self.dfsign = ROOT.RDataFrame('tree', signFILE)
-        self.dffake = ROOT.RDataFrame('tree', fakeFILE)
-        self.dfSB = ROOT.RDataFrame('tree', sidebandFILE)
+        self.dfSR = ROOT.RDataFrame('tree',dataFILE) if dataFILE else None
+        self.dfsign = ROOT.RDataFrame('tree', signFILE) if signFILE else None
+        self.dffake = ROOT.RDataFrame('tree', fakeFILE) if fakeFILE else None
+        self.dfSB = ROOT.RDataFrame('tree', sidebandFILE) if sidebandFILE else None
 
 
 
@@ -32,33 +33,42 @@ class histCollection:
                       writeOVERFLOWbin = False,
                       ):
 
+        get_x_point = lambda h, binidx: h.GetBinLowEdge(binidx)
+        ## use 5 width as overflow bin and underflow bin
+        get_x_underflow = lambda h: [ h.GetBinLowEdge(1-5) ]
+        get_x_overflow = lambda h: [ h.GetBinLowEdge(h.GetNbinsX()+1), h.GetBinLowEdge(h.GetNbinsX()+1+5) ]
         for hname, hinst in vars(self).items():
-            if writeOVERFLOWbin:
-                max_bin = hinst.GetNbinsX()
-                hinst.SetBinContent(1, hinst.GetBinContent(0) + hinst.GetBinContent(1) )
-                hinst.SetBinContent(max_bin, hinst.GetBinContent(max_bin) + hinst.GetBinContent(max_bin+1) )
+            h = hinst
 
-                hinst.SetBinContent(0, 0)
-                hinst.SetBinContent(max_bin+1, 0)
+            if writeOVERFLOWbin:
+                #max_bin = hinst.GetNbinsX()
+                #hinst.SetBinContent(1, hinst.GetBinContent(0) + hinst.GetBinContent(1) )
+                #hinst.SetBinContent(max_bin, hinst.GetBinContent(max_bin) + hinst.GetBinContent(max_bin+1) )
+
+                #hinst.SetBinContent(0, 0)
+                #hinst.SetBinContent(max_bin+1, 0)
+
+                
+                new_array = []
+                new_array.extend( get_x_underflow(hinst) )
+                new_array.extend( [get_x_point(hinst,idx+1) for idx in range(hinst.GetNbinsX())] ) ## add 1 additional bin in range to get full size of arary
+                new_array.extend( get_x_overflow(hinst) )
+
+                h = ROOT.TH1F( hinst.GetName(), hinst.GetTitle(), len(new_array)-1, array('d',new_array) )
+                
+                for binidx in range( hinst.GetNbinsX() + 2 ): ## binidx from 0 ~ NbinsX+1, 0:underflow, 1~NbinsX: binIdx, NbinsX+1: overflowbin
+                    h.SetBinContent(binidx+1, hinst.GetBinContent(binidx))
+                    h.SetBinError  (binidx+1, hinst.GetBinError  (binidx))
+
 
             if writeNORMALIZEDhist:
-                norm_name = hinst.GetName() + "_norm"
-                hnorm = hinst.Clone(norm_name)
+                norm_name = h.GetName() + "_norm"
+                hnorm = h.Clone(norm_name)
                 hnorm.Scale(1./hnorm.Integral())
-                setattr(self, hname+"_norm", hnorm)
+                #setattr(self, hname+"_norm", hnorm)
+                hnorm.Write()
 
-
-        #fOUT.cd()
-        base_dir = fOUT
-        no_evt_dir = fOUT.GetDirectory("NO_EVT_WEIGHT")
-        no_evt_dir = no_evt_dir if no_evt_dir else fOUT.mkdir("NO_EVT_WEIGHT")
-        for hname, hinst in vars(self).items():
-            if '_NO_EVT_WEIGHT' in hinst.GetName():
-                no_evt_dir.cd()
-            else:
-                base_dir.cd()
-
-            hinst.Write()
+            h.Write()
 
 
 

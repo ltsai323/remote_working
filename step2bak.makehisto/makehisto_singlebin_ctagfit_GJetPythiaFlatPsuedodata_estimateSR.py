@@ -13,7 +13,7 @@ def variant_bins( *newBINNINGs ):
     for iBIN, newBINNING in enumerate(newBINNINGs):
         nbins, xmin, xmax = newBINNING
         xstep = (xmax-xmin) / float(nbins)
-        
+
         new_arr = numpy.arange(xmin,xmax,step=xstep)
         if outARR is None:
             outARR = new_arr
@@ -24,16 +24,7 @@ def variant_bins( *newBINNINGs ):
     outARR = numpy.append(outARR, 1.0) # append last bin
 
     return outARR
-        
-bin_btag = variant_bins( [ 7,0,0.3], [ 3,0.3,0.9], [ 5,0.9,1.0] )
-bin_cvsb = variant_bins( [ 5,0,0.1], [ 3,0.1,0.7], [ 7,0.7,1.0] )
-bin_cvsl = variant_bins( [ 7,0,0.3], [ 3,0.3,0.9], [ 5,0.9,1.0] )
-frag.hbtag = lambda tag: ( f'{tag}_btag', 'b tag score', len(bin_btag)-1, bin_btag)
-frag.hcvsb = lambda tag: ( f'{tag}_cvsb', 'c vs b'     , len(bin_cvsb)-1, bin_cvsb)
-frag.hcvsl = lambda tag: ( f'{tag}_cvsl', 'c vs l'     , len(bin_cvsl)-1, bin_cvsl)
-#frag.hbtag = lambda tag: ( f'{tag}_btag', 'b tag score', 40,0,1)
-#frag.hcvsb = lambda tag: ( f'{tag}_cvsb', 'c vs b'     , 40,0,1)
-#frag.hcvsl = lambda tag: ( f'{tag}_cvsl', 'c vs l'     , 40,0,1)
+
 import makehisto_ctagfit_estimateSR as content
 import makehisto_GJetPythiaFlatPsuedodata_ctagfit_estimateSR as content_psuedo
 from makehisto_usefulfunc import CreateJetPtSF_toTH1, UpdateEvtWeight_ReweightJetPtFromGJetandQCD, UpdateEvtWeight_ReweightJetPtFromGJet, LoadAdditionalFunc
@@ -41,10 +32,6 @@ import ROOT
 #DATA_LUMINOSITY = 26.81
 DATA_LUMINOSITY = 27.01
 
-bin2D_cvsb = variant_bins( [ 2,0,0.1], [ 1,0.1,0.7], [ 3,0.7,1.0] )
-bin2D_cvsl = variant_bins( [ 3,0,0.3], [ 1,0.3,0.9], [ 2,0.9,1.0] )
-#frag.h2DcvsbANDcvsl = lambda tag: (f'{tag}_cvsbANDcvsl', 'X(cvsb) Y(cvsl)', 5,0,1, 5,0,1)
-frag.h2DcvsbANDcvsl = lambda tag: (f'{tag}_cvsbANDcvsl', 'X(cvsb) Y(cvsl)', len(bin2D_cvsb)-1, bin2D_cvsb, len(bin2D_cvsl)-1, bin2D_cvsl)
 
 
 def mainfunc(
@@ -54,18 +41,22 @@ def mainfunc(
         defFUNC:dict,
         outFILEname
         ):
+    ### normal situation
+   #cut_func = {
+   #        'data': lambda df: df.Filter(f'{binningSTR} && 1'),
+   #        'sign': lambda df: df.Filter(f'{binningSTR} && 1'),
+   #        'fake': lambda df: df.Filter(f'{binningSTR} && 1'),
+   #        'side': lambda df: df.Filter(f'{binningSTRsideband} && 1'),
+   #}
+
+    ### use QCD as fake data now
     cut_func = {
-            'data': lambda df: df.Filter(f'{binningSTR} && 1'),
+            'data': lambda df: df.Filter(f'{binningSTR} && wgt!=0 && wgt < 5'),
             'sign': lambda df: df.Filter(f'{binningSTR} && 1'),
             'fake': lambda df: df.Filter(f'{binningSTR} && 1'),
             'side': lambda df: df.Filter(f'{binningSTRsideband} && 1'),
     }
-    #def_func = {
-    #        'data': lambda df: df.Define('event_weight',f"wgt * {DATA_LUMINOSITY}"),
-    #        'sign': lambda df: df.Define('event_weight',f"wgt * {DATA_LUMINOSITY}"), # gen weight, xs norm, PU weight, photon SF, trigger SF
-    #        'fake': lambda df: df.Define('event_weight',f"wgt * {DATA_LUMINOSITY}"), # gen weight, xs norm, PU weight, photon SF, trigger SF
-    #        'side': lambda df: df.Define('event_weight','1'),
-    #}
+
     used_df = content.define_and_filter(usedDFs, dfCUTfuncs = cut_func, dfDEFfuncs = defFUNC)
 
     ### update photon pt and jet pt region for jetpt reweight SF and kinematics plots
@@ -219,6 +210,24 @@ def mainfunc_gjet_singlebin( outFILEname, inFILEdict:dict, defineWEIGHT:dict, pE
             )
 
 if __name__ == "__main__":
+   #bin_btag = variant_bins( [ 7,0,0.3], [ 3,0.3,0.9], [ 5,0.9,1.0] )
+   #bin_cvsb = variant_bins( [ 5,0,0.1], [ 3,0.1,0.7], [ 6,0.7,0.85], [1,0.85,1.0] )
+   #bin_cvsl = variant_bins( [ 7,0,0.3], [ 3,0.3,0.9], [ 5,0.9,1.0] )
+   #frag.hbtag = lambda tag: ( f'{tag}_btag', 'b tag score', len(bin_btag)-1, bin_btag)
+   #frag.hcvsb = lambda tag: ( f'{tag}_cvsb', 'c vs b'     , len(bin_cvsb)-1, bin_cvsb)
+   #frag.hcvsl = lambda tag: ( f'{tag}_cvsl', 'c vs l'     , len(bin_cvsl)-1, bin_cvsl)
+
+   #bin2D_cvsb = variant_bins( [ 2,0,0.1], [ 1,0.1,0.7], [ 3,0.7,1.0] )
+   #bin2D_cvsl = variant_bins( [ 3,0,0.3], [ 1,0.3,0.9], [ 2,0.9,1.0] )
+   #frag.h2DcvsbANDcvsl = lambda tag: (f'{tag}_cvsbANDcvsl', 'X(cvsb) Y(cvsl)', len(bin2D_cvsb)-1, bin2D_cvsb, len(bin2D_cvsl)-1, bin2D_cvsl)
+
+    frag.hbtag = lambda tag: ( f'{tag}_btag', 'b tag score', 40,0,1)
+    frag.hcvsb = lambda tag: ( f'{tag}_cvsb', 'c vs b'     , 40,0,1)
+    frag.hcvsl = lambda tag: ( f'{tag}_cvsl', 'c vs l'     , 40,0,1)
+   #frag.h2DcvsbANDcvsl = lambda tag: (f'{tag}_cvsbANDcvsl', 'X(cvsb) Y(cvsl)', 5,0,1, 5,0,1)
+    frag.h2DcvsbANDcvsl = lambda tag: (f'{tag}_cvsbANDcvsl', 'X(cvsb) Y(cvsl)',10,0,1,10,0,1)
+
+
     logging.basicConfig(level=logging.DEBUG,
                         format='%(levelname)s - %(message)s',
                         datefmt='%H:%M:%S')
@@ -238,13 +247,28 @@ if __name__ == "__main__":
     #frag.hSVmAll = lambda tag: ( f'{tag}_SVmAll', 'SV mass including -1', 80, -1, 15 )
     #frag.hSVmAct = lambda tag: ( f'{tag}_SVmAct', 'SV mass with SV constructed', 75, 0, 15 )
 
+    inFILEdictORIG = {
+        'sidebandFILE': '/afs/cern.ch/user/l/ltsai/eos_storage/condor_summary/2022EE_GJet/stage2/stage2_GJetDataDataSideband.root',
+        'dataFILE'    :' /afs/cern.ch/user/l/ltsai/eos_storage/condor_summary/2022EE_GJet/stage2/stage2_GJetDataSignalRegion.root',
+       #'dataFILE'    : '/afs/cern.ch/user/l/ltsai/eos_storage/condor_summary/2022EE_GJet/stage2/stage2_GJetMCGJetMadgraph.root',
+        'dataFILE'    : '/afs/cern.ch/user/l/ltsai/eos_storage/condor_summary/2022EE_GJet/stage2/stage2_GJetMCGJeyPythiaFlat.root',
+       #'dataFILE'    : '/afs/cern.ch/user/l/ltsai/eos_storage/condor_summary/2022EE_GJet/stage2/stage2_GJetDataDataSideband.root',
+       #'dataFILE'    : '~/eos_storage/condor_summary/2022EE_GJet/stage2/stage2_QCDMadgraph.allphotonregion.root',
+       #'dataFILE'    : '/afs/cern.ch/user/l/ltsai/eos_storage/condor_summary/2022EE_GJet/stage2/stage2_QCDMadgraph.root',
+       #'signFILE'    : '/afs/cern.ch/user/l/ltsai/eos_storage/condor_summary/2022EE_GJet/stage2/stage2_GJetMCGJeyPythiaFlat.root',
+        'signFILE'    : '/afs/cern.ch/user/l/ltsai/eos_storage/condor_summary/2022EE_GJet/stage2/stage2_GJetMCGJetMadgraph.root',
+        'fakeFILE'    : '/afs/cern.ch/user/l/ltsai/eos_storage/condor_summary/2022EE_GJet/stage2/stage2_QCDMadgraph.root',
+            }
     inFILEdict = {
         'sidebandFILE': '/afs/cern.ch/user/l/ltsai/eos_storage/condor_summary/2022EE_GJet/stage2/stage2_GJetDataDataSideband.root',
        #'dataFILE'    :' /afs/cern.ch/user/l/ltsai/eos_storage/condor_summary/2022EE_GJet/stage2/stage2_GJetDataSignalRegion.root',
-        'dataFILE'    : '/afs/cern.ch/user/l/ltsai/eos_storage/condor_summary/2022EE_GJet/stage2/stage2_GJetMCGJetMadgraph.root',
+       #'dataFILE'    : '/afs/cern.ch/user/l/ltsai/eos_storage/condor_summary/2022EE_GJet/stage2/stage2_GJetMCGJetMadgraph.root',
+        'dataFILE'    : '/afs/cern.ch/user/l/ltsai/eos_storage/condor_summary/2022EE_GJet/stage2/stage2_GJetMCGJeyPythiaFlat.root',
+       #'dataFILE'    : '/afs/cern.ch/user/l/ltsai/eos_storage/condor_summary/2022EE_GJet/stage2/stage2_GJetDataDataSideband.root',
+       #'dataFILE'    : '~/eos_storage/condor_summary/2022EE_GJet/stage2/stage2_QCDMadgraph.allphotonregion.root',
        #'dataFILE'    : '/afs/cern.ch/user/l/ltsai/eos_storage/condor_summary/2022EE_GJet/stage2/stage2_QCDMadgraph.root',
-        'signFILE'    : '/afs/cern.ch/user/l/ltsai/eos_storage/condor_summary/2022EE_GJet/stage2/stage2_GJetMCGJeyPythiaFlat.root',
-       #'signFILE'    : '/afs/cern.ch/user/l/ltsai/eos_storage/condor_summary/2022EE_GJet/stage2/stage2_GJetMCGJetMadgraph.root',
+       #'signFILE'    : '/afs/cern.ch/user/l/ltsai/eos_storage/condor_summary/2022EE_GJet/stage2/stage2_GJetMCGJeyPythiaFlat.root',
+        'signFILE'    : '/afs/cern.ch/user/l/ltsai/eos_storage/condor_summary/2022EE_GJet/stage2/stage2_GJetMCGJetMadgraph.root',
         'fakeFILE'    : '/afs/cern.ch/user/l/ltsai/eos_storage/condor_summary/2022EE_GJet/stage2/stage2_QCDMadgraph.root',
             }
     define_weight = {
@@ -258,4 +282,15 @@ if __name__ == "__main__":
     #mainfunc_gjet_binning(outfile, inFILEdict, define_weight, '1')
     #mainfunc_gjet_binning(outfile, inFILEdict, 'WPb_loose')
 
-    mainfunc_gjet_singlebin(outfile, inFILEdict, define_weight, pETAbin,jETAbin,pPTlow,pPThigh, '1')
+    def cut(*cuts): return '(' + '&&'.join(cuts) + ')'
+    additional_cut = 'selected_jet_idx==0'
+    outfilename = outfile
+    mainfunc_gjet_singlebin(outfilename, inFILEdict, define_weight, pETAbin,jETAbin,pPTlow,pPThigh, cut(additional_cut))
+
+    outfilename = outfile.replace('.root', '.WPbL.root')
+    mainfunc_gjet_singlebin(outfilename, inFILEdict, define_weight, pETAbin,jETAbin,pPTlow,pPThigh, cut('passWPbL',additional_cut))
+
+    outfilename = outfile.replace('.root', '.WPcM.root')
+    mainfunc_gjet_singlebin(outfilename, inFILEdict, define_weight, pETAbin,jETAbin,pPTlow,pPThigh, cut('passWPcM',additional_cut))
+
+    #mainfunc_gjet_singlebin(outfile, inFILEdict, define_weight, pETAbin,jETAbin,pPTlow,pPThigh, 'jet_pt>250')

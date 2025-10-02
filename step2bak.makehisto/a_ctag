@@ -1,0 +1,48 @@
+─ Corrections in file /cvmfs/cms.cern.ch/rsync/cms-nanoAOD/jsonpog-integration/POG/BTV/2022_Summe… ─
+CorrectionSet (schema v2)
+This json file contains the corrections for the deepJet, robustParticleTransformer, particleNet AK4 
+jet taggers for the Run3Summer22EE campaign. Working points for the tagging algorithms are also 
+supplied in this file (wp_values). 
+📂
+├── 📈 deepJet_wp_values (v1)
+│   Working points values of the c-jet discrimination for deepJet in Run3Summer22EE. Important: the 
+│   two axes 'CvB' and 'CvL' are to be used together, e.g. a loose working point is defined as a 
+│   simultaneous cut on both values.
+│   Node counts: Category: 4
+│   ╭─────── ▶ input ────────╮ ╭──── ▶ input ─────╮
+│   │ working_point (string) │ │ axis (string)    │
+│   │ L/M/T                  │ │ CvB/CvL cut      │
+│   │ Values: L, M, T        │ │ Values: CvB, CvL │
+│   ╰────────────────────────╯ ╰──────────────────╯
+│   ╭───────────────────── ◀ output ──────────────────────╮
+│   │ wp (real)                                           │
+│   │ Working point value of the CvL or CvB discriminator │
+│   ╰─────────────────────────────────────────────────────╯
+├── 📈 robustParticleTransformer_wp_values (v1)
+│   Working points values of the c-jet discrimination for robustParticleTransformer in 
+│   Run3Summer22EE. Important: the two axes 'CvB' and 'CvL' are to be used together, e.g. a loose 
+│   working point is defined as a simultaneous cut on both values.
+│   Node counts: Category: 4
+│   ╭─────── ▶ input ────────╮ ╭──── ▶ input ─────╮
+│   │ working_point (string) │ │ axis (string)    │
+│   │ L/M/T                  │ │ CvB/CvL cut      │
+│   │ Values: L, M, T        │ │ Values: CvB, CvL │
+│   ╰────────────────────────╯ ╰──────────────────╯
+│   ╭───────────────────── ◀ output ──────────────────────╮
+│   │ wp (real)                                           │
+│   │ Working point value of the CvL or CvB discriminator │
+│   ╰─────────────────────────────────────────────────────╯
+└── 📈 particleNet_wp_values (v1)
+    Working points values of the c-jet discrimination for particleNet in Run3Summer22EE. Important: 
+    the two axes 'CvB' and 'CvL' are to be used together, e.g. a loose working point is defined as a
+    simultaneous cut on both values.
+    Node counts: Category: 4
+    ╭─────── ▶ input ────────╮ ╭──── ▶ input ─────╮
+    │ working_point (string) │ │ axis (string)    │
+    │ L/M/T                  │ │ CvB/CvL cut      │
+    │ Values: L, M, T        │ │ Values: CvB, CvL │
+    ╰────────────────────────╯ ╰──────────────────╯
+    ╭───────────────────── ◀ output ──────────────────────╮
+    │ wp (real)                                           │
+    │ Working point value of the CvL or CvB discriminator │
+    ╰─────────────────────────────────────────────────────╯

@@ -26,6 +26,10 @@ endef
 
 BINNING_STRS := \
 	9_9_0_9999    \
+	0_0_0_9999    \
+	0_1_0_9999    \
+	1_0_0_9999    \
+	1_1_0_9999    \
 	0_0_1000_1500 \
 	0_0_210_230 \
 	0_0_230_250 \
@@ -112,9 +116,17 @@ linkpsuedodata: ## link another file to makehisto_psuedodata_rescaled.root [root
 	$(call check_defined,root)
 	/bin/rm -f $(linkedfile) ;  ln -s $(root) $(linkedfile)
 
-test_nobinning_psuedodata: singlebin_psuedodata_9_9_0_99999
+test_nobinning_psuedodata: test_nobinning_psuedodata3 ## test psuedodata
+test_nobinning_psuedodata0: singlebin_psuedodata_9_9_0_99999
+test_nobinning_psuedodata3: \
+	singlebin_psuedodata_9_9_210_400 \
+	singlebin_psuedodata_0_0_210_400 \
+	singlebin_psuedodata_0_1_210_400 \
+	singlebin_psuedodata_1_0_210_400 \
+	singlebin_psuedodata_1_1_210_400
+test_nobinning_psuedodata2: singlebin_psuedodata_0_0_250_9999
 test_data: singlebin_data_0_0_600_800
-test: test_nobinning_psuedodata
+test: test_nobinning_psuedodata2
 
 
 

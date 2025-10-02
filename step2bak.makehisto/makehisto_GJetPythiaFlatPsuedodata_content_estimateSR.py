@@ -49,6 +49,7 @@ def update_truth( usedDF: frag.UsedDataFrames, outputFILE, writeOVERFLOWbin=Fals
         hists.truthL_BDTAll = dfTruthL.Histo1D( frag.hBDTAll(names.truthL), 'photon_mva', 'event_weight' )
         hists.truthC_BDTAll = dfTruthC.Histo1D( frag.hBDTAll(names.truthC), 'photon_mva', 'event_weight' )
         hists.truthB_BDTAll = dfTruthB.Histo1D( frag.hBDTAll(names.truthB), 'photon_mva', 'event_weight' )
+        hists.trughSUM_BDTAll = sum_hist(names.truthSUM + '_BDTAll', hists.truthL_BDTAll, hists.truthC_BDTAll, hists.truthB_BDTAll)
 
         hists.truthL_SVmAll = dfTruthL.Histo1D( frag.hSVmAll(names.truthL), 'jet_SVmass', 'event_weight' )
         hists.truthC_SVmAll = dfTruthC.Histo1D( frag.hSVmAll(names.truthC), 'jet_SVmass', 'event_weight' )

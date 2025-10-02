@@ -72,8 +72,6 @@ def update_truth( usedDF: frag.UsedDataFrames, outputFILE):
         hists.truthl_BDTAll = dfTruthL.Histo1D( frag.hBDTAll(names.truthl), 'photon_mva')
         hists.truthc_BDTAll = dfTruthC.Histo1D( frag.hBDTAll(names.truthc), 'photon_mva')
         hists.truthb_BDTAll = dfTruthB.Histo1D( frag.hBDTAll(names.truthb), 'photon_mva')
-        hists.trughSUM_BDTAll = sum_hist(names.truthSUM + '_BDTAll', hists.truthL_BDTAll, hists.truthC_BDTAll, hists.truthB_BDTAll)
-        hists.trughsum_BDTAll = sum_hist(names.truthsum + '_BDTAll', hists.truthl_BDTAll, hists.truthc_BDTAll, hists.truthb_BDTAll)
 
         hists.truthL_btag = dfTruthL.Histo1D( frag.hbtag(names.truthL), 'ParTB', 'event_weight' )
         hists.truthC_btag = dfTruthC.Histo1D( frag.hbtag(names.truthC), 'ParTB', 'event_weight' )
@@ -277,6 +275,90 @@ def update_truth( usedDF: frag.UsedDataFrames, outputFILE):
     hists_fake.WriteAllHists(f_out, writeNORMALIZEDhist = False)
     f_out.Close()
 
+def check_shape(dataFRAME, fOUTname):
+    df = dataFRAME
+    hists = frag.histCollection()
+
+    hists.photon_pt                   = df.Histo1D( ('phopt'        , '',150,   0,1500), 'photon_pt'                  , 'event_weight')
+    hists.photon_eta                  = df.Histo1D( ('phoeta'       , '', 40,-3.5, 3.5), 'photon_eta'                 , 'event_weight')
+    hists.photon_phi                  = df.Histo1D( ('phophi'       , '', 40,-3.5, 3.5), 'photon_phi'                 , 'event_weight')
+    hists.photon_mva                  = df.Histo1D( ('phomva'       , '', 40,   0,   1), 'photon_mva'                 , 'event_weight')
+    hists.photon_sieie                = df.Histo1D( ('phosieie'     , '', 40,   0,0.03), 'photon_sieie'               , 'event_weight')
+    hists.photon_hoe                  = df.Histo1D( ('phohoe'       , '', 40,   0,0.05), 'photon_hoe'                 , 'event_weight')
+    hists.photon_pfChargedIsoWorstVtx = df.Histo1D( ('phochIsoWorst', '', 40,   0,  10), 'photon_pfChargedIsoWorstVtx', 'event_weight')
+    hists.photon_pfChargedIsoPFPV     = df.Histo1D( ('phochIso'     , '', 40,   0,   2), 'photon_pfChargedIsoPFPV'    , 'event_weight')
+    hists.jet_pt                      = df.Histo1D( ('jetpt'        , '',150,   0,1500), 'jet_pt'                     , 'event_weight')
+    hists.jet_eta                     = df.Histo1D( ('jeteta'       , '', 40,-3.5, 3.5), 'jet_eta'                    , 'event_weight')
+    hists.jet_phi                     = df.Histo1D( ('jetphi'       , '', 40,-3.5, 3.5), 'jet_phi'                    , 'event_weight')
+    hists.jet_multiplicity            = df.Histo1D( ('njet'         , '', 15,   0,  15), 'jet_multiplicity'           , 'event_weight')
+    hists.jet_nSV                     = df.Histo1D( ('jetnSV'       , '',  8,   0,   8), 'jet_nSV'                    , 'event_weight')
+    hists.jet_SVmass                  = df.Histo1D( ('jetSVmass'    , '', 40,   0,   5), 'jet_SVmass'                 , 'event_weight')
+    hists.jet_SVpt                    = df.Histo1D( ('jetSVpt'      , '', 80,   0, 800), 'jet_SVpt'                   , 'event_weight')
+    hists.jet_SVdr                    = df.Histo1D( ('jetSVdr'      , '', 40,   0, 0.3), 'jet_SVdr'                   , 'event_weight')
+    hists.jet_SVntracks               = df.Histo1D( ('jetSVntrack'  , '', 18,   0,  18), 'jet_SVntracks'              , 'event_weight')
+    hists.MET                         = df.Histo1D( ('MET'          , '', 40,   0, 500), 'MET'                        , 'event_weight')
+    hists.GenPhoton_pt                = df.Histo1D( ('genphopt'     , '',150,   0,1500), 'GenPhoton_pt'               , 'event_weight')
+    hists.GenPhoton_eta               = df.Histo1D( ('genphoeta'    , '', 40,-3.5, 3.5), 'GenPhoton_eta'              , 'event_weight')
+    hists.GenPhoton_phi               = df.Histo1D( ('genphophi'    , '', 40,-3.5, 3.5), 'GenPhoton_phi'              , 'event_weight')
+    hists.photon_mva_orig             = df.Histo1D( ('phomvaorig'   , '', 40,   0,   1), 'photon_mva_orig'            , 'event_weight')
+    hists.PNetB                       = df.Histo1D( ('PNetB'        , '', 40,   0,   1), 'PNetB'                      , 'event_weight')
+    hists.PNetCvsB                    = df.Histo1D( ('PNetCvsB'     , '', 40,   0,   1), 'PNetCvsB'                   , 'event_weight')
+    hists.PNetCvsL                    = df.Histo1D( ('PNetCvsL'     , '', 40,   0,   1), 'PNetCvsL'                   , 'event_weight')
+    hists.ParTB                       = df.Histo1D( ('ParTB'        , '', 40,   0,   1), 'ParTB'                      , 'event_weight')
+    hists.ParTCvsB                    = df.Histo1D( ('ParTCvsB'     , '', 40,   0,   1), 'ParTCvsB'                   , 'event_weight')
+    hists.ParTCvsL                    = df.Histo1D( ('ParTCvsL'     , '', 40,   0,   1), 'ParTCvsL'                   , 'event_weight')
+    hists.DeepFlavourB                = df.Histo1D( ('DeepFlvrB'    , '', 40,   0,   1), 'DeepFlavourB'               , 'event_weight')
+    hists.DeepFlavourCvsB             = df.Histo1D( ('DeepFlvrCvsB' , '', 40,   0,   1), 'DeepFlavourCvsB'            , 'event_weight')
+    hists.DeepFlavourCvsL             = df.Histo1D( ('DeepFlvrCvsL' , '', 40,   0,   1), 'DeepFlavourCvsL'            , 'event_weight')
+
+
+    log.info(f'[WriteHistToFile] output file {fOUTname}')
+    fOUT = ROOT.TFile(fOUTname, 'recreate')
+    hists.WriteAllHists(fOUT, writeNORMALIZEDhist=False, writeOVERFLOWbin=True)
+    fOUT.Close()
+    log.info(f'[WriteHistToFile] all related histograms written')
+
+def main_function(
+    iFILEmadgraph, iFILEpythia, iFILEfake,
+    oFILEname, additionalCUT=1
+    ):
+
+
+    used_data_frames = frag.UsedDataFrames(
+            sidebandFILE = '/afs/cern.ch/user/l/ltsai/eos_storage/condor_summary/2022EE_GJet/stage2/stage2_GJetMCGJeyPythiaFlat.root',
+            dataFILE = iFILEpythia,
+            signFILE = iFILEmadgraph,
+            fakeFILE = iFILEfake,
+            )
+
+
+    ### define eventweight from MC
+    defineFUNCmc = lambda df: df.Define('event_weight', f'wgt * {DATA_LUMINOSITY}') # gen weight, xs norm, PU weight, photon SF, trigger SF
+    cut_func = {
+            'data': lambda df: df.Filter(additionalCUT),
+            'sign': lambda df: df.Filter(additionalCUT),
+            'fake': lambda df: df.Filter(additionalCUT),
+            'side': lambda df: df,
+    }
+    def_func = {
+            'data': lambda df: df.Define('event_weight',f"wgt * {DATA_LUMINOSITY}"),
+            'sign': lambda df: df.Define('event_weight',f"wgt * {DATA_LUMINOSITY}"), # gen weight, xs norm, PU weight, photon SF, trigger SF
+            'fake': lambda df: df.Define('event_weight',f"wgt * {DATA_LUMINOSITY}"), # gen weight, xs norm, PU weight, photon SF, trigger SF
+            'side': lambda df: df,
+    }
+    used_df = content.define_and_filter(used_data_frames, dfCUTfuncs = cut_func, dfDEFfuncs = def_func)
+    # from makehisto_usefulfunc import CreateJetPtSF_toTH1, UpdateEvtWeight_ReweightJetPtFromGJetandQCD, UpdateEvtWeight_ReweightJetPtFromGJet, LoadAdditionalFunc
+    # CreateJetPtSF_toTH1(used_df, 9,9,99,99)
+
+    # ### update event weight using JetPt-PhoPt-nJet SF
+    # LoadAdditionalFunc()
+    # ddd = UpdateEvtWeight_ReweightJetPtFromGJet(used_df.dfsign,9,9,99,99, makehistoADDITIONALfunctions_LOADED = True) ## update event_weight with jetPtSF
+    # used_df.dfsign = ddd
+
+    check_shape(used_df.dfSR  , 'check.shape.PythiaFlat.root')
+    check_shape(used_df.dfsign, 'check.shape.Madgraph.root')
+
+
 
 
 
@@ -288,60 +370,26 @@ if __name__ == "__main__":
     logging.basicConfig(stream=sys.stdout,level=logLEVEL,
             format='[GJetPythiaFlatPsuedodata_ctagfit_estimateSR] %(levelname)s - %(message)s',
             datefmt='%H:%M:%S')
-    frag.hbtag = lambda tag: ( f'{tag}_btag', 'b tag score', 40, 0.,1.)
-    frag.hcvsb = lambda tag: ( f'{tag}_cvsb', 'c vs b', 40, 0,1.)
-    frag.hcvsl = lambda tag: ( f'{tag}_cvsl', 'c vs l', 40, 0.,1.)
-    frag.h2DcvsbANDcvsl = lambda tag: (f'{tag}_cvsbANDcvsl', 'X(cvsb) Y(cvsl)', 20,0,1, 20,0,1)
-
-    outfile = sys.argv[1] if len(sys.argv) > 1 else 'makehisto_psuedodata_rescaled.root'
-    used_data_frames = frag.UsedDataFrames(
-            sidebandFILE = '/afs/cern.ch/user/l/ltsai/eos_storage/condor_summary/2022EE_GJet/stage2/stage2_GJetDataDataSideband.root',
-            #dataFILE     =' /afs/cern.ch/user/l/ltsai/eos_storage/condor_summary/2022EE_GJet/stage2/stage2_GJetDataSignalRegion.root',
-            signFILE     = '/afs/cern.ch/user/l/ltsai/eos_storage/condor_summary/2022EE_GJet/stage2/stage2_GJetMCGJetMadgraph.root',
-           #signFILE     = '/afs/cern.ch/user/l/ltsai/eos_storage/condor_summary/2022EE_GJet/stage2/stage2_GJetMCGJeyPythiaFlat.root',
-           #dataFILE     = '/afs/cern.ch/user/l/ltsai/eos_storage/condor_summary/2022EE_GJet/stage2/stage2_GJetMCGJeyPythiaFlat.root',
-            dataFILE     = '/eos/home-l/ltsai/eos_storage/condor_summary/2022EE_GJet/stage2_20250722_0826/stage2_QCDMadgraph.allphotonregion.root',
-            fakeFILE     = '/afs/cern.ch/user/l/ltsai/eos_storage/condor_summary/2022EE_GJet/stage2/stage2_QCDMadgraph.root',
-    )
-
-    #### redefine the histogram
-    #frag.hSVmAll = lambda tag: ( f'{tag}_SVmAll', 'SV mass including -1', 80, -1, 15 )
-    #frag.hSVmAct = lambda tag: ( f'{tag}_SVmAct', 'SV mass with SV constructed', 75, 0, 15 )
 
 
+    outfile = 'check.shapes.root'
+    additionalCUT = sys.argv[1]
+
+    ifile_madgraph = '/afs/cern.ch/user/l/ltsai/eos_storage/condor_summary/2022EE_GJet/stage2/stage2_GJetMCGJetMadgraph.root'
+    ifile_pythia   = '/afs/cern.ch/user/l/ltsai/eos_storage/condor_summary/2022EE_GJet/stage2/stage2_GJetMCGJeyPythiaFlat.root'
+    ifile_fake     = '/afs/cern.ch/user/l/ltsai/eos_storage/condor_summary/2022EE_GJet/stage2/stage2_QCDMadgraph.root'
+
+    main_function(ifile_madgraph,ifile_pythia,ifile_fake, outfile,additionalCUT)
+    
 
 
-    binning = 'photon_pt>300&&jet_pt>300'
-    #binning = 'photon_pt>210 && WPb_loose'
-    cut_func = {
-            'data': lambda df: df.Filter(f'{binning} && 1'),
-            'sign': lambda df: df.Filter(f'{binning} && 1'),
-            'fake': lambda df: df.Filter(f'{binning} && 1'),
-            'side': lambda df: df.Filter(f'{binning} && 1'),
-    }
-    def_func = {
-            'data': lambda df: df.Define('event_weight',f"wgt * {DATA_LUMINOSITY}"),
-            'sign': lambda df: df.Define('event_weight',f"wgt * {DATA_LUMINOSITY}"), # gen weight, xs norm, PU weight, photon SF, trigger SF
-            'fake': lambda df: df.Define('event_weight',f"wgt * {DATA_LUMINOSITY}"), # gen weight, xs norm, PU weight, photon SF, trigger SF
-            'side': lambda df: df.Define('event_weight','1'),
-    }
-    used_df = content.define_and_filter(used_data_frames, dfCUTfuncs = cut_func, dfDEFfuncs = def_func)
+    #content.main_content(
+    #    usedDF = used_df,
+    #    outputFILE = outfile
+    #)
+    #update_truth(
+    #        usedDF = used_df,
+    #        outputFILE = outfile
+    #        )
 
-    from makehisto_usefulfunc import CreateJetPtSF_toTH1, UpdateEvtWeight_ReweightJetPtFromGJetandQCD, UpdateEvtWeight_ReweightJetPtFromGJet, LoadAdditionalFunc
-    CreateJetPtSF_toTH1(used_df, 9,9,99,99)
-
-    LoadAdditionalFunc()
-    ddd = UpdateEvtWeight_ReweightJetPtFromGJet(used_df.dfsign,9,9,99,99, makehistoADDITIONALfunctions_LOADED = True) ## update event_weight with jetPtSF
-    used_df.dfsign = ddd
-
-
-    content.main_content(
-        usedDF = used_df,
-        outputFILE = outfile
-    )
-    update_truth(
-            usedDF = used_df,
-            outputFILE = outfile
-            )
-
-    print(f'[OutputFile] {outfile}')
+    #print(f'[OutputFile] {outfile}')

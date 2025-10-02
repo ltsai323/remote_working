@@ -170,9 +170,11 @@ def main_content( usedDF: frag.UsedDataFrames, outputFILE):
             self.sigB = f'sigB_{oTAG}'
             self.fake = f'fake_{oTAG}'
             self.side = f'side_{oTAG}' # data sideband
+            self.gJET = f'gjet_{oTAG}_noweight'
             self.sigl = f'sigL_{oTAG}_noweight'
             self.sigc = f'sigC_{oTAG}_noweight'
             self.sigb = f'sigB_{oTAG}_noweight'
+            self.ogjet = f'gjet_{oTAG}_origweight'
             self.osigl = f'sigL_{oTAG}_origweight'
             self.osigc = f'sigC_{oTAG}_origweight'
             self.osigb = f'sigB_{oTAG}_origweight'
@@ -228,6 +230,7 @@ def main_content( usedDF: frag.UsedDataFrames, outputFILE):
         hists.sigB_BDTAll = dfSigB.Histo1D( frag.hBDTAll(names.sigB), 'photon_mva', 'event_weight' )
         hists.fake_BDTAll = dfFAKE.Histo1D( frag.hBDTAll(names.fake), 'photon_mva', 'event_weight' )
         hists.side_BDTAll = dfSIDE.Histo1D( frag.hBDTAll(names.side), 'photon_mva', 'event_weight' )
+        hists.gJET_BDTAll = dfSIGN.Histo1D( frag.hBDTAll(names.gJET), 'photon_mva')
         hists.sigl_BDTAll = dfSigL.Histo1D( frag.hBDTAll(names.sigl), 'photon_mva')
         hists.sigc_BDTAll = dfSigC.Histo1D( frag.hBDTAll(names.sigc), 'photon_mva')
         hists.sigb_BDTAll = dfSigB.Histo1D( frag.hBDTAll(names.sigb), 'photon_mva')
@@ -238,6 +241,7 @@ def main_content( usedDF: frag.UsedDataFrames, outputFILE):
         hists.sigB_btag = dfSigB.Histo1D( frag.hbtag(names.sigB), 'ParTB', 'event_weight' )
         hists.fake_btag = dfFAKE.Histo1D( frag.hbtag(names.fake), 'ParTB', 'event_weight' )
         hists.side_btag = dfSIDE.Histo1D( frag.hbtag(names.side), 'ParTB', 'event_weight' )
+        hists.gJET_btag = dfSIGN.Histo1D( frag.hbtag(names.gJET), 'ParTB')
         hists.sigl_btag = dfSigL.Histo1D( frag.hbtag(names.sigl), 'ParTB')
         hists.sigc_btag = dfSigC.Histo1D( frag.hbtag(names.sigc), 'ParTB')
         hists.sigb_btag = dfSigB.Histo1D( frag.hbtag(names.sigb), 'ParTB')
@@ -248,6 +252,7 @@ def main_content( usedDF: frag.UsedDataFrames, outputFILE):
         hists.sigB_cvsb = dfSigB.Histo1D( frag.hcvsb(names.sigB), 'ParTCvsB', 'event_weight' )
         hists.fake_cvsb = dfFAKE.Histo1D( frag.hcvsb(names.fake), 'ParTCvsB', 'event_weight' )
         hists.side_cvsb = dfSIDE.Histo1D( frag.hcvsb(names.side), 'ParTCvsB', 'event_weight' )
+        hists.gJET_cvsb = dfSIGN.Histo1D( frag.hcvsb(names.gJET), 'ParTCvsB')
         hists.sigl_cvsb = dfSigL.Histo1D( frag.hcvsb(names.sigl), 'ParTCvsB')
         hists.sigc_cvsb = dfSigC.Histo1D( frag.hcvsb(names.sigc), 'ParTCvsB')
         hists.sigb_cvsb = dfSigB.Histo1D( frag.hcvsb(names.sigb), 'ParTCvsB')
@@ -258,6 +263,7 @@ def main_content( usedDF: frag.UsedDataFrames, outputFILE):
         hists.sigB_cvsl = dfSigB.Histo1D( frag.hcvsl(names.sigB), 'ParTCvsL', 'event_weight' )
         hists.fake_cvsl = dfFAKE.Histo1D( frag.hcvsl(names.fake), 'ParTCvsL', 'event_weight' )
         hists.side_cvsl = dfSIDE.Histo1D( frag.hcvsl(names.side), 'ParTCvsL', 'event_weight' )
+        hists.gJET_cvsl = dfSIGN.Histo1D( frag.hcvsl(names.gJET), 'ParTCvsL')
         hists.sigl_cvsl = dfSigL.Histo1D( frag.hcvsl(names.sigl), 'ParTCvsL')
         hists.sigc_cvsl = dfSigC.Histo1D( frag.hcvsl(names.sigc), 'ParTCvsL')
         hists.sigb_cvsl = dfSigB.Histo1D( frag.hcvsl(names.sigb), 'ParTCvsL')
@@ -269,28 +275,34 @@ def main_content( usedDF: frag.UsedDataFrames, outputFILE):
         hists.sigB2D_ctag = dfSigB.Histo2D( frag.h2DcvsbANDcvsl(names.sigB), 'ParTCvsB', 'ParTCvsL', 'event_weight' )
         hists.fake2D_ctag = dfFAKE.Histo2D( frag.h2DcvsbANDcvsl(names.fake), 'ParTCvsB', 'ParTCvsL', 'event_weight' )
         hists.side2D_ctag = dfSIDE.Histo2D( frag.h2DcvsbANDcvsl(names.side), 'ParTCvsB', 'ParTCvsL', 'event_weight' )
+        hists.gJET2D_ctag = dfSIGN.Histo2D( frag.h2DcvsbANDcvsl(names.gJET), 'ParTCvsB', 'ParTCvsL')
         hists.sigl2D_ctag = dfSigL.Histo2D( frag.h2DcvsbANDcvsl(names.sigl), 'ParTCvsB', 'ParTCvsL')
         hists.sigc2D_ctag = dfSigC.Histo2D( frag.h2DcvsbANDcvsl(names.sigc), 'ParTCvsB', 'ParTCvsL')
         hists.sigb2D_ctag = dfSigB.Histo2D( frag.h2DcvsbANDcvsl(names.sigb), 'ParTCvsB', 'ParTCvsL')
 
         if draw_orig_hist:
+            hists.ogjet_BDTAll = dfSIGN.Histo1D( frag.hBDTAll(names.ogjet), 'photon_mva', 'event_weight_orig')
             hists.osigl_BDTAll = dfSigL.Histo1D( frag.hBDTAll(names.osigl), 'photon_mva', 'event_weight_orig')
             hists.osigc_BDTAll = dfSigC.Histo1D( frag.hBDTAll(names.osigc), 'photon_mva', 'event_weight_orig')
             hists.osigb_BDTAll = dfSigB.Histo1D( frag.hBDTAll(names.osigb), 'photon_mva', 'event_weight_orig')
 
+            hists.ogjet_btag = dfSIGN.Histo1D( frag.hbtag(names.ogjet), 'ParTB', 'event_weight_orig')
             hists.osigl_btag = dfSigL.Histo1D( frag.hbtag(names.osigl), 'ParTB', 'event_weight_orig')
             hists.osigc_btag = dfSigC.Histo1D( frag.hbtag(names.osigc), 'ParTB', 'event_weight_orig')
             hists.osigb_btag = dfSigB.Histo1D( frag.hbtag(names.osigb), 'ParTB', 'event_weight_orig')
 
+            hists.ogjet_cvsb = dfSIGN.Histo1D( frag.hcvsb(names.ogjet), 'ParTCvsB', 'event_weight_orig')
             hists.osigl_cvsb = dfSigL.Histo1D( frag.hcvsb(names.osigl), 'ParTCvsB', 'event_weight_orig')
             hists.osigc_cvsb = dfSigC.Histo1D( frag.hcvsb(names.osigc), 'ParTCvsB', 'event_weight_orig')
             hists.osigb_cvsb = dfSigB.Histo1D( frag.hcvsb(names.osigb), 'ParTCvsB', 'event_weight_orig')
 
+            hists.ogjet_cvsl = dfSIGN.Histo1D( frag.hcvsl(names.ogjet), 'ParTCvsL', 'event_weight_orig')
             hists.osigl_cvsl = dfSigL.Histo1D( frag.hcvsl(names.osigl), 'ParTCvsL', 'event_weight_orig')
             hists.osigc_cvsl = dfSigC.Histo1D( frag.hcvsl(names.osigc), 'ParTCvsL', 'event_weight_orig')
             hists.osigb_cvsl = dfSigB.Histo1D( frag.hcvsl(names.osigb), 'ParTCvsL', 'event_weight_orig')
 
 
+            hists.ogjet2D_ctag = dfSIGN.Histo2D( frag.h2DcvsbANDcvsl(names.ogjet), 'ParTCvsB', 'ParTCvsL', 'event_weight_orig')
             hists.osigl2D_ctag = dfSigL.Histo2D( frag.h2DcvsbANDcvsl(names.osigl), 'ParTCvsB', 'ParTCvsL', 'event_weight_orig')
             hists.osigc2D_ctag = dfSigC.Histo2D( frag.h2DcvsbANDcvsl(names.osigc), 'ParTCvsB', 'ParTCvsL', 'event_weight_orig')
             hists.osigb2D_ctag = dfSigB.Histo2D( frag.h2DcvsbANDcvsl(names.osigb), 'ParTCvsB', 'ParTCvsL', 'event_weight_orig')
