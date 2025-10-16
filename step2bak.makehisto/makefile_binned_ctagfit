@@ -78,7 +78,7 @@ $(oDIR):
 step3_collect_binned_hists: $(oDIR) # collecting root files generated from binned_hastruth_psuedodata [oDIR=makehisto_output]
 	[ "`ls -A $(oDIR)`" ] &&  read -p "Folder '$(oDIR)' existed, do you want to clean up this folder?" && /bin/rm -r $(oDIR)/* || echo Directly put file in folder $(oDIR)
 	mv makehisto_binned*.root $(oDIR)/
-	mv sfhist_jetpt*.root $(oDIR)/
+	mv sfhist_*.root $(oDIR)/
 
 step1_hastruth_psuedodata: # separate jet pt / jet eta binning [oNAME=hiiii.root]
 	$(call check_defined,oNAME)
@@ -117,7 +117,11 @@ linkpsuedodata: ## link another file to makehisto_psuedodata_rescaled.root [root
 	/bin/rm -f $(linkedfile) ;  ln -s $(root) $(linkedfile)
 
 test_nobinning_psuedodata: test_nobinning_psuedodata3 ## test psuedodata
-test_nobinning_psuedodata0: singlebin_psuedodata_9_9_0_99999
+test_nobinning_psuedodata0: \
+	singlebin_psuedodata_0_0_0_99999 \
+	singlebin_psuedodata_0_1_0_99999 \
+	singlebin_psuedodata_1_0_0_99999 \
+	singlebin_psuedodata_1_1_0_99999
 test_nobinning_psuedodata3: \
 	singlebin_psuedodata_9_9_210_400 \
 	singlebin_psuedodata_0_0_210_400 \
@@ -126,7 +130,7 @@ test_nobinning_psuedodata3: \
 	singlebin_psuedodata_1_1_210_400
 test_nobinning_psuedodata2: singlebin_psuedodata_0_0_250_9999
 test_data: singlebin_data_0_0_600_800
-test: test_nobinning_psuedodata2
+test: singlebin_psuedodata_0_1_250_300
 
 
 
